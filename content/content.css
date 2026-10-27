@@ -1,0 +1,123 @@
+/*
+ * TEAR styles, injected into every torn.com page. The restyle is the port of
+ * docs/torn-theme/theme.css (selector choices explained in ui-map.md); values
+ * come from --tear-* properties that content/main.js sets from the profile,
+ * with fallbacks so the defaults show before storage has loaded.
+ */
+
+/* ---- Page-wide background ---- */
+
+body.body {
+  background-color: var(--tear-bg, #1a1a1a) !important;
+}
+
+/* ---- Font family + size: only when the profile overrides them ---- */
+
+/* Legacy pages inherit from <body>; Crimes/React pages set "Fjalla One"
+   deeper in the tree, so the universal selector is needed to win there. */
+html[data-tear-font] body.body,
+html[data-tear-font] body.body * {
+  font-family: var(--tear-font-family) !important;
+}
+
+html[data-tear-size] body.body,
+html[data-tear-size] body.body * {
+  font-size: var(--tear-font-size) !important;
+}
+
+/* ---- Legacy dashboard panels ---- */
+
+.sortable-box .cont-gray {
+  background-color: var(--tear-panel-bg, #2a2a2a) !important;
+  color: var(--tear-text, #ddd) !important;
+}
+
+.sortable-box .title.title-black {
+  background-color: var(--tear-bg, #1a1a1a) !important;
+}
+
+.sortable-box .box-title {
+  color: var(--tear-text, #ddd) !important;
+}
+
+/* ---- React sidebar / header (hashed CSS Modules: substring match) ---- */
+
+[class*="sidebar___"],
+[class*="header___"],
+[class*="userInformation___"],
+[class*="accountLinksWrap___"],
+[class*="areas___"] {
+  background-color: var(--tear-bg, #1a1a1a) !important;
+  color: var(--tear-text, #ddd) !important;
+}
+
+/* ---- Crimes SPA pages ---- */
+
+.crime-root {
+  background-color: var(--tear-bg, #1a1a1a) !important;
+}
+
+[class*="crimeOption___"],
+.virtual-item {
+  background-color: var(--tear-panel-bg, #2a2a2a) !important;
+  color: var(--tear-text, #ddd) !important;
+}
+
+/* ---- Links: Torn leaves these at the browser's #0000EE ---- */
+
+a {
+  color: var(--tear-link, #6cb6ff) !important;
+}
+
+/* ---- Panel show/hide and tab filtering ---- */
+
+[data-tear-hidden],
+[data-tear-tab-hidden] {
+  display: none !important;
+}
+
+/* ---- TEAR's own UI ---- */
+
+.tear-tabbar,
+.tear-navbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  margin-bottom: 8px;
+  background-color: var(--tear-panel-bg, #2a2a2a);
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.tear-navbar {
+  margin: 0 auto;
+  border-radius: 0;
+}
+
+.tear-tabbar button,
+.tear-navbar a {
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--tear-text, #ddd) !important;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tear-tabbar button:hover,
+.tear-navbar a:hover {
+  border-color: var(--tear-link, #6cb6ff);
+}
+
+.tear-tabbar button[aria-selected="true"] {
+  background-color: var(--tear-bg, #1a1a1a);
+  border-color: var(--tear-link, #6cb6ff);
+}
+
+.tear-tabbar button:focus-visible,
+.tear-navbar a:focus-visible {
+  outline: 2px solid var(--tear-link, #6cb6ff);
+  outline-offset: 1px;
+}
