@@ -2,21 +2,21 @@
   "manifest_version": 3,
   "name": "TEAR — Torn Element Arrange & Restyle",
   "short_name": "TEAR",
-  "description": "Restyle and rearrange Torn's interface: colors, fonts, panel order, tabs, quick-nav and profiles. Cosmetic only.",
-  "version": "0.1.0",
+  "description": "Restyle Torn's interface: background, font, and a hand-editable stylesheet. Cosmetic only.",
+  "version": "0.2.0",
   "permissions": ["storage"],
   "host_permissions": ["https://www.torn.com/*"],
+  "background": { "service_worker": "dev-reload.js" },
   "content_scripts": [
     {
       "matches": ["https://www.torn.com/*"],
       "css": ["content/content.css"],
-      "js": ["lib/model.js", "content/panels.js", "content/nav.js", "content/main.js"],
+      "js": ["lib/model.js", "content/main.js"],
       "run_at": "document_idle"
     }
   ],
   "action": {
     "default_title": "TEAR",
     "default_popup": "popup/popup.html"
-  },
-  "options_page": "options/options.html"
+  }
 }
