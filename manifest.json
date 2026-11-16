@@ -18,12 +18,24 @@
       "matches": [
         "https://www.torn.com/*"
       ],
+      "js": [
+        "content/torn-css.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://www.torn.com/*"
+      ],
       "css": [
-        "content/content.css"
+        "content/assets.css",
+        "content/content.css",
+        "content/dock.css"
       ],
       "js": [
         "lib/model.js",
         "content/main.js",
+        "content/panel-styles.js",
         "content/settings.js"
       ],
       "run_at": "document_idle"
@@ -31,15 +43,5 @@
   ],
   "action": {
     "default_title": "TEAR"
-  },
-  "web_accessible_resources": [
-    {
-      "resources": [
-        "content/settings.css"
-      ],
-      "matches": [
-        "https://www.torn.com/*"
-      ]
-    }
-  ]
+  }
 }

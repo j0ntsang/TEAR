@@ -1,0 +1,54 @@
+html:not(.tear-enabled) :is([data-tear-grip], [data-tear-clone]) {
+  display: none !important;
+}
+
+:root {
+  --tear-dock-button: 38px;
+  --tear-chat-bar-h: calc(var(--tear-dock-button) + 5px);
+}
+
+#tear-dock {
+  position: fixed;
+  z-index: 2147482999;
+  left: var(--tear-dock-left, 8px);
+  right: var(--tear-dock-right, auto);
+  bottom: 0;
+  display: flex;
+  gap: 4px;
+}
+
+/* A spacer, not padding: it adds to the room Torn leaves for its chat bar. */
+body.body::after {
+  content: "";
+  display: block;
+  clear: both;
+  height: calc(var(--tear-dock-button) + 8px);
+}
+
+#tear-dock > button {
+  --button: var(--tear-settings-button, #6e3a9c);
+  all: unset;
+  display: grid;
+  place-items: center;
+  width: var(--tear-dock-button);
+  height: var(--tear-dock-button);
+  border-radius: 5px 5px 0 0;
+  background-image: linear-gradient(var(--button), color-mix(in srgb, var(--button), #000 55%));
+  color: #fff;
+  cursor: pointer;
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.25), 0 -2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#tear-dock > [data-tear-info] {
+  --button: var(--tear-info-button, #3d5a73);
+}
+
+#tear-dock > button:hover,
+#tear-dock > button[aria-expanded="true"] {
+  filter: brightness(1.2);
+}
+
+#tear-dock > button:focus-visible {
+  outline: 2px solid var(--tear-link, #93c5fd);
+  outline-offset: 2px;
+}

@@ -1,5 +1,7 @@
-/* The settings panel, inside its shadow root. The host follows Torn's mode (data-mode). */
-
+// The settings and info panels' styles, adopted by their shadow roots: kept in a script so no
+// extension file has to be web-accessible (a page could probe for one to detect TEAR).
+globalThis.TEAR.panelStyles = new CSSStyleSheet();
+TEAR.panelStyles.replaceSync(`
 :host {
   --bg: #f7f7f7;
   --surface: #ffffff;
@@ -11,7 +13,7 @@
   all: initial;
   position: fixed;
   z-index: 2147483000;
-  left: var(--left, 8px);
+  right: var(--right, 8px);
   bottom: var(--bottom, 48px);
   color-scheme: light;
 }
@@ -40,14 +42,42 @@
   border-radius: 8px;
   background: var(--bg);
   color: var(--fg);
-  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font: 13px/1.4 Arial, Helvetica, sans-serif;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
   overflow: hidden;
 }
 
-.panel[hidden],
-[hidden] {
+[hidden]:not(.panel) {
   display: none !important;
+}
+
+.panel {
+  transform-origin: bottom right;
+  transition: opacity 160ms cubic-bezier(0.2, 0.8, 0.2, 1), scale 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    translate 160ms cubic-bezier(0.2, 0.8, 0.2, 1), display 110ms allow-discrete;
+}
+
+.panel[hidden] {
+  display: none;
+  opacity: 0;
+  scale: 0.96;
+  translate: 0 6px;
+  transition-duration: 110ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@starting-style {
+  .panel:not([hidden]) {
+    opacity: 0;
+    scale: 0.96;
+    translate: 0 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    transition: none;
+  }
 }
 
 header {
@@ -204,8 +234,8 @@ input[type="range"] {
 }
 
 .undo {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   padding: 0;
   border: 0;
   border-radius: 4px;
@@ -221,6 +251,25 @@ input[type="range"] {
 .undo:hover {
   background: color-mix(in srgb, var(--fg) 10%, transparent);
   color: var(--fg);
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.check input {
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.check small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .sample {
@@ -251,3 +300,54 @@ footer:has(.reset[hidden]) {
 .reset:hover {
   background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
+
+.panel.info {
+  width: auto;
+  min-width: 11rem;
+  padding: 10px 14px 12px;
+  gap: 2px;
+}
+
+.info p {
+  margin: 0;
+}
+
+.info .label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.info .clock {
+  font-size: 22px;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.info .date {
+  color: var(--muted);
+}
+
+.info .server {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.info .server span {
+  color: var(--fg);
+  font-weight: bold;
+}
+
+.panel.info:focus {
+  outline: none;
+}
+
+.panel.info:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+`);

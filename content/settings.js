@@ -1,4 +1,3 @@
-// The TEAR dock (info and settings buttons, bottom left) and the settings panel.
 // The panel lives in a shadow root so neither Torn's CSS nor TEAR's own reaches it.
 
 (() => {
@@ -10,10 +9,7 @@
   overrides.id = "tear-color-overrides";
 
   function applyTheme() {
-    // Torn's font stacks stay untouched under "Torn default".
-    root.toggleAttribute("data-tear-font", Boolean(theme.fontFamily));
-    root.style.setProperty("--tear-font-family", theme.fontFamily || "initial");
-    overrides.textContent = colorCss(theme.colors);
+    overrides.textContent = colorCss(theme.colors) + (tornCssOff ? tornFallbackCss() : "");
     if (!overrides.isConnected) document.head.append(overrides);
   }
 
@@ -21,7 +17,10 @@
   let saveTimer = 0;
   const saveSoon = () => {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(() => saveTheme(theme), 400);
+    saveTimer = setTimeout(() => {
+      saveTimer = 0;
+      saveTheme(theme);
+    }, 400);
   };
   const update = (next) => {
     theme = normalizeTheme(next);
@@ -42,12 +41,31 @@
     render();
   });
 
-  // ---- Defaults ---------------------------------------------------------
+  let tornCssOff = false;
+  // torn-css.js reloads every Torn tab when this changes.
+  const setTornCssOff = (off) => chrome.storage.local.set({ tornCssOff: off });
+  function syncTornCssOff(off) {
+    tornCssOff = off;
+    applyTheme();
+    render();
+  }
+  chrome.storage.local.get("tornCssOff").then(({ tornCssOff: off = false }) => syncTornCssOff(off));
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && "tornCssOff" in changes) syncTornCssOff(Boolean(changes.tornCssOff.newValue));
+  });
+
+  // Not !important: the user's own colors still win.
+  function tornFallbackCss() {
+    return MODES.map((mode) => {
+      const body = mode === "dark" ? "body.body.dark-mode" : "body.body:not(.dark-mode)";
+      const decls = COLOR_TOKENS.filter((t) => t.torn).map((t) => `${t.prop}: ${defaultColor(t, mode)};`);
+      return `\n${body} { ${decls.join(" ")} }`;
+    }).join("");
+  }
 
   const currentMode = () => (document.body.classList.contains("dark-mode") ? "dark" : "light");
 
-  // Tokens built on Torn's variables only resolve in the mode the page is in, so each
-  // mode's resolved values are remembered for when the panel edits the other one.
+  // Torn-based tokens only resolve in the current mode, so each mode's values are remembered.
   const learned = { light: {}, dark: {} };
   chrome.storage.local.get("tornDefaults").then(({ tornDefaults }) => {
     for (const mode of MODES) Object.assign(learned[mode], tornDefaults?.[mode]);
@@ -67,6 +85,7 @@
   }
 
   function learnDefaults() {
+    if (tornCssOff || root.classList.contains("tear-enabled")) return;
     const mode = currentMode();
     const probe = document.createElement("i");
     probe.hidden = true;
@@ -93,11 +112,6 @@
     const value = theme.colors[mode][token.id];
     return value !== undefined && value !== defaultColor(token, mode);
   };
-
-  // ---- Dock -------------------------------------------------------------
-  // Bottom left, under the sidebar: an info button that pops the sidebar's footer up
-  // like the profile menu, and the settings button on its right. Both copy the look of
-  // Torn's chat-bar buttons.
 
   const SVG = "http://www.w3.org/2000/svg";
   const FOOTER = '[class^="footerMenu___"]';
@@ -136,41 +150,91 @@
     "Info",
     icon("M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm0 1.8a8.2 8.2 0 1 0 0 16.4 8.2 8.2 0 0 0 0-16.4zM13.2 10v7h-2.4v-7zM12 6a1.4 1.4 0 1 1 0 2.8A1.4 1.4 0 0 1 12 6z"),
   );
-  infoButton.setAttribute("aria-haspopup", "true");
+  infoButton.setAttribute("aria-haspopup", "dialog");
 
-  const button = dockButton(
+  const settingsButton = dockButton(
     "data-tear-settings",
     "TEAR settings",
     icon(
       "M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.2 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z",
     ),
   );
-  button.setAttribute("aria-haspopup", "dialog");
+  settingsButton.setAttribute("aria-haspopup", "dialog");
 
-  // Torn's own gear, when its chat bar has one, so the copy matches it exactly.
   function useTornGear() {
     const gear = document.querySelector('#chatRoot button:is([aria-label="Settings"], [title="Settings"]) svg');
-    if (gear && !button.dataset.tearTornGear) {
-      button.replaceChildren(gear.cloneNode(true));
-      button.dataset.tearTornGear = "1";
+    if (gear && !settingsButton.dataset.tearTornGear) {
+      settingsButton.replaceChildren(gear.cloneNode(true));
+      settingsButton.dataset.tearTornGear = "1";
     }
   }
 
-  // The dock lines up with the sidebar's left edge, or the window's on pages without one.
+  const setVar = (name, value) => {
+    if (root.style.getPropertyValue(name) !== value) root.style.setProperty(name, value);
+  };
+
   function placeDock() {
     if (!dock.isConnected) document.body.append(dock);
-    const sidebar = document.querySelector('[class^="sidebar___"][class*=" desktop___"]');
-    const left = sidebar?.getBoundingClientRect().width ? Math.max(8, sidebar.getBoundingClientRect().left) : 8;
-    if (root.style.getPropertyValue("--tear-dock-left") !== `${left}px`) root.style.setProperty("--tear-dock-left", `${left}px`);
-    infoButton.hidden = !document.querySelector(FOOTER);
     useTornGear();
+    const first = [...(document.querySelector("#chatRoot > div > div:last-child")?.children ?? [])].find((c) => c.offsetWidth > 2);
+    if (first) {
+      setVar("--tear-dock-right", `${Math.max(8, innerWidth - first.getBoundingClientRect().left + 2)}px`);
+      setVar("--tear-dock-left", "auto");
+    } else {
+      setVar("--tear-dock-right", "auto");
+      setVar("--tear-dock-left", "8px");
+    }
   }
 
-  // The footer stays where Torn renders it; CSS lifts it out as the popup.
-  const infoOpen = () => root.hasAttribute("data-tear-info-open");
+  // Torn's sidebar footer is desktop-only; this shows the same at every width. Torn City Time is UTC.
+
+  const infoHost = document.createElement("div");
+  infoHost.id = "tear-info-host";
+  const infoShadow = infoHost.attachShadow({ mode: "open" });
+  infoShadow.adoptedStyleSheets = [TEAR.panelStyles];
+  infoShadow.innerHTML = `
+    <section class="panel info" role="dialog" aria-label="Torn City info" tabindex="-1" hidden>
+      <p class="label">Torn City time</p>
+      <p class="clock"><time id="tct"></time></p>
+      <p class="date" id="tct-date"></p>
+      <p class="server">Server <span id="server">–</span></p>
+    </section>`;
+  const infoPanel = infoShadow.querySelector(".panel");
+  const pad = (n) => String(n).padStart(2, "0");
+  const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+  function renderInfo() {
+    const now = new Date();
+    const tct = infoShadow.getElementById("tct");
+    tct.textContent = `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
+    tct.dateTime = now.toISOString();
+    infoShadow.getElementById("tct-date").textContent =
+      `${DAYS[now.getUTCDay()]} ${pad(now.getUTCDate())}/${pad(now.getUTCMonth() + 1)}/${String(now.getUTCFullYear()).slice(2)}`;
+    const footer = document.querySelector(FOOTER)?.textContent.match(/Server:\s*(\S+)/)?.[1];
+    const menu = document.querySelector(".settings-menu .server-link")?.textContent.trim();
+    infoShadow.getElementById("server").textContent = footer || menu || "–";
+  }
+
+  let infoTimer = 0;
+  const infoOpen = () => !infoPanel.hidden;
   function setInfo(open) {
-    root.toggleAttribute("data-tear-info-open", open);
+    if (open === infoOpen()) return;
+    if (open) {
+      if (!infoHost.isConnected) document.body.append(infoHost);
+      const anchor = infoButton.getBoundingClientRect();
+      infoHost.style.setProperty("--right", `${Math.max(8, innerWidth - anchor.right)}px`);
+      infoHost.style.setProperty("--bottom", `${Math.max(8, innerHeight - anchor.top + 6)}px`);
+      infoHost.dataset.mode = document.body.classList.contains("dark-mode") ? "dark" : "light";
+      renderInfo();
+      infoTimer = setInterval(renderInfo, 1000);
+    } else {
+      clearInterval(infoTimer);
+    }
+    const hadFocus = infoShadow.activeElement === infoPanel;
+    infoPanel.hidden = !open;
     infoButton.setAttribute("aria-expanded", String(open));
+    if (open) infoPanel.focus();
+    else if (hadFocus) infoButton.focus();
   }
 
   // Torn's handlers further up the page never see TEAR's own buttons.
@@ -179,13 +243,13 @@
     close();
     setInfo(!infoOpen());
   });
-  button.addEventListener("click", (event) => {
+  settingsButton.addEventListener("click", (event) => {
     event.stopPropagation();
     setInfo(false);
     toggle();
   });
   addEventListener("pointerdown", (event) => {
-    if (infoOpen() && !event.composedPath().some((el) => el === infoButton || el.matches?.(FOOTER))) setInfo(false);
+    if (infoOpen() && !event.composedPath().some((el) => el === infoButton || el === infoHost)) setInfo(false);
   });
   addEventListener("keydown", (event) => {
     if (event.key === "Escape" && infoOpen()) {
@@ -204,13 +268,11 @@
   addEventListener("resize", placeDock);
   placeDock();
 
-  // ---- Panel ------------------------------------------------------------
-
   const host = document.createElement("div");
   host.id = "tear-settings-host";
   const shadow = host.attachShadow({ mode: "open" });
+  shadow.adoptedStyleSheets = [TEAR.panelStyles];
   shadow.innerHTML = `
-    <link rel="stylesheet" href="${chrome.runtime.getURL("content/settings.css")}">
     <section class="panel" role="dialog" aria-label="TEAR settings" hidden>
       <header>
         <h2>TEAR</h2>
@@ -219,6 +281,7 @@
       <div class="tabs" role="tablist" aria-label="Settings">
         <button type="button" role="tab" id="tab-colors" aria-controls="pane-colors">Colors</button>
         <button type="button" role="tab" id="tab-type" aria-controls="pane-type">Typography</button>
+        <button type="button" role="tab" id="tab-dev" aria-controls="pane-dev">Dev</button>
       </div>
       <div class="pane" role="tabpanel" id="pane-colors" aria-labelledby="tab-colors">
         <label class="field mode">
@@ -237,6 +300,14 @@
         </label>
         <p class="sample" id="sample">The quick brown fox — 1,234,567</p>
       </div>
+      <div class="pane" role="tabpanel" id="pane-dev" aria-labelledby="tab-dev">
+        <label class="check">
+          <input type="checkbox" id="css-off">
+          <span>Disable Torn's CSS
+            <small>Switches off every stylesheet Torn loads, so only TEAR's styles apply. Torn's layout goes with it. This browser only.</small>
+          </span>
+        </label>
+      </div>
       <footer>
         <button type="button" class="reset" id="reset">Reset to default</button>
       </footer>
@@ -250,9 +321,9 @@
   fontSelect.append(...FONTS.map(({ label, value }) => new Option(label, value)));
 
   let activeTab = "tab-colors";
+  const cssOff = $("#css-off");
   let editMode = currentMode();
 
-  // Rows are built once; render() only refreshes their values.
   const rows = new Map();
   let group = "";
   for (const token of COLOR_TOKENS) {
@@ -306,13 +377,16 @@
     fontSelect.value = theme.fontFamily;
     $("#sample").style.fontFamily = theme.fontFamily || "inherit";
 
+    cssOff.checked = tornCssOff;
+
     const resetButton = $("#reset");
-    const changed =
-      activeTab === "tab-colors"
-        ? COLOR_TOKENS.some((t) => isChanged(t, editMode))
-        : theme.fontFamily !== DEFAULT_THEME.fontFamily;
-    resetButton.hidden = !changed;
-    resetButton.textContent = activeTab === "tab-colors" ? `Reset ${editMode} colors to default` : "Reset font to default";
+    const view = {
+      "tab-colors": [COLOR_TOKENS.some((t) => isChanged(t, editMode)), `Reset ${editMode} colors to default`],
+      "tab-type": [theme.fontFamily !== DEFAULT_THEME.fontFamily, "Reset font to default"],
+      "tab-dev": [tornCssOff, "Reset dev options"],
+    }[activeTab];
+    resetButton.hidden = !view[0];
+    resetButton.textContent = view[1];
     host.dataset.mode = currentMode();
   }
 
@@ -335,22 +409,24 @@
     render();
   });
   fontSelect.addEventListener("change", () => update({ ...theme, fontFamily: fontSelect.value }));
+  cssOff.addEventListener("change", () => setTornCssOff(cssOff.checked));
   $("#reset").addEventListener("click", () => {
     if (activeTab === "tab-colors") update({ ...theme, colors: { ...theme.colors, [editMode]: {} } });
-    else update({ ...theme, fontFamily: DEFAULT_THEME.fontFamily });
+    else if (activeTab === "tab-type") update({ ...theme, fontFamily: DEFAULT_THEME.fontFamily });
+    else setTornCssOff(false);
   });
 
   function position() {
-    const anchor = button.getBoundingClientRect();
+    const anchor = settingsButton.getBoundingClientRect();
     host.style.setProperty("--bottom", `${Math.max(8, innerHeight - anchor.top + 6)}px`);
-    host.style.setProperty("--left", `${Math.max(8, anchor.left)}px`);
+    host.style.setProperty("--right", `${Math.max(8, innerWidth - anchor.right)}px`);
   }
 
   function open() {
     if (!host.isConnected) document.body.append(host);
     editMode = currentMode();
     panel.hidden = false;
-    button.setAttribute("aria-expanded", "true");
+    settingsButton.setAttribute("aria-expanded", "true");
     position();
     render();
     shadow.getElementById(activeTab).focus();
@@ -359,8 +435,8 @@
   function close() {
     if (panel.hidden) return;
     panel.hidden = true;
-    button.setAttribute("aria-expanded", "false");
-    if (shadow.activeElement) button.focus();
+    settingsButton.setAttribute("aria-expanded", "false");
+    if (shadow.activeElement) settingsButton.focus();
   }
 
   const toggle = () => (panel.hidden ? open() : close());
@@ -370,7 +446,7 @@
     if (event.key === "Escape") close();
   });
   addEventListener("pointerdown", (event) => {
-    if (!panel.hidden && !event.composedPath().some((el) => el === host || el === button)) close();
+    if (!panel.hidden && !event.composedPath().some((el) => el === host || el === settingsButton)) close();
   });
   addEventListener("resize", () => panel.hidden || position());
 })();

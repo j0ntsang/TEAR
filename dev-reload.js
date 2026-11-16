@@ -3,10 +3,13 @@
 
 const WATCHED = [
   "manifest.json",
+  "content/assets.css",
   "content/content.css",
+  "content/dock.css",
   "content/main.js",
-  "content/settings.css",
+  "content/panel-styles.js",
   "content/settings.js",
+  "content/torn-css.js",
   "lib/model.js",
 ];
 

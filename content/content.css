@@ -1,9 +1,35 @@
-/* Torn's selectors are specific: write declarations with !important. Hooks from
-   content/main.js: html[data-tear-page|route], [data-tear-panel|ring|stat|label], --tear-pct, --tear-len. */
 
+@property --tear-pct {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --tear-timer {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@keyframes ticker-blink {
+  50% {
+    background:
+      radial-gradient(circle at 0.75rem 50%, transparent 3px, transparent 3.5px),
+      var(--tear-live);
+  }
+}
+
+@keyframes scroll-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Gate: content/torn-css.js sets .tear-enabled only while Torn's CSS is off, so
+   nothing here overrides Torn and nothing needs !important. */
+
+html.tear-enabled {
 body {
-  /* --tear-font-family and color overrides come from the settings panel (content/settings.js). */
-  /* Torn's theme variables flip on body.dark-mode, so these must live on body, not :root. */
+  /* Torn flips its theme variables on body.dark-mode, so these must live on body, not :root. */
   --tear-surface: var(--default-bg-panel-color, #f2f2f2);
   --tear-surface-sunk: var(--default-panel-divider-outer-side-color, #ccc);
   --tear-text: var(--default-full-text-color, #333);
@@ -16,16 +42,16 @@ body {
   --tear-groove-light: rgba(255, 255, 255, 0.9);
   --tear-label: color-mix(in srgb, var(--tear-text) 85%, transparent);
   --tear-ring-shade: #000 8%;   /* just enough for pale yellow to read on light panels */
-  --tear-lcd-bg: color-mix(in srgb, var(--tear-surface), var(--tear-surface-sunk) 30%); /* neutral, no green */
+  --tear-lcd-bg: color-mix(in srgb, var(--tear-surface), var(--tear-surface-sunk) 30%);
   --tear-lcd-mix: #000 30%;
   --tear-lcd-bezel: rgba(0, 0, 0, 0.15);
-  --tear-lcd-glow: 0 0 0; /* no glow, but still a valid shadow */
+  --tear-lcd-glow: 0 0 0;
 
   --tear-surface-dim: color-mix(in srgb, var(--tear-surface), var(--tear-surface-sunk) 50%);
   --tear-surface-hover: color-mix(in srgb, var(--tear-surface), var(--tear-surface-sunk) 25%);
   --tear-overlay: color-mix(in srgb, var(--tear-text) 5%, transparent);
   --tear-line: color-mix(in srgb, var(--tear-text) 15%, transparent);
-  --tear-divider: color-mix(in srgb, var(--tear-text) 8%, transparent); /* rows, menu dividers */
+  --tear-divider: color-mix(in srgb, var(--tear-text) 8%, transparent);
   --tear-muted: color-mix(in srgb, var(--tear-text) 65%, transparent);
 
   --tear-accent: var(--tear-link);
@@ -55,13 +81,12 @@ body {
   --tear-fs-title: 1.125rem;
   --tear-fs-display: 1.5rem;
 
-  /* Shrink-to-fit width per character, measured in Torn's font: raise it for a wider custom font. */
+  /* Per-character widths for shrink-to-fit text, measured in Torn's font. */
   --tear-char-em: 0.52;
   --tear-char-em-mono: 0.62;
-  --tear-timer-color: var(--tear-text); /* countdown rings */
+  --tear-timer-color: var(--tear-text);
 }
 
-/* Values Torn has no theme variable for, or where TEAR's dark look differs from Torn's. */
 body.dark-mode {
   --tear-panel-bg: #2a2a2a;
   --tear-text: #ddd;
@@ -80,264 +105,132 @@ body.dark-mode {
 }
 
 body.body {
-  background-color: var(--tear-bg, #1a1a1a) !important;
+  background-color: var(--tear-bg, #1a1a1a);
 }
 
-/* Crimes sets its font deeper in the tree, so the universal selector is needed. */
-html[data-tear-font] body.body,
-html[data-tear-font] body.body * {
-  font-family: var(--tear-font-family) !important;
-}
-
-body.body.dark-mode {
-}
-
-/* main.js tags the links Torn draws in blue (data-tear-link="1"). */
-[data-tear-link="1"] {
-  color: var(--tear-link) !important;
-}
-
-[data-tear-link="1"]:hover {
-  text-decoration: underline !important;
-}
 
 a:focus-visible {
-  outline: 2px solid var(--tear-link) !important;
+  outline: 2px solid var(--tear-link);
   outline-offset: 2px;
 }
 
-#header-root {
-}
 
-#topHeaderBanner {
-}
 
-/* The page background only repaints Torn's chrome in dark mode; light mode keeps Torn's. */
 body.dark-mode [class*="header___"] {
-  background-color: var(--tear-bg, #1a1a1a) !important;
-  color: var(--tear-text) !important;
+  background-color: var(--tear-bg, #1a1a1a);
+  color: var(--tear-text);
 }
 
 #sidebarroot,
-#sidebar {
-}
 
-/* The sidebar shows the page background through, in both themes. */
 [class*="sidebar___"],
 [class*="userInformation___"],
 [class*="areas___"],
 [class*="accountLinksWrap___"] {
-  background-color: transparent !important;
+  background-color: transparent;
 }
 
 body.dark-mode [class*="sidebar___"] {
-  color: var(--tear-text) !important;
+  color: var(--tear-text);
 }
 
 body.dark-mode [class*="userInformation___"] {
-  color: var(--tear-text) !important;
+  color: var(--tear-text);
 }
 
 body.dark-mode [class*="areas___"] {
-  color: var(--tear-text) !important;
+  color: var(--tear-text);
 }
 
 body.dark-mode [class*="accountLinksWrap___"] {
-  color: var(--tear-text) !important;
-}
-
-#mainContainer {
-}
-
-#chatRoot {
-}
-
-#react-profile-mini-root {
+  color: var(--tear-text);
 }
 
 
-.sortable-box {
-}
+
+
 
 body.dark-mode .sortable-box .title.title-black {
-  background-color: var(--tear-bg, #1a1a1a) !important;
+  background-color: var(--tear-bg, #1a1a1a);
 }
 
 .sortable-box .box-title {
-  color: var(--tear-text) !important;
+  color: var(--tear-text);
 }
 
 .sortable-box .cont-gray {
-  background-color: var(--tear-panel-bg) !important;
-  color: var(--tear-text) !important;
+  background-color: var(--tear-panel-bg);
+  color: var(--tear-text);
 }
 
-html[data-tear-page="index"] #mainContainer {
-}
 
-html[data-tear-page="index"] [data-tear-panel="job-information"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="general-information"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="battle-stats"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="working-stats"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="personal-perks"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="skill-levels"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="equipped-weapons-and-armor"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="property-information"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="faction-information"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="criminal-record"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="latest-messages"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="latest-attacks"] .cont-gray {
-}
 
-html[data-tear-page="index"] [data-tear-panel="latest-events"] .cont-gray {
-}
 
-html[data-tear-page="preferences"] #mainContainer {
-}
 
-html[data-tear-page="crimes"] #mainContainer {
-}
 
 body.dark-mode .crime-root {
-  background-color: var(--tear-bg, #1a1a1a) !important;
+  background-color: var(--tear-bg, #1a1a1a);
 }
 
-.crime-root [class*="crimeSlider___"] {
-}
 
-.crime-root [class*="currentCrime___"] {
-}
 
-.crime-root [class*="crimeOptionSection___"] {
-}
 
 [class*="crimeOption___"],
 .crime-root .virtual-item {
-  background-color: var(--tear-panel-bg) !important;
-  color: var(--tear-text) !important;
+  background-color: var(--tear-panel-bg);
+  color: var(--tear-text);
 }
 
-.crime-root [class*="virtualList___"] {
-}
 
-.crime-root.cardskimming-root {
-}
 
-.crime-root.bootlegging-root {
-}
 
-.crime-root.graffiti-root {
-}
 
-.crime-root.pickpocketing-root {
-}
 
-.crime-root.shoplifting-root {
-}
 
-.crime-root.searchforcash-root {
-}
 
 /* title___ and name___ are generic prefixes: always scope under page + route. */
 
-html[data-tear-page="page"][data-tear-route="market"] #mainContainer {
-}
 
-html[data-tear-route="market"] [class*="itemListWrapper___"] {
-}
 
-html[data-tear-route="market"] [class*="itemList___"] {
-}
 
-html[data-tear-route="market"] [class*="itemTile___"] {
-}
 
-html[data-tear-route="market"] [class*="itemTile___"] [class*="title___"] {
-}
 
-html[data-tear-route="market"] [class*="itemTile___"] [class*="name___"] {
-}
 
-html[data-tear-page="city"] #mainContainer {
-}
 
-html[data-tear-page="hospitalview"] #mainContainer {
-}
 
-html[data-tear-page="jobs"] #mainContainer {
-}
 
-html[data-tear-page="item"] #mainContainer {
-}
 
-html[data-tear-page="gym"] #mainContainer {
-}
 
-html[data-tear-page="newspaper"] #mainContainer {
-}
 
-html[data-tear-page="bounties"] #mainContainer {
-}
 
-html[data-tear-page="properties"] #mainContainer {
-}
 
-html[data-tear-page="estateagents"] #mainContainer {
-}
 
-html[data-tear-page="usersonline"] #mainContainer {
-}
 
-body.hospital {}
-
-@property --tear-pct {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
-
-@property --tear-timer {
-  syntax: "<number>";
-  inherits: true;
-  initial-value: 0;
-}
 
 .header-wrapper-bottom {
-  background: var(--tear-strip) !important;
+  background: var(--tear-strip);
 }
 
-/* Torn's own left fade; it now shows as a band beside LIVE. */
 .news-ticker-slider-wrapper [class*="shadow-box"] {
-  display: none !important;
+  display: none;
 }
 
 .news-ticker-slider-wrapper {
   --ticker-tab: 4.5rem;
   position: relative;
   overflow: hidden;
-  padding-left: var(--ticker-tab) !important;
+  padding-left: var(--ticker-tab);
   box-shadow: inset 0 -2px 0 var(--tear-live);
 }
 
@@ -351,8 +244,10 @@ body.hospital {}
   align-items: center;
   padding-left: 1.375rem;
   box-sizing: border-box;
-  color: #fff; /* on the red tab in both themes */
-  font: bold 0.6875rem/1 sans-serif;
+  color: #fff;
+  font-weight: bold;
+  font-size: 0.6875rem;
+  line-height: 1;
   letter-spacing: 0.12em;
   background:
     radial-gradient(circle at 0.75rem 50%, var(--tear-live-dot) 3px, transparent 3.5px),
@@ -361,81 +256,66 @@ body.hospital {}
   animation: ticker-blink 1.6s ease-in-out infinite;
 }
 
-@keyframes ticker-blink {
-  50% {
-    background:
-      radial-gradient(circle at 0.75rem 50%, transparent 3px, transparent 3.5px),
-      var(--tear-live);
-  }
-}
-
 /* Mask the static slide, not the moving strip inside it. */
 .news-ticker-slider-wrapper .news-ticker-slide {
   -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
   mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
 }
 
-/* Torn swaps headlines with a vertical slide: hide the outgoing one, pin the incoming. */
 .news-ticker-slider-wrapper .news-ticker-exit {
-  display: none !important;
+  display: none;
 }
 
 .news-ticker-slider-wrapper .news-ticker-enter,
 .news-ticker-slider-wrapper .news-ticker-enter-active {
-  transform: none !important;
-  transition: none !important;
+  transform: none;
+  transition: none;
 }
 
-/* main.js appends a copy, so -50% is exactly one copy. The layer and smoothing stop text
-   redrawing heavier when hover pauses it. */
+/* main.js appends one copy, so -50% is exactly one copy. */
 .news-ticker-slider-wrapper .scroll-wrap[data-tear-looped] {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  width: max-content !important;
-  align-items: center !important;
-  animation: scroll-left 20s linear infinite !important;
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  align-items: center;
+  animation: scroll-left 20s linear infinite;
   will-change: transform;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.news-ticker-slider-wrapper:hover .scroll-wrap[data-tear-looped] {
-  animation-play-state: paused !important;
-}
-
-@keyframes scroll-left {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+.news-ticker-slider-wrapper:is(:hover, :focus-within) .scroll-wrap[data-tear-looped] {
+  animation-play-state: paused;
 }
 
 .news-ticker-slider-wrapper .scroll-wrap[data-tear-looped] > a {
-  flex: none !important;
+  flex: none;
   white-space: nowrap;
 }
 
-/* Not tied to [data-tear-looped]: a just-swapped headline is unmarked and Torn's hover would show. */
+/* Not tied to [data-tear-looped]: a just-swapped headline is unmarked. */
 .news-ticker-slider-wrapper .headline,
 .news-ticker-slider-wrapper a.headline:hover {
-  color: var(--tear-strip-text) !important;
-  font-size: var(--tear-fs-body) !important;
-  text-shadow: none !important;
-  font-weight: normal !important;
+  color: var(--tear-strip-text);
+  font-size: var(--tear-fs-body);
+  text-shadow: none;
+  font-weight: normal;
 }
 
 .news-ticker-slider-wrapper .scroll-wrap[data-tear-looped] > svg {
-  width: 1rem !important;
-  height: 1rem !important;
-  margin: 0 1em !important;
-  fill: var(--tear-live) !important;
+  width: 1rem;
+  height: 1rem;
+  margin: 0 1em;
+  fill: var(--tear-live);
 }
 
 .news-ticker-slider-wrapper:hover .scroll-wrap[data-tear-looped] > svg {
-  fill: var(--tear-strip-text) !important;
+  fill: var(--tear-strip-text);
 }
 
 [class^="userInformation"] [class^="progress___"],
 [class^="userInformation"] [data-tear-ring] [class^="tickList___"] {
-  display: none !important;
+  display: none;
 }
 
 [data-tear-ring] {
@@ -449,41 +329,41 @@ body.hospital {}
 [data-tear-ring="life"]   { --ring-color: #708bdb; --ring-i: 3; }
 [data-tear-ring="chain"]  { --ring-color: #b0b0b0; --ring-i: 4; }
 
-/* Sprite icons positioned in px: zoom, not width/height. auto-fit so a few icons still spread. */
+/* Sprite icons are positioned in px: zoom, not width/height. */
 [class^="userInformation"] [class^="statusIcons___"] {
-  --icon-zoom: 1.5; /* the grid's column width reads this too */
-  display: grid !important;
+  --icon-zoom: 1.5;
+  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(calc(17px * var(--icon-zoom)), 1fr));
   gap: var(--tear-space-2) var(--tear-space-1);
   justify-items: center;
-  height: auto !important;
-  margin: 0 0 var(--tear-space-2) !important;
-  padding: 0 !important;
+  height: auto;
+  margin: 0 0 var(--tear-space-2);
+  padding: 0;
 }
 
 [class^="userInformation"] [class^="statusIcons___"] > li {
   zoom: var(--icon-zoom);
-  margin: 0 !important;
+  margin: 0;
 }
 
-[class^="userInformation___"] div:has(> [data-tear-ring]) {
+[class^="userInformation___"] [data-tear-rings] {
   --ring-width: 7.5cqi;
   --ring-step: 9.5cqi;
-  --bars-pad: var(--tear-space-3); /* the rings' offsets include it */
+  --bars-pad: var(--tear-space-3);
   container-type: inline-size;
   position: relative;
-  display: flex !important;
+  display: flex;
   flex-direction: column;
   --legend-gap: var(--tear-space-2);
   gap: var(--legend-gap); /* not cqi: on the container itself it resolves to the viewport */
-  padding: var(--bars-pad) !important;
+  padding: var(--bars-pad);
   border: 1px solid var(--tear-line);
   border-radius: var(--tear-radius);
   background: var(--tear-surface);
 }
 
-/* Reserves the rings' square: a container can't size its own padding in cqi. */
-[class^="userInformation___"] div:has(> [data-tear-ring])::before {
+/* A container can't size its own padding in cqi. */
+[class^="userInformation___"] [data-tear-rings]::before {
   content: "";
   display: block;
   width: 100%;
@@ -493,17 +373,17 @@ body.hospital {}
 
 /* Must stay static so its ring anchors to the parent. */
 [class^="userInformation___"] [data-tear-ring] {
-  position: static !important;
-  display: flex !important;
+  position: static;
+  display: flex;
   align-items: center;
   gap: 4cqi;
-  width: auto !important;
-  height: auto !important;
-  min-height: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  background: none !important;
-  text-decoration: none !important;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  background: none;
+  text-decoration: none;
   transition: --tear-pct 0.6s ease;
 }
 
@@ -523,7 +403,6 @@ body.hospital {}
   mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-width)), #000 calc(100% - var(--ring-width) + 0.5px));
 }
 
-/* Sized like the countdown circle even as a plain dot, so every row's text lines up. */
 [class^="userInformation___"] [data-tear-ring]::after {
   content: "";
   flex: none;
@@ -541,28 +420,27 @@ body.hospital {}
   );
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-stroke)), #000 calc(100% - var(--timer-stroke) + 0.5px));
   mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-stroke)), #000 calc(100% - var(--timer-stroke) + 0.5px));
-  transition: --tear-timer 1s linear;
 }
 
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] {
   flex: 1;
-  display: flex !important;
+  display: flex;
   align-items: baseline;
   gap: 3cqi;
-  width: auto !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  width: auto;
+  margin: 0;
+  padding: 0;
 }
 
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > p {
-  float: none !important;
-  width: auto !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  line-height: 1.2 !important;
+  float: none;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
   white-space: nowrap;
-  font-size: var(--tear-fs-body) !important;
-  font-weight: normal !important;
+  font-size: var(--tear-fs-body);
+  font-weight: normal;
 }
 
 [class^="userInformation___"] [data-tear-ring] [class^="barName___"] {
@@ -570,24 +448,24 @@ body.hospital {}
 }
 
 [class^="userInformation___"] [data-tear-ring] [class^="barValue___"] {
-  font-weight: bold !important;
+  font-weight: bold;
 }
 
 /* Must out-rank the "> p { margin: 0 }" reset or margin-left: auto loses. */
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > [class^="barDescr___"],
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > [class^="barTimeLeft___"] {
-  margin-left: auto !important;
-  font-size: 7cqi !important;
+  margin-left: auto;
+  font-size: 7cqi;
   opacity: 0.7;
 }
 
 /* The "Information" heading only: a later header___ titles "Areas". */
 [class^="header___"]:has(+ [class^="userInformation___"]) {
-  display: none !important;
+  display: none;
 }
 
 [class^="userInformation___"] {
-  display: flex !important;
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--tear-space-2);
@@ -595,7 +473,7 @@ body.hospital {}
 
 [class^="userInformation___"] > *,
 [class^="userInformation___"] > [class^="points___"] > * { flex-basis: 100%; }
-[class^="userInformation___"] > [class^="points___"] { display: contents !important; }
+[class^="userInformation___"] > [class^="points___"] { display: contents; }
 
 [data-tear-stat="level"]                                    { order: 2; }
 [class^="userInformation___"] > [class^="menuInfoRow___"]   { order: 3; }
@@ -603,19 +481,19 @@ body.hospital {}
 [data-tear-stat="points"]                                   { order: 5; }
 [data-tear-stat="merits"]                                   { order: 6; }
 [class^="userInformation___"] > hr                          { order: 7; }
-[class^="userInformation___"] > div:has(> [data-tear-ring]) { order: 8; }
+[class^="userInformation___"] > [data-tear-rings] { order: 8; }
 
 [class^="userInformation___"] [data-tear-stat],
 [class^="userInformation___"] > [class^="menuInfoRow___"] {
-  margin: 0 !important;
-  padding: 0 !important;
-  height: auto !important;
-  line-height: 1.2 !important;
+  margin: 0;
+  padding: 0;
+  height: auto;
+  line-height: 1.2;
 }
 
 [class^="userInformation___"] [data-tear-stat="level"] {
-  flex: none !important;
-  display: grid !important;
+  flex: none;
+  display: grid;
   place-items: center;
   width: 3.25rem;
   aspect-ratio: 1;
@@ -626,21 +504,21 @@ body.hospital {}
   box-shadow: 0 0 10px color-mix(in srgb, var(--tear-gold) 35%, transparent);
 }
 
-[class^="userInformation___"] [data-tear-stat="level"] [class^="name___"] { display: none !important; }
+[class^="userInformation___"] [data-tear-stat="level"] [class^="name___"] { display: none; }
 
 [class^="userInformation___"] [data-tear-stat="level"] [class^="value___"] {
-  margin: 0 !important;
-  color: var(--tear-text-strong) !important;
-  font-size: 1.375rem !important;
-  font-weight: bold !important;
+  margin: 0;
+  color: var(--tear-text-strong);
+  font-size: 1.375rem;
+  font-weight: bold;
 }
 
 [class^="userInformation___"] > [class^="menuInfoRow___"] {
-  flex: 1 1 0 !important;
+  flex: 1 1 0;
   min-width: 0;
 }
 
-[class^="userInformation___"] > [class^="menuInfoRow___"] [class^="menuName___"] { display: none !important; }
+[class^="userInformation___"] > [class^="menuInfoRow___"] [class^="menuName___"] { display: none; }
 
 [class^="userInformation___"] > [class^="menuInfoRow___"] [class^="menuValue___"] {
   display: block;
@@ -648,10 +526,10 @@ body.hospital {}
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
-  color: var(--tear-text-strong) !important;
-  font-size: var(--tear-fs-title) !important;
-  font-weight: bold !important;
-  text-decoration: none !important;
+  color: var(--tear-text-strong);
+  font-size: var(--tear-fs-title);
+  font-weight: bold;
+  text-decoration: none;
 }
 
 [class^="userInformation___"] [data-tear-stat="money"],
@@ -659,11 +537,11 @@ body.hospital {}
 [class^="userInformation___"] [data-tear-stat="merits"] {
   container-type: inline-size;
   min-width: 0;
-  display: flex !important;
+  display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   column-gap: var(--tear-space-2);
-  padding: var(--tear-space-2) !important;
+  padding: var(--tear-space-2);
   border: 1px solid var(--tear-line);
   border-radius: var(--tear-radius-sm);
   background: var(--tear-surface);
@@ -673,22 +551,23 @@ body.hospital {}
 [class^="userInformation___"] [data-tear-stat="points"],
 [class^="userInformation___"] [data-tear-stat="merits"] {
   cursor: pointer;
-  flex: 1 1 calc(50% - var(--tear-space-1)) !important;
+  flex: 1 1 calc(50% - var(--tear-space-1));
   justify-content: center;
   text-align: center;
 }
 
-/* Hide Torn's "Money :" label text; ::after prints ours. */
 [class^="userInformation___"] [data-tear-stat] [class^="name___"] {
   flex-basis: 100%;
-  width: auto !important;
-  margin: 0 0 var(--tear-space-2) !important;
-  font-size: 0 !important;
+  width: auto;
+  margin: 0 0 var(--tear-space-2);
+  font-size: 0;
 }
 
 [class^="userInformation___"] [data-tear-stat] [class^="name___"]::after {
   color: var(--tear-label);
-  font: bold var(--tear-fs-caption)/1 sans-serif;
+  font-weight: bold;
+  font-size: var(--tear-fs-caption);
+  line-height: 1;
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -703,21 +582,21 @@ body.hospital {}
   --fit-max: var(--tear-fs-title);
   flex-basis: 100%;
   min-width: 0;
-  margin: 0 !important;
+  margin: 0;
   overflow: hidden;
   text-overflow: clip;
   white-space: nowrap;
-  font-weight: bold !important;
-  font-size: clamp(7px, calc(100cqi / (var(--tear-len, 4) * var(--tear-char-em))), var(--fit-max)) !important;
+  font-weight: bold;
+  font-size: clamp(7px, calc(100cqi / (var(--tear-len, 4) * var(--tear-char-em))), var(--fit-max));
 }
 
 [class^="userInformation___"] [data-tear-stat="money"] {
-  margin: var(--tear-space-1) 0 !important;
-  padding: var(--tear-space-2) var(--tear-space-3) !important;
-  border: 1px solid color-mix(in srgb, var(--tear-money) 35%, transparent) !important;
+  margin: var(--tear-space-1) 0;
+  padding: var(--tear-space-2) var(--tear-space-3);
+  border: 1px solid color-mix(in srgb, var(--tear-money) 35%, transparent);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--tear-money) 18%, transparent), color-mix(in srgb, var(--tear-money) 4%, transparent)),
-    var(--tear-surface) !important;
+    var(--tear-surface);
   box-shadow: inset 0 1px 0 var(--tear-overlay);
 }
 
@@ -727,28 +606,28 @@ body.hospital {}
 
 [class^="userInformation___"] [data-tear-stat="money"] [class^="value___"] {
   --fit-max: var(--tear-fs-body);
-  color: var(--tear-money) !important;
+  color: var(--tear-money);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 8px color-mix(in srgb, var(--tear-money) 35%, transparent) !important;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--tear-money) 35%, transparent);
 }
 
-/* The whole card is the [use] button (main.js forwards the click), so the link itself goes. */
+/* main.js forwards clicks on the card to this link. */
 [class^="userInformation___"] [data-tear-stat] [class^="use___"] {
-  display: none !important;
+  display: none;
 }
 
 [class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]) {
-  padding-block: var(--tear-space-1) !important;
+  padding-block: var(--tear-space-1);
   transition: background-color 0.15s, border-color 0.15s;
 }
 
 [class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]) [class^="name___"] {
-  margin-bottom: var(--tear-space-1) !important;
+  margin-bottom: var(--tear-space-1);
 }
 
 [class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]):is(:hover, :focus-visible) {
-  border-color: color-mix(in srgb, var(--tear-accent) 45%, transparent) !important;
-  background: color-mix(in srgb, var(--tear-accent) 10%, var(--tear-surface)) !important;
+  border-color: color-mix(in srgb, var(--tear-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--tear-accent) 10%, var(--tear-surface));
 }
 
 [class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]):focus-visible {
@@ -756,29 +635,27 @@ body.hospital {}
   outline-offset: -2px;
 }
 
-/* Torn centres this in #sidebarroot at 171px; stretch it to full width. */
-
 #sidebarroot:has([class^="sidebar___"][class*=" mobile___"]) {
-  align-self: stretch !important;
-  width: auto !important;
-  padding: var(--tear-space-2) var(--tear-gutter) 0;
+  align-self: stretch;
+  width: auto;
+  padding: var(--tear-space-2) 0 0;
   box-sizing: border-box;
 }
 
 #sidebarroot:has([class^="sidebar___"][class*=" mobile___"]) > div,
 [class^="sidebar___"][class*=" mobile___"] {
-  width: 100% !important;
-  height: auto !important;
-  overflow: visible !important;
+  width: 100%;
+  height: auto;
+  overflow: visible;
 }
 
 [class^="userInformationMobile___"] {
   container-type: inline-size;
-  display: flex !important;
+  display: flex;
   flex-direction: column;
   gap: var(--tear-space-3);
-  width: 100% !important;
-  height: auto !important;
+  width: 100%;
+  height: auto;
   padding: var(--tear-space-3);
   box-sizing: border-box;
   border: 1px solid var(--tear-line);
@@ -788,32 +665,32 @@ body.hospital {}
 }
 
 [class^="userInformationMobile___"] [class^="barsMobile___"] {
-  display: grid !important;
+  display: grid;
   grid-auto-flow: column;
   grid-auto-columns: minmax(0, 1fr);
   gap: 3cqi;
-  height: auto !important;
-  margin: 0 !important;
+  height: auto;
+  margin: 0;
 }
 
 [class^="userInformationMobile___"] [data-tear-ring] {
   --ring-width: 11cqi; /* cqi of the orb itself from here down */
   container-type: inline-size;
   position: relative;
-  display: grid !important;
+  display: grid;
   place-items: center;
-  width: 100% !important;
+  width: 100%;
   max-width: 16cqi;
-  height: auto !important;
+  height: auto;
   aspect-ratio: 1;
   justify-self: center;
-  margin: 0 !important;
-  padding: 0 !important;
+  margin: 0;
+  padding: 0;
   border-radius: 50%;
-  background: none !important;
+  background: none;
   isolation: isolate; /* keeps the centre disc (::after, z -1) inside the orb */
   box-shadow: 0 0 14px color-mix(in srgb, var(--ring-color) 35%, transparent);
-  text-decoration: none !important;
+  text-decoration: none;
   transition: --tear-pct 0.6s ease;
 }
 
@@ -833,85 +710,87 @@ body.hospital {}
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"] {
   position: relative;
   z-index: 1;
-  display: flex !important;
-  flex-direction: column !important; /* Torn's barStatsFlex___ sets row */
-  align-items: center !important;
-  justify-content: center !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 2cqi;
-  width: 76cqi !important;
-  height: auto !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  width: 76cqi;
+  height: auto;
+  margin: 0;
+  padding: 0;
 }
 
 [class^="userInformationMobile___"] [data-tear-ring] [class^="svgIconWrap___"] {
   zoom: 1.6;
-  margin: 0 !important;
-  padding: 0 !important; /* Torn's 5px right padding pushed the icon off-centre */
+  margin: 0;
+  padding: 0;
 }
 
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barValue___"] {
   max-width: 100%;
-  margin: 0 !important;
+  margin: 0;
   overflow: hidden;
   white-space: nowrap;
-  color: var(--tear-text-strong) !important;
-  font-weight: bold !important;
-  line-height: 1.1 !important;
+  color: var(--tear-text-strong);
+  font-weight: bold;
+  line-height: 1.1;
   /* +0.03: " / " makes these wider per character */
-  font-size: clamp(7px, calc(76cqi / (var(--tear-len, 5) * (var(--tear-char-em) + 0.03))), 18cqi) !important;
+  font-size: clamp(7px, calc(76cqi / (var(--tear-len, 5) * (var(--tear-char-em) + 0.03))), 18cqi);
 }
 
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"],
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barDescr___"],
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barTimeLeft___"] {
-  margin: 0 !important;
-  padding: 0 !important;
-  color: var(--tear-muted) !important;
-  font-size: 12cqi !important;
-  line-height: 1 !important;
+  margin: 0;
+  padding: 0;
+  color: var(--tear-muted);
+  font-size: 12cqi;
+  line-height: 1;
 }
 
 [class^="userInformationMobile___"] [class^="swiperWrapper___"] {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: stretch !important;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--tear-space-3);
-  width: auto !important;
-  height: auto !important;
-  overflow: visible !important;
-  transform: none !important;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  transform: none;
 }
 
 [class^="userInformationMobile___"] [class^="points-mobile___"] {
-  display: grid !important;
+  display: grid;
   grid-template-columns: 2fr 1fr 1fr;
   gap: 2cqi;
-  width: auto !important;
-  height: auto !important;
+  width: auto;
+  height: auto;
 }
 
 [class^="userInformationMobile___"] [data-tear-stat] {
   container-type: inline-size;
-  display: flex !important;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--tear-space-1);
   min-width: 0;
-  height: auto !important;
-  margin: 0 !important;
-  padding: var(--tear-space-2) var(--tear-space-2) !important;
+  height: auto;
+  margin: 0;
+  padding: var(--tear-space-2) var(--tear-space-2);
   box-sizing: border-box;
   border: 1px solid var(--tear-line);
   border-radius: var(--tear-radius);
-  background: var(--tear-overlay) !important;
-  text-decoration: none !important;
+  background: var(--tear-overlay);
+  text-decoration: none;
 }
 
 [class^="userInformationMobile___"] [data-tear-stat]::before {
   color: var(--tear-label);
-  font: bold var(--tear-fs-caption)/1 sans-serif;
+  font-weight: bold;
+  font-size: var(--tear-fs-caption);
+  line-height: 1;
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -921,112 +800,121 @@ body.hospital {}
 [class^="userInformationMobile___"] [data-tear-stat="merits"]::before { content: "Merits"; }
 
 [class^="userInformationMobile___"] [data-tear-stat] [class^="point-icon___"] {
-  display: none !important;
+  display: none;
 }
 
 [class^="userInformationMobile___"] [data-tear-stat] [class^="value___"] {
   max-width: 100%;
-  margin: 0 !important;
+  margin: 0;
   overflow: hidden;
   white-space: nowrap;
-  color: var(--tear-text-strong) !important;
-  font-weight: bold !important;
-  font-size: clamp(8px, calc(100cqi / (var(--tear-len, 4) * var(--tear-char-em))), 1.25rem) !important;
+  color: var(--tear-text-strong);
+  font-weight: bold;
+  font-size: clamp(8px, calc(100cqi / (var(--tear-len, 4) * var(--tear-char-em))), 1.25rem);
 }
 
 [class^="userInformationMobile___"] [data-tear-stat="money"] {
-  border: 1px solid color-mix(in srgb, var(--tear-money) 35%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--tear-money) 35%, transparent);
   background:
-    linear-gradient(90deg, color-mix(in srgb, var(--tear-money) 18%, transparent), color-mix(in srgb, var(--tear-money) 4%, transparent)) !important;
+    linear-gradient(90deg, color-mix(in srgb, var(--tear-money) 18%, transparent), color-mix(in srgb, var(--tear-money) 4%, transparent));
 }
 
 [class^="userInformationMobile___"] [data-tear-stat="money"]::before { color: var(--tear-money); }
 
 [class^="userInformationMobile___"] [data-tear-stat="money"] [class^="value___"] {
-  color: var(--tear-money) !important;
-  text-shadow: 0 0 8px color-mix(in srgb, var(--tear-money) 35%, transparent) !important;
+  color: var(--tear-money);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--tear-money) 35%, transparent);
 }
 
-/* Torn hangs these in a 26px vertical dropdown. */
 [class^="userInformationMobile___"] [class^="statusIcons___"] {
   --icon-zoom: 2;
-  position: static !important;
-  width: auto !important;
-  height: auto !important;
-  max-height: none !important;
-  transform: none !important;
-  opacity: 1 !important;
-  visibility: visible !important;
+  position: static;
+  width: auto;
+  height: auto;
+  max-height: none;
+  transform: none;
+  opacity: 1;
+  visibility: visible;
 }
 
-/* Torn only shrinks the logo below 784px; until then it hangs over the ticker row. */
-
-/* Bottom sits on the top bar's 1px line (the bar is 36px + that line). */
-html:has([class^="sidebar___"][class*=" mobile___"]) .header {
+&:has([class^="sidebar___"][class*=" mobile___"]) .header {
   --logo-h: 2.25rem;
-  --logo-w: calc(var(--logo-h) * 80 / 32); /* Torn's own 80x32 crop of its mobile sprite */
+  --logo-w: calc(var(--logo-h) * 80 / 32);
 }
 
-html:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+&:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
   z-index: 2;
-  width: var(--logo-w) !important;
-  height: var(--logo-h) !important;
-  background-size: auto 100% !important;
-  background-repeat: no-repeat !important;
+  width: var(--logo-w);
+  height: var(--logo-h);
+  background-size: auto 100%;
+  background-repeat: no-repeat;
 }
 
-/* 785px+: Torn's tablet sprite holds two logos (left darker); show the right half. */
 @media (min-width: 785px) {
-  html:has([class^="sidebar___"][class*=" mobile___"]) .header {
-    --logo-w: calc(var(--logo-h) * 151 / 66); /* one logo of the 302x66 sprite */
+  &:has([class^="sidebar___"][class*=" mobile___"]) .header {
+    --logo-w: calc(var(--logo-h) * 151 / 66);
   }
 
-  html:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
-    background-size: 200% 100% !important;
-    background-repeat: no-repeat !important;
-    background-position: 100% 50% !important;
+  &:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    background-position: 100% 50%;
   }
 }
 
-html:has([class^="sidebar___"][class*=" mobile___"]) .header .logo > a {
-  width: 100% !important;
-  height: 100% !important;
+&:has([class^="sidebar___"][class*=" mobile___"]) .header .logo > a {
+  width: 100%;
+  height: 100%;
 }
 
-html:has([class^="sidebar___"][class*=" mobile___"]) .header .logo > h1 {
-  margin-top: var(--logo-h) !important;
+&:has([class^="sidebar___"][class*=" mobile___"]) .header .logo > h1 {
+  margin-top: var(--logo-h);
 }
 
-html:has([class^="sidebar___"][class*=" mobile___"]) #fly-out-menu-button {
-  left: calc(var(--logo-w) + var(--tear-space-1)) !important;
+&:has([class^="sidebar___"][class*=" mobile___"]) #header-wrapper-top {
+  position: relative;
 }
 
-html:has([class^="sidebar___"][class*=" mobile___"]) .header-bottom-text {
-  padding-left: 0 !important;
+&:has([class^="sidebar___"][class*=" mobile___"]) #fly-out-menu-button {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--page-gutter) + var(--logo-w) + var(--tear-space-1));
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: var(--tear-bar-h);
 }
 
-html:has([class^="sidebar___"][class*=" mobile___"]) #header-swiper-container {
-  width: 100% !important;
+/* Fixed: in the sidebar's flow it pushes the whole mobile sidebar down. */
+[class^="flyOutPanel___"] {
+  position: fixed;
+  top: var(--tear-bar-h);
+  left: 0;
+  max-height: calc(100dvh - var(--tear-bar-h));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--tear-popup-bg);
+  box-shadow: 4px 8px 20px var(--tear-shadow);
 }
 
-/* Torn's bottom_pattern texture covers the ticker row. */
-html:has([class^="sidebar___"][class*=" mobile___"]) .header-wrapper-bottom::after {
-  display: none !important;
+&:has([class^="sidebar___"][class*=" mobile___"]) .header-bottom-text {
+  padding-left: 0;
 }
 
-html:has([class^="sidebar___"][class*=" mobile___"]) .content-wrapper {
-  align-self: stretch !important;
-  width: auto !important;
-  margin-left: var(--tear-gutter) !important;
-  margin-right: var(--tear-gutter) !important;
+&:has([class^="sidebar___"][class*=" mobile___"]) #header-swiper-container {
+  width: 100%;
 }
 
-/* Awards tabs styled like the sidebar navigation rows. */
+&:has([class^="sidebar___"][class*=" mobile___"]) .header-wrapper-bottom::after {
+  display: none;
+}
+
 [class^="tabList___"] {
-  display: flex !important;
+  display: flex;
   gap: 1px;
-  margin: 0 !important;
-  padding: 0 !important;
+  margin: 0;
+  padding: 0;
   border-bottom: 2px solid var(--tear-accent);
   background: var(--tear-surface-sunk);
 }
@@ -1034,39 +922,37 @@ html:has([class^="sidebar___"][class*=" mobile___"]) .content-wrapper {
 [class^="tabList___"] > [class^="tab___"] {
   position: relative;
   flex: 1;
-  margin: 0 !important;
-  border-radius: 0 !important;
-  background: var(--tear-surface) !important;
+  margin: 0;
+  border-radius: 0;
+  background: var(--tear-surface);
 }
 
 [class^="tabList___"] > [class^="tab___"] a {
-  color: var(--tear-text) !important;
-  font-size: var(--tear-fs-body) !important;
-  text-decoration: none !important;
+  color: var(--tear-text);
+  font-size: var(--tear-fs-body);
+  text-decoration: none;
   transition: color 0.15s;
 }
 
 [class^="tabList___"] > [class^="tab___"]:is(:hover, :focus-within) {
-  background: color-mix(in srgb, var(--tear-surface), var(--tear-link) 8%) !important;
+  background: color-mix(in srgb, var(--tear-surface), var(--tear-link) 8%);
 }
 
 [class^="tabList___"] > [class^="tab___"]:is(:hover, :focus-within) a,
 [class^="tabList___"] > [class*="selectedTab___"] a {
-  color: var(--tear-link) !important;
+  color: var(--tear-link);
 }
 
 [class^="tabList___"] > [class*="selectedTab___"] {
-  background: color-mix(in srgb, var(--tear-surface), var(--tear-link) 12%) !important;
+  background: color-mix(in srgb, var(--tear-surface), var(--tear-link) 12%);
 }
-
-/* Torn's rows of three fixed cards only fit 784px: flatten into one grid. */
 
 [class^="meritsTab___"] {
   --merit-min: 18.75rem;
-  display: grid !important;
+  display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--merit-min)), 1fr));
   gap: var(--tear-space-1);
-  background: var(--tear-surface-sunk) !important;
+  background: var(--tear-surface-sunk);
 }
 
 [class^="meritsTab___"] > * {
@@ -1078,21 +964,21 @@ html:has([class^="sidebar___"][class*=" mobile___"]) .content-wrapper {
 }
 
 [class^="meritsTab___"] > [class^="meritsList___"] {
-  display: contents !important;
+  display: contents;
 }
 
 [class^="meritsTab___"] [class^="merit___"] {
-  width: auto !important;
-  height: auto !important; /* Torn fixes cards at 60px */
+  width: auto;
+  height: auto;
   min-width: 0;
-  padding: calc(var(--tear-space-3) * 1.25) var(--tear-space-3) !important;
-  border: 0 !important; /* Torn's per-card borders only line up 3 across */
+  padding: calc(var(--tear-space-3) * 1.25) var(--tear-space-3);
+  border: 0;
   box-sizing: border-box;
 }
 
 [class^="meritsTab___"] [class^="meritWrap___"] {
-  width: 100% !important;
-  height: auto !important;
+  width: 100%;
+  height: auto;
   align-items: center;
   gap: var(--tear-space-3);
 }
@@ -1100,7 +986,7 @@ html:has([class^="sidebar___"][class*=" mobile___"]) .content-wrapper {
 [class^="meritsTab___"] [class^="meritInfo___"],
 [class^="meritsTab___"] [class^="meritInfo___"] > p {
   flex: 1;
-  width: auto !important;
+  width: auto;
   min-width: 0;
 }
 
@@ -1111,37 +997,39 @@ html:has([class^="sidebar___"][class*=" mobile___"]) .content-wrapper {
 }
 
 [class^="meritsTab___"] [class^="progressEffect___"] {
-  height: 100% !important;
-  box-sizing: border-box;   /* its 2px top border stays inside the card */
+  height: 100%;
+  box-sizing: border-box;
 }
 
 [class^="meritsTab___"] > [class^="blackLine___"][data-tear-label] {
-  height: auto !important;
-  padding: var(--tear-space-3) var(--tear-space-3) var(--tear-space-2) !important;
-  border: 0 !important;
-  border-bottom: 2px solid var(--tear-accent) !important;
-  background: var(--tear-surface-dim) !important;
+  height: auto;
+  padding: var(--tear-space-3) var(--tear-space-3) var(--tear-space-2);
+  border: 0;
+  border-bottom: 2px solid var(--tear-accent);
+  background: var(--tear-surface-dim);
 }
 
 [class^="meritsTab___"] > [class^="blackLine___"][data-tear-label]::before {
   content: attr(data-tear-label);
   color: var(--tear-text);
-  font: bold var(--tear-fs-label)/1 sans-serif;
+  font-weight: bold;
+  font-size: var(--tear-fs-label);
+  line-height: 1;
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
 [class^="meritsTab___"] > [class^="meritsValue___"] {
-  display: grid !important;
+  display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr));
   gap: var(--tear-space-1);
-  height: auto !important;
-  padding: 0 !important;
-  background: var(--tear-surface-sunk) !important;
+  height: auto;
+  padding: 0;
+  background: var(--tear-surface-sunk);
 }
 
 [class^="meritsTab___"] > [class^="meritsValue___"] > p {
-  display: grid !important;
+  display: grid;
   grid-template-columns: auto auto;
   grid-template-rows: auto auto;
   justify-content: center;
@@ -1149,28 +1037,28 @@ html:has([class^="sidebar___"][class*=" mobile___"]) .content-wrapper {
   align-items: center;
   column-gap: var(--tear-space-3);
   row-gap: var(--tear-space-1);
-  margin: 0 !important;
-  padding: var(--tear-space-4) var(--tear-space-3) !important;
+  margin: 0;
+  padding: var(--tear-space-4) var(--tear-space-3);
   background: var(--tear-surface);
 }
 
 [class^="meritsTab___"] > [class^="meritsValue___"] > p > [class^="currency-merits"] {
   grid-row: 1 / 3;
-  zoom: 1.6; /* sprite icon: zoom keeps its background offset in step */
-  vertical-align: middle !important;
-  margin: 0 !important;
+  zoom: 1.6; /* zoom keeps the sprite's background offset in step */
+  vertical-align: middle;
+  margin: 0;
 }
 
 [class^="meritsTab___"] > [class^="meritsValue___"] [class^="label___"],
 [class^="meritsTab___"] > [class^="meritsValue___"] [class^="violet___"] {
   grid-column: 2;
-  margin: 0 !important;
-  padding: 0 !important;
+  margin: 0;
+  padding: 0;
   text-align: left;
 }
 
 [class^="meritsTab___"] > [class^="meritsValue___"] [class^="label___"] {
-  font-size: 0 !important; /* replaced by ::after, without Torn's colon */
+  font-size: 0;
   color: var(--tear-muted);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1186,102 +1074,92 @@ html:has([class^="sidebar___"][class*=" mobile___"]) .content-wrapper {
 }
 
 [class^="meritsTab___"] > [class^="meritsValue___"] [class^="violet___"] {
-  font-size: var(--tear-fs-display) !important;
-  font-weight: bold !important;
-  line-height: 1 !important;
+  font-size: var(--tear-fs-display);
+  font-weight: bold;
+  line-height: 1;
 }
 
-/* ---- Top bar (light mode) [#] -------------------------------------- */
-
 body:not(.dark-mode) #header-wrapper-top {
-  background: linear-gradient(var(--tear-surface), var(--tear-surface-dim)) !important;
+  background: linear-gradient(var(--tear-surface), var(--tear-surface-dim));
   border-bottom: 1px solid var(--tear-line);
 }
 
 body:not(.dark-mode) #header-wrapper-top .menu-item-href {
-  color: var(--tear-link) !important;
-  text-shadow: none !important;
+  color: var(--tear-link);
+  text-shadow: none;
 }
 
 body:not(.dark-mode) #header-wrapper-top .menu-item-href:hover {
-  text-decoration: underline !important;
+  text-decoration: underline;
 }
 
-/* Torn fills these icons with a light gradient made for the dark bar. */
 body:not(.dark-mode) #header-wrapper-top .top_header_button svg,
 body:not(.dark-mode) #header-wrapper-top .top_header_button svg *,
 body:not(.dark-mode) #fly-out-menu-button svg,
 body:not(.dark-mode) #fly-out-menu-button svg * {
-  fill: var(--tear-muted) !important;
+  fill: var(--tear-muted);
 }
-
-/* ---- Sidebar Areas and Lists rows [#] ------------------------------ */
 
 :is([class*="area-desktop___"], [class*="area-mobile___"]),
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="areaRow___"],
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="areaRow___"] > a {
-  height: auto !important;
+  height: auto;
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="areaRow___"] > a {
-  display: flex !important;
+  display: flex;
   align-items: center;
-  padding-block: var(--tear-space-2) !important;
-  font-size: var(--tear-fs-body) !important;
+  padding-block: var(--tear-space-2);
+  font-size: var(--tear-fs-body);
   transition: background-color 0.15s, color 0.15s;
 }
 
-/* Torn's icons have different viewBox sizes; fit each into the same em box. */
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="svgIconWrap___"] {
-  display: flex !important;
+  display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 2.4em !important;
-  height: 1.5em !important;
+  width: 2.4em;
+  height: 1.5em;
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="svgIconWrap___"] > * {
-  display: flex !important;
-  width: 1.5em !important;
-  height: 1.5em !important;
+  display: flex;
+  width: 1.5em;
+  height: 1.5em;
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="svgIconWrap___"] svg {
-  width: 100% !important;
-  height: 100% !important;
+  width: 100%;
+  height: 100%;
 }
 
-/* Torn fills the icons with a fixed gradient; currentColor makes them follow the text. */
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="svgIconWrap___"] svg,
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="svgIconWrap___"] svg * {
-  fill: currentColor !important;
+  fill: currentColor;
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="areaRow___"] > a:is(:hover, :focus-visible) {
-  background: var(--tear-nav-hover) !important;
+  background: var(--tear-nav-hover);
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="areaRow___"] > a:is(:hover, :focus-visible),
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="areaRow___"] > a:is(:hover, :focus-visible) * {
-  color: var(--tear-link) !important;
+  color: var(--tear-link);
 }
-
-/* ---- Sidebar Areas: current page [#] ------------------------------
-   Same treatment Torn gives an "attention" item: tinted row, blue text, dot. */
 
 :is([class*="area-desktop___"], [class*="area-mobile___"])[class*="active___"] {
   position: relative;
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"])[class*="active___"] [class^="areaRow___"] {
-  background: var(--tear-nav-active) !important;
+  background: var(--tear-nav-active);
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"])[class*="active___"] a,
 :is([class*="area-desktop___"], [class*="area-mobile___"])[class*="active___"] [class^="linkName___"],
 :is([class*="area-desktop___"], [class*="area-mobile___"])[class*="active___"] [class^="svgIconWrap___"] {
-  color: var(--tear-link) !important;
+  color: var(--tear-link);
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"])[class*="active___"]::after {
@@ -1296,16 +1174,12 @@ body:not(.dark-mode) #fly-out-menu-button svg * {
   background: linear-gradient(0deg, color-mix(in srgb, var(--tear-link), #fff 45%), var(--tear-link));
 }
 
-/* ---- Bar timers as countdown circles -------------------------------
-   main.js sets --tear-timer (time left as % of the tick) on the bar. The text
-   stays in the DOM because main.js reads the countdown from it. */
-
 /* Must out-rank the desktop and HUD timer font-size rules above. */
 [class^="userInformation"] [data-tear-ring] [class^="barStats___"] > [data-tear-timer],
 [class^="userInformation"] [data-tear-ring] [class^="barStats___"] [data-tear-timer] {
-  display: block !important;
-  font-size: 0 !important;
-  line-height: 0 !important;
+  display: block;
+  font-size: 0;
+  line-height: 0;
 }
 
 [data-tear-ring] [data-tear-timer]::before {
@@ -1320,57 +1194,52 @@ body:not(.dark-mode) #fly-out-menu-button svg * {
   );
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-stroke)), #000 calc(100% - var(--timer-stroke) + 0.5px));
   mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-stroke)), #000 calc(100% - var(--timer-stroke) + 0.5px));
-  transition: --tear-timer 1s linear;
 }
 
 /* cqi of the legend column on desktop, of the orb in the HUD. */
 [class^="userInformation___"] [data-tear-ring] { --timer-size: 14cqi; --timer-stroke: calc(var(--timer-size) / 7); }
 [class^="userInformationMobile___"] [data-tear-ring] { --timer-size: 24cqi; --timer-stroke: calc(var(--timer-size) / 7); }
 
-/* On desktop the circle is the row's dot (above), so the timer text goes, "FULL" included. */
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > [class^="barDescr___"],
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > [class^="barTimeLeft___"],
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"]:not(:has([data-tear-timer])) {
-  display: none !important;
+  display: none;
 }
 
-/* ---- Settings menu (preferences.php) as sidebar-style rows [#] ----- */
-
 #prefs-tab-menu .ui-tabs-nav {
-  border-right: 1px solid var(--tear-surface-sunk) !important;
-  background: var(--tear-surface-sunk) !important;
+  border-right: 1px solid var(--tear-surface-sunk);
+  background: var(--tear-surface-sunk);
 }
 
 #prefs-tab-menu .ui-tabs-nav > li {
   position: relative;
-  height: auto !important;
-  margin: 0 !important;
-  border: 0 !important;
-  border-bottom: 1px solid var(--tear-surface-sunk) !important;
-  background: var(--tear-surface) !important;
+  height: auto;
+  margin: 0;
+  border: 0;
+  border-bottom: 1px solid var(--tear-surface-sunk);
+  background: var(--tear-surface);
 }
 
 #prefs-tab-menu .ui-tabs-nav > li > a {
-  height: auto !important;
-  padding: var(--tear-space-3) !important;
-  background: transparent !important;
-  color: var(--tear-text) !important;
-  font-size: var(--tear-fs-body) !important;
-  font-weight: normal !important;
+  height: auto;
+  padding: var(--tear-space-3);
+  background: transparent;
+  color: var(--tear-text);
+  font-size: var(--tear-fs-body);
+  font-weight: normal;
   transition: background-color 0.15s, color 0.15s;
 }
 
 #prefs-tab-menu .ui-tabs-nav > li > a:is(:hover, :focus-visible) {
-  background: var(--tear-nav-hover) !important;
-  color: var(--tear-link) !important;
+  background: var(--tear-nav-hover);
+  color: var(--tear-link);
 }
 
 #prefs-tab-menu .ui-tabs-nav > li.ui-tabs-active > a {
-  background: var(--tear-nav-active) !important;
-  color: var(--tear-link) !important;
+  background: var(--tear-nav-active);
+  color: var(--tear-link);
 }
 
-/* Same dot as the sidebar's current page. */
 #prefs-tab-menu .ui-tabs-nav > li.ui-tabs-active::after,
 [class^="tabList___"] > [class*="selectedTab___"]::after {
   content: "";
@@ -1384,10 +1253,8 @@ body:not(.dark-mode) #fly-out-menu-button svg * {
   background: linear-gradient(0deg, color-mix(in srgb, var(--tear-link), #fff 45%), var(--tear-link));
 }
 
-/* ---- Awards: Torn's merit violet in the link blue ------------------ */
-
 [class^="awardsPage___"] [class^="violet___"] {
-  color: var(--tear-link) !important;
+  color: var(--tear-link);
 }
 
 /* The merit icons are purple images; rotate the hue onto the blue. */
@@ -1395,14 +1262,10 @@ body:not(.dark-mode) #fly-out-menu-button svg * {
   filter: hue-rotate(-50deg);
 }
 
-/* ---- News ticker turned off ---------------------------------------- */
-
 .header-wrapper-bottom:not(:has(.news-ticker-slider-wrapper)) {
-  display: none !important;
+  display: none;
 }
 
-/* Without the strip the desktop logo, which hangs below the top bar, overlaps the sidebar. */
-/* With the strip gone the top bar is the header's bottom edge. */
 body:not(:has(.news-ticker-slider-wrapper)) #header-wrapper-top {
   position: relative;
   z-index: 1; /* above the content below, or it paints over the shadow */
@@ -1411,19 +1274,16 @@ body:not(:has(.news-ticker-slider-wrapper)) #header-wrapper-top {
 
 /* :has() can't nest, so test for the ticker itself. */
 body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" desktop___"] {
-  padding-top: 1.875rem !important;
+  padding-top: 1.875rem;
 }
 
-/* ---- Sidebar polish -------------------------------------------------- */
-
-/* An engraved groove: a shadow line over a highlight line, fading at the ends. */
 [class^="userInformation___"] hr {
-  height: 0 !important;
-  margin: var(--tear-space-3) 0 !important;
-  border: 0 !important;
-  border-top: 1px solid color-mix(in srgb, #000 35%, transparent) !important;
-  border-bottom: 1px solid var(--tear-groove-light) !important;
-  background: none !important;
+  height: 0;
+  margin: var(--tear-space-3) 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, #000 35%, transparent);
+  border-bottom: 1px solid var(--tear-groove-light);
+  background: none;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
   mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
 }
@@ -1432,79 +1292,70 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
   gap: var(--tear-space-3) var(--tear-space-2);
 }
 
-/* Points and merits share one box, split by the merits card's left border. */
 [class^="userInformation___"] [data-tear-stat="points"],
 [class^="userInformation___"] [data-tear-stat="merits"] {
-  flex: 1 1 50% !important;
+  flex: 1 1 50%;
 }
 
 [class^="userInformation___"] [data-tear-stat="points"] {
-  border-right: 0 !important;
-  border-radius: var(--tear-radius-sm) 0 0 var(--tear-radius-sm) !important;
+  border-right: 0;
+  border-radius: var(--tear-radius-sm) 0 0 var(--tear-radius-sm);
 }
 
 [class^="userInformation___"] [data-tear-stat="merits"] {
-  margin-left: calc(-1 * var(--tear-space-2)) !important; /* cancels the panel gap */
-  border-radius: 0 var(--tear-radius-sm) var(--tear-radius-sm) 0 !important;
+  margin-left: calc(-1 * var(--tear-space-2)); /* cancels the panel gap */
+  border-radius: 0 var(--tear-radius-sm) var(--tear-radius-sm) 0;
 }
 
-/* Bar values as an LCD readout: scanlines, inset bezel, segment-style digits.
-   Out-ranks the custom font rule on body.body * and the legend's "> p" reset. */
 [class^="userInformation"] [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
-  padding: 0.3em 0.6em !important;
+  padding: 0.3em 0.6em;
   border-radius: 4px;
-  background: var(--tear-lcd-bg) !important;
+  background: var(--tear-lcd-bg);
   box-shadow: inset 0 1px 3px var(--tear-lcd-bezel), 0 1px 0 var(--tear-groove-light);
-  color: var(--lcd-ink) !important;
-  font-family: "DSEG7 Classic", "Digital-7", ui-monospace, "SF Mono", Menlo, Consolas, monospace !important;
+  color: var(--lcd-ink);
   font-variant-numeric: tabular-nums slashed-zero;
-  font-weight: bold !important;
+  font-weight: bold;
   letter-spacing: 0.08em;
-  text-shadow: var(--tear-lcd-glow) color-mix(in srgb, var(--ring-color) 70%, transparent) !important;
+  text-shadow: var(--tear-lcd-glow) color-mix(in srgb, var(--ring-color) 70%, transparent);
 }
 
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barValue___"] {
-  font-size: clamp(7px, calc(70cqi / (var(--tear-len, 5) * var(--tear-char-em-mono))), 16cqi) !important;
+  font-size: clamp(7px, calc(70cqi / (var(--tear-len, 5) * var(--tear-char-em-mono))), 16cqi);
 }
 
-/* Every sidebar block spans the sidebar edge to edge. */
 [class^="sidebar___"][class*=" desktop___"] > * {
   box-sizing: border-box;
-  width: 100% !important;
-  margin-inline: 0 !important;
+  width: 100%;
+  margin-inline: 0;
 }
 
 [class^="userInformation___"] {
-  padding-inline: 0 !important;
+  padding-inline: 0;
 }
 
-/* Torn rounds only the right side of its sidebar blocks; round them evenly. */
 [class^="sidebar___"][class*=" desktop___"] > :is([class^="userInformation___"], [class^="accountLinksWrap___"], [class^="header___"]) {
-  border-radius: var(--tear-radius-sm) !important;
+  border-radius: var(--tear-radius-sm);
 }
 
-/* Nav sections round on the outside only; the rows inside stay square. */
 [class^="areas___"] {
   overflow: hidden;
-  border-radius: var(--tear-radius-sm) !important;
+  border-radius: var(--tear-radius-sm);
 }
 
 [class^="areas___"] > [class^="header___"],
 :is([class*="area-desktop___"], [class*="area-mobile___"]),
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="areaRow___"] {
-  border-radius: 0 !important;
+  border-radius: 0;
 }
 
 [class^="sidebar___"] > [class^="header___"]:has(+ :is([class*="area-desktop___"], [class*="area-mobile___"])) {
-  border-radius: var(--tear-radius-sm) var(--tear-radius-sm) 0 0 !important;
+  border-radius: var(--tear-radius-sm) var(--tear-radius-sm) 0 0;
 }
 
 [class^="sidebar___"] > :is([class*="area-desktop___"], [class*="area-mobile___"]):not(:has(+ :is([class*="area-desktop___"], [class*="area-mobile___"]))) {
   overflow: hidden;
-  border-radius: 0 0 var(--tear-radius-sm) var(--tear-radius-sm) !important;
+  border-radius: 0 0 var(--tear-radius-sm) var(--tear-radius-sm);
 }
-
-/* ---- Nav sections cycle full / top 10 / collapsed (main.js sets data-tear-state) */
 
 [class^="header___"][data-tear-collapsible] {
   cursor: pointer;
@@ -1529,14 +1380,13 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
 
 [class^="header___"][data-tear-state="collapsed"] ~ :is([class*="area-desktop___"], [class*="area-mobile___"]),
 [class^="header___"][data-tear-state="top"] ~ [data-tear-extra] {
-  display: none !important;
+  display: none;
 }
 
-/* Top 10: a line under the last row shown, with a tab hanging off it holding the hidden count. */
 :is([class*="area-desktop___"], [class*="area-mobile___"])[data-tear-more] {
   position: relative;
-  overflow: visible !important;
-  border-bottom: 3px solid var(--tear-link) !important;
+  overflow: visible;
+  border-bottom: 3px solid var(--tear-link);
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"])[data-tear-more]::after {
@@ -1554,58 +1404,53 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
   line-height: 1.2;
 }
 
-/* Room for the tab inside Areas, which clips to round its corners. */
 [class^="areas___"]:has(> [data-tear-state="top"]) {
-  padding-bottom: calc(var(--tear-fs-caption) * 1.2 + 7px) !important; /* the tab's height */
+  padding-bottom: calc(var(--tear-fs-caption) * 1.2 + 7px);
 }
 
-/* ---- Mail / events / awards ----------------------------------------- */
-
 [class^="accountLinksWrap___"] {
-  margin-block: var(--tear-space-2) !important;
-  border: 0 !important;
-  background: none !important;
+  margin-block: var(--tear-space-2);
+  border: 0;
+  background: none;
 }
 
 [class^="accountLinksWrap___"] [class^="accountLinks___"] {
-  display: grid !important;
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
 }
 
-/* Rounded per button, not clipped by the row, so the tooltips can overflow it. */
 [class^="accountLinksWrap___"] {
-  overflow: visible !important;
+  overflow: visible;
 }
 
 [class^="accountLinksWrap___"] [class^="accountLinks___"] > :first-child a {
-  border-radius: var(--tear-radius-sm) 0 0 var(--tear-radius-sm) !important;
+  border-radius: var(--tear-radius-sm) 0 0 var(--tear-radius-sm);
 }
 
 [class^="accountLinksWrap___"] [class^="accountLinks___"] > :last-child a {
-  border-radius: 0 var(--tear-radius-sm) var(--tear-radius-sm) 0 !important;
+  border-radius: 0 var(--tear-radius-sm) var(--tear-radius-sm) 0;
 }
 
 [class^="accountLinksWrap___"] [class^="accountLinks___"] > * {
-  width: auto !important;
-  margin: 0 !important;
+  width: auto;
+  margin: 0;
 }
 
-/* Torn fixes the wrap, the row and each slot at 35px. */
 [class^="accountLinksWrap___"],
 [class^="accountLinksWrap___"] [class^="accountLinks___"],
 [class^="accountLinksWrap___"] [class^="accountLinks___"] > * {
-  height: auto !important;
+  height: auto;
 }
 
 [class^="accountLinksWrap___"] a {
   --chip: var(--tear-link);
-  display: grid !important;
+  display: grid;
   place-items: center;
-  height: auto !important;
-  padding: var(--tear-space-2) 0 !important;
-  border-radius: 0 !important;
-  background: color-mix(in srgb, var(--chip) 20%, transparent) !important;
+  height: auto;
+  padding: var(--tear-space-2) 0;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--chip) 20%, transparent);
   transition: background-color 0.15s;
 }
 
@@ -1613,33 +1458,34 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
 [class^="accountLinksWrap___"] a[class^="awards___"] { --chip: var(--tear-gold); }
 
 [class^="accountLinksWrap___"] a:is(:hover, :focus-visible) {
-  background: color-mix(in srgb, var(--chip) 35%, transparent) !important;
+  background: color-mix(in srgb, var(--chip) 35%, transparent);
 }
 
 [class^="accountLinksWrap___"] a svg {
-  width: 1.75rem !important;
-  height: 1.75rem !important;
+  width: 1.75rem;
+  height: 1.75rem;
 }
 
 [class^="accountLinksWrap___"] a svg,
 [class^="accountLinksWrap___"] a svg * {
-  fill: var(--chip) !important;
+  fill: var(--chip);
 }
 
-/* The readout plus "Energy :" don't fit one line in the sidebar: label above, readout below. */
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] {
   flex-direction: column;
   align-items: flex-start;
-  gap: calc(var(--tear-space-1) * 1.5) !important;
+  gap: calc(var(--tear-space-1) * 1.5);
 }
 
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > [class^="barName___"] {
-  font-size: 0 !important; /* Torn's "Energy :" replaced below, without the colon */
+  font-size: 0;
 }
 
 [class^="userInformation___"] [data-tear-ring] [class^="barName___"]::after {
   color: var(--tear-label);
-  font: bold var(--tear-fs-caption)/1 sans-serif;
+  font-weight: bold;
+  font-size: var(--tear-fs-caption);
+  line-height: 1;
   letter-spacing: 0.15em;
   text-transform: uppercase;
 }
@@ -1650,20 +1496,18 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
 [data-tear-ring="life"]   [class^="barName___"]::after { content: "Life"; }
 [data-tear-ring="chain"]  [class^="barName___"]::after { content: "Chain"; }
 
-/* Tooltips in Torn's .white-tooltip style, from each button's aria-label. */
 [class^="accountLinksWrap___"] a {
   position: relative;
 }
 
-/* Torn uses these pseudos as 1px x 28px dividers; reset its sizing and placement. */
 [class^="accountLinksWrap___"] a::before,
 [class^="accountLinksWrap___"] a::after {
   position: absolute;
-  right: auto !important;
-  bottom: auto !important;
-  width: auto !important;
-  height: auto !important;
-  margin: 0 !important;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  height: auto;
+  margin: 0;
   background: none;
   left: 50%;
   z-index: 9999;
@@ -1674,25 +1518,24 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
 
 [class^="accountLinksWrap___"] a::after {
   content: attr(aria-label);
-  top: calc(100% + 7px) !important;
-  width: max-content !important;
+  top: calc(100% + 7px);
+  width: max-content;
   transform: translateX(-50%);
   padding: 5px 10px;
   border: 1px solid var(--tooltip-border-color, #333);
   border-radius: 5px;
-  background: var(--tooltip-bg-color, #444) !important;
+  background: var(--tooltip-bg-color, #444);
   box-shadow: var(--white-tooltip-box-shadow, var(--tooltip-shadow, 0 0 2px rgba(0, 0, 0, 0.65)));
   color: var(--tear-text);
   font-size: var(--tear-fs-label);
   white-space: nowrap;
 }
 
-/* Arrow */
 [class^="accountLinksWrap___"] a::before {
   content: "";
   top: 100%;
-  width: 0 !important;
-  height: 0 !important;
+  width: 0;
+  height: 0;
   transform: translateX(-50%);
   border: 7px solid transparent;
   border-top: 0;
@@ -1705,89 +1548,81 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
   opacity: 1;
 }
 
-/* Torn paints the current page's slot with a square gradient behind the rounded button. */
 [class^="accountLinksWrap___"] [class^="accountLinks___"] > * {
-  background: none !important;
+  background: none;
 }
 
 [class^="accountLinksWrap___"] [class*="active___"] a {
-  background: color-mix(in srgb, var(--chip) 40%, transparent) !important;
+  background: color-mix(in srgb, var(--chip) 40%, transparent);
 }
 
-/* ---- Sidebar section headings and spacing --------------------------- */
-
 [class^="sidebar___"] [class^="header___"]:has(+ :is([class*="area-desktop___"], [class*="area-mobile___"])) {
-  height: auto !important;
+  height: auto;
 }
 
 [class^="sidebar___"] [class^="header___"]:has(+ :is([class*="area-desktop___"], [class*="area-mobile___"])) [class^="title___"] {
-  height: auto !important;
-  padding: var(--tear-space-2) var(--tear-space-3) !important;
-  font-size: var(--tear-fs-body) !important;
-  line-height: 1.3 !important;
+  height: auto;
+  padding: var(--tear-space-2) var(--tear-space-3);
+  font-size: var(--tear-fs-body);
+  line-height: 1.3;
   letter-spacing: 0.04em;
 }
 
 [class^="sidebar___"][class*=" desktop___"] > :is([class^="accountLinksWrap___"], [class^="areas___"], [class^="header___"]:has(+ :is([class*="area-desktop___"], [class*="area-mobile___"]))) {
-  margin-top: var(--tear-space-4) !important;
+  margin-top: var(--tear-space-4);
 }
 
-/* A faint disc behind the rings separates them from the page. */
-[class^="userInformation___"] div:has(> [data-tear-ring])::before {
+[class^="userInformation___"] [data-tear-rings]::before {
   border-radius: 50%;
   background: color-mix(in srgb, var(--tear-text) 7%, transparent);
 }
 
-/* One corner radius for every sidebar card. */
-[class^="userInformation___"] :is([data-tear-stat="money"], div:has(> [data-tear-ring])),
+[class^="userInformation___"] :is([data-tear-stat="money"], [data-tear-rings]),
 [class^="areas___"],
 [class^="accountLinksWrap___"] {
-  border-radius: var(--tear-radius) !important;
+  border-radius: var(--tear-radius);
 }
 
 [class^="userInformation___"] [data-tear-stat="points"],
 [class^="accountLinksWrap___"] [class^="accountLinks___"] > :first-child a {
-  border-radius: var(--tear-radius) 0 0 var(--tear-radius) !important;
+  border-radius: var(--tear-radius) 0 0 var(--tear-radius);
 }
 
 [class^="userInformation___"] [data-tear-stat="merits"],
 [class^="accountLinksWrap___"] [class^="accountLinks___"] > :last-child a {
-  border-radius: 0 var(--tear-radius) var(--tear-radius) 0 !important;
+  border-radius: 0 var(--tear-radius) var(--tear-radius) 0;
 }
 
 [class^="sidebar___"] > [class^="header___"]:has(+ :is([class*="area-desktop___"], [class*="area-mobile___"])) {
-  border-radius: var(--tear-radius) var(--tear-radius) 0 0 !important;
+  border-radius: var(--tear-radius) var(--tear-radius) 0 0;
 }
 
 [class^="sidebar___"] > :is([class*="area-desktop___"], [class*="area-mobile___"]):not(:has(+ :is([class*="area-desktop___"], [class*="area-mobile___"]))) {
-  border-radius: 0 0 var(--tear-radius) var(--tear-radius) !important;
+  border-radius: 0 0 var(--tear-radius) var(--tear-radius);
 }
 
 [class^="userInformation"] [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
-  border-radius: var(--tear-radius-sm) !important;
+  border-radius: var(--tear-radius-sm);
 }
 
-/* Rings stand on their own above the card; only the legend sits on it.
-   The card is the box's ::after, starting just below the rings' square. */
-[class^="userInformation___"] div:has(> [data-tear-ring]) {
+[class^="userInformation___"] [data-tear-rings] {
   --bars-pad: 0px;
   isolation: isolate;
-  padding: 0 0 var(--tear-space-3) !important;
-  border: 0 !important;
-  background: none !important;
+  padding: 0 0 var(--tear-space-3);
+  border: 0;
+  background: none;
 }
 
-/* Card starts --card-gap below the rings; --card-pad is its inner top padding. */
-[class^="userInformation___"] div:has(> [data-tear-ring]) {
+[class^="userInformation___"] [data-tear-rings] {
   --card-gap: var(--tear-space-4);
   --card-pad: var(--tear-space-2);
 }
 
-[class^="userInformation___"] div:has(> [data-tear-ring])::before {
-  margin-bottom: calc(var(--card-gap) + var(--card-pad) - var(--legend-gap)) !important; /* minus the box's row gap */
+[class^="userInformation___"] [data-tear-rings]::before {
+  margin-bottom: calc(var(--card-gap) + var(--card-pad) - var(--legend-gap));
 }
 
-[class^="userInformation___"] div:has(> [data-tear-ring])::after {
+[class^="userInformation___"] [data-tear-rings]::after {
   content: "";
   position: absolute;
   inset: calc(100cqi + var(--card-gap)) 0 0;
@@ -1797,37 +1632,32 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
   background: var(--tear-surface);
 }
 
-[class^="userInformation___"] div:has(> [data-tear-ring]) > [data-tear-ring] {
-  padding-inline: var(--tear-space-3) !important;
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] {
+  padding-inline: var(--tear-space-3);
 }
 
-/* Readouts fill the rest of the legend row and shrink long values to fit
-   (--tear-len from main.js; per-character width includes the letter-spacing). */
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] {
   container-type: inline-size;
   min-width: 0;
-  align-items: stretch !important;
+  align-items: stretch;
 }
 
 [class^="userInformation"] [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
   box-sizing: border-box;
-  width: 100% !important;
+  width: 100%;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  padding: 4px 8px !important;
-  font-size: clamp(6px, calc((100cqi - 16px) / (var(--tear-len, 5) * (var(--tear-char-em-mono) + 0.08))), var(--tear-fs-body)) !important;
+  padding: 4px 8px;
+  font-size: clamp(6px, calc((100cqi - 16px) / (var(--tear-len, 5) * (var(--tear-char-em-mono) + 0.08))), var(--tear-fs-body));
 }
 
-/* A collapsed section's heading is its last row, so it rounds all four corners. */
 [class^="sidebar___"] > [class^="header___"][data-tear-state="collapsed"] {
-  border-radius: var(--tear-radius) !important;
+  border-radius: var(--tear-radius);
 }
 
-/* Legend row as a grid: label across the top, ring and readout side by side below.
-   barStats becomes display: contents so its label and readout join the row's grid. */
 [class^="userInformation___"] [data-tear-ring] {
-  display: grid !important;
+  display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-areas:
     "label label"
@@ -1842,7 +1672,7 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
 }
 
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] {
-  display: contents !important;
+  display: contents;
   container-type: normal;
 }
 
@@ -1850,13 +1680,11 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
   grid-area: label;
 }
 
-/* Readout width = row minus its side padding, the ring and the gap (cqi of the bars box). */
 [class^="userInformation___"] [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
   grid-area: value;
-  font-size: clamp(6px, calc((100cqi - 2 * var(--tear-space-3) - var(--timer-size) - 4cqi - 16px) / (var(--tear-len, 5) * (var(--tear-char-em-mono) + 0.08))), var(--tear-fs-body)) !important;
+  font-size: clamp(6px, calc((100cqi - 2 * var(--tear-space-3) - var(--timer-size) - 4cqi - 16px) / (var(--tear-len, 5) * (var(--tear-char-em-mono) + 0.08))), var(--tear-fs-body));
 }
 
-/* Full bar: a completed ring with a check, instead of the plain dot. One mask draws both. */
 [class^="userInformation___"] [data-tear-ring][data-tear-full]:not([data-tear-timer])::after {
   background: var(--ring-ink);
   -webkit-mask:
@@ -1867,9 +1695,8 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 12.5l3.2 3.2L17 8.8' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% no-repeat;
 }
 
-/* Room on the right so long names truncate before the edge (and clear the current-page dot). */
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="areaRow___"] > a {
-  padding-right: 1.5rem !important;
+  padding-right: 1.5rem;
 }
 
 :is([class*="area-desktop___"], [class*="area-mobile___"]) [class^="linkName___"] {
@@ -1877,104 +1704,94 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap !important;
+  white-space: nowrap;
 }
 
-/* ---- Fly-out menu (narrow layout) [#] --------------------------------
-   Torn hides it with translate(-100%), relative to its own width, so widening is safe. */
+/* Torn hides it with translate(-100%) of its own width, so widening is safe. */
 
 [class^="flyOutPanel___"] {
-  width: max(50vw, 166px) !important;
-  max-width: none !important;
+  width: max(50vw, 166px);
+  max-width: none;
 }
 
-/* Phones (Torn's own 600px breakpoint): most of the screen. */
 @media (max-width: 600px) {
   [class^="flyOutPanel___"] {
-    width: 80vw !important;
+    width: 80vw;
   }
 }
 
 [class^="flyOutPanel___"] > * {
   box-sizing: border-box;
-  width: 100% !important;
+  width: 100%;
 }
 
-/* Mail row flush to the top of the menu, and more prominent than in the sidebar. */
-/* Square inside the menu, except the corner that meets the menu's own 5px top-right. */
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"],
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > * a,
 [class^="flyOutPanel___"] [class^="areas___"] {
-  border-radius: 0 !important;
+  border-radius: 0;
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > :last-child a {
-  border-top-right-radius: 5px !important;
+  border-top-right-radius: 5px;
 }
 
-/* Mail row sits directly on the links, divided by a line. */
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] {
-  margin: 0 !important;
-  border-bottom: 1px solid var(--tear-line) !important;
+  margin: 0;
+  border-bottom: 1px solid var(--tear-line);
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] a {
-  padding: var(--tear-space-3) 0 !important;
-  background: color-mix(in srgb, var(--chip) 30%, transparent) !important;
+  padding: var(--tear-space-3) 0;
+  background: color-mix(in srgb, var(--chip) 30%, transparent);
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class*="active___"] a,
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] a:is(:hover, :focus-visible) {
-  background: color-mix(in srgb, var(--chip) 50%, transparent) !important;
+  background: color-mix(in srgb, var(--chip) 50%, transparent);
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] a svg {
-  width: 2.25rem !important;
-  height: 2.25rem !important;
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
-/* Torn's mobile row names and list counts carry a 34px line-height; normalise to the desktop row height. */
 [class*="area-mobile___"] :is([class^="linkName___"], [class^="listAmount___"]) {
-  height: auto !important;
-  line-height: 1.25 !important;
+  height: auto;
+  line-height: 1.25;
 }
 
 [class*="area-desktop___"] [class^="svgIconWrap___"],
 [class*="area-mobile___"] [class^="svgIconWrap___"] {
-  margin-right: var(--tear-space-1) !important;
+  margin-right: var(--tear-space-1);
 }
 
-/* ---- HUD orbs: centred contents, plain values ----------------------- */
-
-/* Torn wraps the timer in "(" ")" text nodes; font-size 0 hides them (the ring is sized in cqi). */
+/* Torn wraps the timer in "(" ")" text nodes; font-size 0 hides them. */
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"] {
-  display: flex !important;
+  display: flex;
   justify-content: center;
-  height: auto !important;
-  font-size: 0 !important;
-  line-height: 0 !important;
+  height: auto;
+  font-size: 0;
+  line-height: 0;
 }
 
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"] > *,
 [class^="userInformationMobile___"] [data-tear-ring] [class^="svgIconWrap___"] {
-  display: flex !important;
+  display: flex;
   justify-content: center;
   align-items: center;
-  line-height: 1 !important;
+  line-height: 1;
   text-align: center;
 }
 
-/* Values sit straight in the orb: no readout box. */
 [class^="userInformation"] [data-tear-ring] [class^="barStats___"] [class^="barValue___"]:is([class^="userInformationMobile___"] *) {
-  width: auto !important;
-  padding: 0 !important;
-  background: none !important;
-  box-shadow: none !important;
+  width: auto;
+  padding: 0;
+  background: none;
+  box-shadow: none;
 }
 
-/* Full: just the total (main.js sets data-tear-total). */
 [class^="userInformationMobile___"] [data-tear-full] [class^="barValue___"][data-tear-total] {
-  font-size: 0 !important;
+  font-size: 0;
 }
 
 [class^="userInformationMobile___"] [data-tear-full] [class^="barValue___"][data-tear-total]::after {
@@ -1982,195 +1799,175 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
   font-size: clamp(7px, calc(70cqi / (var(--tear-total-len, 4) * var(--tear-char-em-mono))), 20cqi);
 }
 
-/* Level number centred in its ring. */
 [class^="userInformation___"] [data-tear-stat="level"] [class^="value___"] {
   display: block;
-  line-height: 1 !important;
+  line-height: 1;
   text-align: center;
 }
 
-/* HUD timer as an inner ring inside the main ring, around the text. Its ::before is
-   positioned against the orb, so nothing between the orb and the timer may be positioned. */
+/* Its ::before is positioned against the orb: nothing in between may be positioned. */
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"],
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"],
 [class^="userInformationMobile___"] [data-tear-ring] [data-tear-timer] {
-  position: static !important;
-  z-index: auto !important;
+  position: static;
+  z-index: auto;
 }
 
 [class^="userInformationMobile___"] [data-tear-ring] [data-tear-timer]::before {
   --timer-stroke: 6cqi;
   position: absolute;
   inset: calc(var(--ring-width) + var(--ring-gap, 0px) - 1px); /* 1px under the outer ring, or a seam shows */
-  width: auto !important;
+  width: auto;
   border-radius: 50%;
 }
 
-/* Torn writes "65 / 100"; pull the spaces around the slash in. */
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barValue___"] {
   word-spacing: -0.45em;
 }
 
-/* Gap between the main ring and the inner timer ring (also sets the timer ring's inset). */
 [class^="userInformationMobile___"] [data-tear-ring][data-tear-timer] {
-  --ring-gap: 0px; /* inner ring sits right against the main ring */
+  --ring-gap: 0px;
 }
 
-/* ---- HUD layout ------------------------------------------------------ */
-
-/* Orb row: more room above and below, and Torn's content-width line replaced by a
-   full-width divider (out through the panel's padding), matching the status icons'. */
 [class^="userInformationMobile___"] [class^="barsMobile___"] {
-  width: auto !important; /* Torn fixes it; the negative margins need it to stretch */
-  margin: 0 calc(-1 * var(--tear-space-3)) !important;
-  padding: calc(var(--tear-space-1) * 1.5) var(--tear-space-3) calc(var(--tear-space-3) * 1.5) !important;
-  border-bottom: 1px solid var(--tear-line) !important;
+  width: auto;
+  margin: 0 calc(-1 * var(--tear-space-3));
+  padding: calc(var(--tear-space-1) * 1.5) var(--tear-space-3) calc(var(--tear-space-3) * 1.5);
+  border-bottom: 1px solid var(--tear-line);
 }
 
-/* Points and merits share one box, as on desktop. */
 [class^="userInformationMobile___"] [data-tear-stat="points"] {
-  border-right: 0 !important;
-  border-radius: var(--tear-radius) 0 0 var(--tear-radius) !important;
+  border-right: 0;
+  border-radius: var(--tear-radius) 0 0 var(--tear-radius);
 }
 
 [class^="userInformationMobile___"] [data-tear-stat="merits"] {
-  margin-left: -2cqi !important; /* cancels the row gap */
-  border-radius: 0 var(--tear-radius) var(--tear-radius) 0 !important;
+  margin-left: -2cqi; /* cancels the row gap */
+  border-radius: 0 var(--tear-radius) var(--tear-radius) 0;
 }
 
-/* Status icons get their own band: a full-width divider (out through the panel's padding),
-   icons flush with the content's left and right edges. */
 [class^="userInformationMobile___"] [class^="statusIcons___"] {
-  display: flex !important;
+  display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  margin: 0 calc(-1 * var(--tear-space-3)) !important;
-  padding: var(--tear-space-3) var(--tear-space-3) 0 !important;
+  margin: 0 calc(-1 * var(--tear-space-3));
+  padding: var(--tear-space-3) var(--tear-space-3) 0;
   border-top: 1px solid var(--tear-line);
 }
 
-/* Torn pads this strip 8px/10px; without it the cards and icons share the orb row's edges. */
 [class^="userInformationMobile___"] [class^="swiperWrapper___"] {
-  padding-inline: 0 !important;
+  padding-inline: 0;
 }
 
-/* ---- Fly-out menu attached to the top bar and its button ------------ */
-
-/* Starts right below the bar's line; no border of its own on top. */
 [class^="flyOutPanel___"] {
-  margin-top: 0 !important;
-  border-top: 0 !important;
+  margin-top: 0;
+  border-top: 0;
 }
 
-/* Drops down from the bar instead of sliding in from the left. */
+/* Torn closes it with a transform of its own: the motion uses translate/scale beside it. */
 [class^="flyOutPanel___"]:not([class*="visible___"]) {
-  transform: translateY(-6px) !important;
+  translate: -12px 0;
+  scale: 0.98;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.15s, transform 0.15s, visibility 0s 0.15s !important;
+  transition: opacity var(--tear-motion-out) var(--tear-ease-in), translate var(--tear-motion-out) var(--tear-ease-in),
+    scale var(--tear-motion-out) var(--tear-ease-in), visibility 0s var(--tear-motion-out);
 }
 
 [class^="flyOutPanel___"][class*="visible___"] {
-  transform: none !important;
+  transform: none;
+  translate: 0 0;
+  scale: 1;
   opacity: 1;
   visibility: visible;
-  transition: opacity 0.15s, transform 0.15s !important;
+  transform-origin: top left;
+  transition: opacity var(--tear-motion-in) var(--tear-ease-out), translate var(--tear-motion-in) var(--tear-ease-out),
+    scale var(--tear-motion-in) var(--tear-ease-out);
 }
 
-/* While open, the menu button gets Torn's profile-menu connector, mirrored to flare on its
-   right: a fill in the menu's colour fading up into the bar, edged on the curve by a fading line
-   (no straight line on its left). The SVG
-   shapes are masks, so the colours can follow theme and Torn's layout tints. */
-body:has([class^="flyOutPanel___"][class*="visible___"]) #fly-out-menu-button {
-  --tab-bg: rgb(51, 51, 51); /* Torn's menu colours */
+&[data-tear-drawer-open] body #fly-out-menu-button {
+  --tab-bg: rgb(51, 51, 51);
   --tab-line: #777;
 }
 
-body:has([class^="flyOutPanel___"][class*="visible___"][class*="inHospital___"]) #fly-out-menu-button { --tab-bg: rgb(68, 68, 68); }
-body:has([class^="flyOutPanel___"][class*="visible___"][class*="inJail___"]) #fly-out-menu-button { --tab-bg: rgb(61, 61, 51); }
-body:not(.dark-mode):has([class^="flyOutPanel___"][class*="visible___"]) #fly-out-menu-button {
+&[data-tear-drawer-open] body.hospital #fly-out-menu-button { --tab-bg: rgb(68, 68, 68); }
+&[data-tear-drawer-open] body.jail #fly-out-menu-button { --tab-bg: rgb(61, 61, 51); }
+&[data-tear-drawer-open] body:not(.dark-mode) #fly-out-menu-button {
   --tab-bg: var(--tear-surface);
   --tab-line: #d4d4d4;
 }
 
-body:has([class^="flyOutPanel___"][class*="visible___"]) #fly-out-menu-button::before,
-body:has([class^="flyOutPanel___"][class*="visible___"]) #fly-out-menu-button::after {
+&[data-tear-drawer-open] body #fly-out-menu-button::before,
+&[data-tear-drawer-open] body #fly-out-menu-button::after {
   content: "";
   position: absolute;
-  top: -1px;     /* the top of the bar */
-  bottom: -4px;  /* the bar's bottom line, plus 1px into the menu */
+  top: -1px;
+  bottom: -4px;
   left: 0;
-  width: calc(100% + 11px); /* the button plus the 11px flare, as in Torn's 45px sprite */
-  z-index: -1;   /* under the button's icon */
+  width: calc(100% + 11px);
+  z-index: -1;
   pointer-events: none;
   -webkit-mask: var(--shape) 0 0 / 100% 100% no-repeat;
   mask: var(--shape) 0 0 / 100% 100% no-repeat;
 }
 
-body:has([class^="flyOutPanel___"][class*="visible___"]) #fly-out-menu-button::before {
+&[data-tear-drawer-open] body #fly-out-menu-button::before {
   --shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='32' viewBox='0 0 45 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0,0H34V22A10,10,0,0,0,44,32H0Z' fill='url(%23g)'/%3E%3C/svg%3E");
   background: var(--tab-bg);
 }
 
-body:has([class^="flyOutPanel___"][class*="visible___"]) #fly-out-menu-button::after {
+&[data-tear-drawer-open] body #fly-out-menu-button::after {
   --shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='32' viewBox='0 0 45 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M34,23V0H35V22A10,10,0,0,0,45,32H39.66A10,10,0,0,1,34,23Z' fill='url(%23g)'/%3E%3C/svg%3E");
   background: var(--tab-line);
 }
 
-/* ---- Light mode: light menus (fly-out and profile) ------------------ */
-
 body:not(.dark-mode) [class^="flyOutPanel___"],
 body:not(.dark-mode) .settings-menu {
-  border-color: var(--tear-line) !important;
-  background: var(--tear-surface) !important;
-  color: var(--tear-text) !important;
+  border-color: var(--tear-line);
+  background: var(--tear-surface);
+  color: var(--tear-text);
 }
 
 body:not(.dark-mode) [class^="flyOutPanel___"] a,
 body:not(.dark-mode) [class^="flyOutPanel___"] [class^="linkName___"],
 body:not(.dark-mode) .settings-menu a,
 body:not(.dark-mode) .settings-menu li {
-  color: var(--tear-text) !important;
+  color: var(--tear-text);
 }
 
 body:not(.dark-mode) [class^="flyOutPanel___"] [class*="area-mobile___"] {
-  border-color: var(--tear-line) !important;
-  background: transparent !important;
+  border-color: var(--tear-line);
+  background: transparent;
 }
 
 body:not(.dark-mode) .settings-menu li:is(:hover, :focus-within) {
-  background: var(--tear-nav-hover) !important;
+  background: var(--tear-nav-hover);
 }
 
-/* Light mode: Torn's menu shadows and dark text shadows were made for the dark menu. */
 body:not(.dark-mode) [class^="flyOutPanel___"] {
-  border-right-color: color-mix(in srgb, var(--tear-text) 10%, transparent) !important;
-  box-shadow: 1px 0 6px rgba(0, 0, 0, 0.15) !important;
+  border-right-color: color-mix(in srgb, var(--tear-text) 10%, transparent);
+  box-shadow: 1px 0 6px rgba(0, 0, 0, 0.15);
 }
 
 body:not(.dark-mode) [class^="flyOutPanel___"] [class*="area-mobile___"] {
-  border-bottom-color: color-mix(in srgb, var(--tear-text) 8%, transparent) !important;
+  border-bottom-color: color-mix(in srgb, var(--tear-text) 8%, transparent);
 }
 
 body:not(.dark-mode) [class^="flyOutPanel___"] *,
 body:not(.dark-mode) .settings-menu * {
-  text-shadow: none !important;
+  text-shadow: none;
 }
 
 body:not(.dark-mode) .settings-menu {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
-/* Torn joins the profile button to its open menu with dropdown_left.svg: a fill that fades up
-   into the bar and flares into the menu on a 10px curve, edged by fading 1px lines. Same
-   shapes here in the light menu's colours (#f2f2f2 fill, #d4d4d4 lines). */
 body:not(.dark-mode) li.avatar.active > button::before {
-  height: calc(100% + 1px) !important; /* covers the menu's top border where they join */
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='32' viewBox='0 0 45 32'%3E%3Cdefs%3E%3ClinearGradient id='f' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0' stop-color='%23f2f2f2'/%3E%3Cstop offset='1' stop-color='%23f2f2f2' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='l' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0' stop-color='%23d4d4d4'/%3E%3Cstop offset='1' stop-color='%23d4d4d4' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M45,0H11V22A10,10,0,0,1,1,32H45Z' fill='url(%23f)'/%3E%3Cpath d='M11,23V0H10V22A10,10,0,0,1,0,32H5.34A10,10,0,0,0,11,23Z' fill='url(%23l)'/%3E%3Crect x='44' width='1' height='32' fill='url(%23l)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat !important;
+  height: calc(100% + 1px);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='32' viewBox='0 0 45 32'%3E%3Cdefs%3E%3ClinearGradient id='f' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0' stop-color='%23f2f2f2'/%3E%3Cstop offset='1' stop-color='%23f2f2f2' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='l' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0' stop-color='%23d4d4d4'/%3E%3Cstop offset='1' stop-color='%23d4d4d4' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M45,0H11V22A10,10,0,0,1,1,32H45Z' fill='url(%23f)'/%3E%3Cpath d='M11,23V0H10V22A10,10,0,0,1,0,32H5.34A10,10,0,0,0,11,23Z' fill='url(%23l)'/%3E%3Crect x='44' width='1' height='32' fill='url(%23l)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
 }
 
-/* Above the menu, so the connector covers the menu's top border. */
 body:not(.dark-mode) li.avatar.active > button {
   position: relative;
   z-index: 2;
@@ -2180,66 +1977,57 @@ body:not(.dark-mode) li.avatar.active .settings-menu {
   z-index: 1;
 }
 
-/* Mail buttons in the fly-out share the menu's colour; only the icons keep theirs. */
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] a {
-  background: transparent !important;
+  background: transparent;
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > :not(:last-child) a {
-  border-right: 1px solid var(--tear-line) !important;
+  border-right: 1px solid var(--tear-line);
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class*="active___"] a,
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] a:is(:hover, :focus-visible) {
-  background: var(--tear-nav-hover) !important;
+  background: var(--tear-nav-hover);
 }
 
-/* Torn's setting names are #ddd, made for its dark menu. */
 body:not(.dark-mode) .settings-menu .setting-name {
-  color: var(--tear-text) !important;
+  color: var(--tear-text);
 }
 
-/* More horizontal room in both menus. */
 .settings-menu li > :is(a, label) {
-  padding-inline: var(--tear-space-3) !important;
+  padding-inline: var(--tear-space-3);
 }
 
 [class*="area-mobile___"] [class^="areaRow___"] > a {
-  padding-left: var(--tear-space-3) !important;
+  padding-left: var(--tear-space-3);
 }
 
-/* ---- Profile menu states in light mode ------------------------------
-   Torn's rules assume its dark menu: #ccc labels turning white on hover,
-   gradient icons with a dark drop shadow, a light-blue server link. */
-
 body:not(.dark-mode) .settings-menu :is(.setting-name, .link-text) {
-  color: var(--tear-text) !important;
+  color: var(--tear-text);
 }
 
 body:not(.dark-mode) .settings-menu svg,
 body:not(.dark-mode) .settings-menu svg * {
-  fill: currentColor !important;
-  filter: none !important;
+  fill: currentColor;
+  filter: none;
 }
 
 body:not(.dark-mode) .settings-menu li > :is(a, label) {
-  color: var(--tear-muted) !important; /* icons follow this via currentColor */
+  color: var(--tear-muted);
   transition: background-color 0.15s, color 0.15s;
 }
 
-/* Hover and keyboard focus */
 body:not(.dark-mode) .settings-menu li > :is(a, label):is(:hover, :focus-visible, :focus-within) {
-  background: var(--tear-nav-hover) !important;
-  color: var(--tear-link) !important;
+  background: var(--tear-nav-hover);
+  color: var(--tear-link);
 }
 
 body:not(.dark-mode) .settings-menu li > :is(a, label):is(:hover, :focus-visible, :focus-within) :is(.setting-name, .link-text) {
-  color: var(--tear-link) !important;
+  color: var(--tear-link);
 }
 
-/* Selected: a toggle that's switched on */
 body:not(.dark-mode) .settings-menu label:has(input:checked) {
-  color: var(--tear-link) !important;
+  color: var(--tear-link);
 }
 
 body:not(.dark-mode) .settings-menu label:has(input:checked) .setting-name {
@@ -2251,22 +2039,21 @@ body:not(.dark-mode) .settings-menu input {
 }
 
 body:not(.dark-mode) .settings-menu .server-link {
-  color: var(--tear-link) !important;
+  color: var(--tear-link);
 }
 
-/* ---- HUD orbs on phones (Torn's 600px breakpoint): icon-only, thicker rings ---- */
 @media (max-width: 600px) {
   [class^="userInformationMobile___"] [class^="barsMobile___"] {
-    gap: 1.5cqi !important;
+    gap: 1.5cqi;
   }
 
   [class^="userInformationMobile___"] [data-tear-ring] {
     --ring-width: 12cqi;
-    max-width: none; /* fill the column, so the orbs sit closer */
+    max-width: none;
   }
 
   [class^="userInformationMobile___"] [data-tear-ring] [class^="barValue___"] {
-    display: none !important;
+    display: none;
   }
 
   [class^="userInformationMobile___"] [data-tear-ring] [class^="svgIconWrap___"] {
@@ -2274,59 +2061,53 @@ body:not(.dark-mode) .settings-menu .server-link {
   }
 }
 
-/* More vertical room in both menus. */
 .settings-menu li > :is(a, label) {
-  padding-block: calc(var(--tear-space-1) * 1.5) !important;
+  padding-block: calc(var(--tear-space-1) * 1.5);
 }
 
 [class*="area-mobile___"] [class^="areaRow___"] > a {
-  padding-block: var(--tear-space-3) !important;
+  padding-block: var(--tear-space-3);
 }
 
-/* Profile-menu toggles. Torn's hover repaints the "on" dot with the panel colour, so a
-   switched-on toggle looked off while hovered; keep "on" blue whatever the hover state. */
+/* Torn's hover repaints the "on" dot in the panel colour; keep "on" blue. */
 .settings-menu .checkbox-css:checked + .marker-css::after {
-  background-color: var(--tear-link) !important;
+  background-color: var(--tear-link);
 }
 
 .settings-menu .checkbox-css:checked + .marker-css::before,
 .settings-menu .setting-container:is(:hover, :focus-within) .checkbox-css + .marker-css::before {
-  border-color: var(--tear-link) !important;
+  border-color: var(--tear-link);
 }
 
-/* Profile-menu icons: Torn sits 28x28, 30x26 and 30x27 SVGs on the text baseline in a fixed
-   28px box, so each lands at a different height. Each icon's art is centred in its own
-   viewBox, so centring every SVG in the same slot lines them all up. */
+/* Torn's icons have different viewBoxes on the text baseline; centring each SVG lines them up. */
 .settings-menu li > :is(a, label) {
-  display: flex !important;
+  display: flex;
   align-items: center;
 }
 
 .settings-menu .icon-wrapper {
-  display: inline-flex !important;
+  display: inline-flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 1.75rem !important;
-  height: 1.75rem !important;
+  width: 1.75rem;
+  height: 1.75rem;
   vertical-align: middle;
 }
 
 .settings-menu .icon-wrapper svg {
   flex: none;
-  margin: 0 !important;
+  margin: 0;
 }
 
-/* HUD countdown rings share one timer colour, whatever the bar, so they read as timers. */
 [class^="userInformationMobile___"] [data-tear-ring] [data-tear-timer]::before {
   background: conic-gradient(
     color-mix(in srgb, var(--tear-timer-color) 70%, transparent) calc(var(--tear-timer) * 1%),
     color-mix(in srgb, var(--tear-timer-color) 25%, transparent) 0
-  ) !important;
+  );
 }
 
-/* Dark centre, inset by exactly the ring width. A pseudo-element, because cqi on the orb's
-   own background resolves against the HUD panel, not the orb. */
+/* A pseudo-element: cqi on the orb's own background resolves against the HUD panel. */
 [class^="userInformationMobile___"] [data-tear-ring]::after {
   content: "";
   position: absolute;
@@ -2336,54 +2117,46 @@ body:not(.dark-mode) .settings-menu .server-link {
   background: var(--tear-hole);
 }
 
-/* Profile-menu toggles: right-aligned, clear of the name. */
 .settings-menu .setting-container .choice-container {
   flex: none;
-  margin-left: auto !important;
+  margin-left: auto;
   padding-left: var(--tear-space-3);
 }
 
-/* Wider profile menu; anchored right, so it grows leftwards. Labels stay on one line. */
 .settings-menu {
-  left: auto !important;
-  width: 13.75rem !important;
+  left: auto;
+  width: 13.75rem;
 }
 
 .settings-menu :is(.setting-name, .link-text) {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap !important;
+  white-space: nowrap;
 }
 
-/* Lines above (the top bar's) and below the mail buttons match the menu's row dividers. */
 body:not(.dark-mode) #header-wrapper-top {
-  border-bottom-color: var(--tear-divider) !important;
+  border-bottom-color: var(--tear-divider);
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] {
-  border-bottom-color: var(--tear-divider) !important;
+  border-bottom-color: var(--tear-divider);
 }
 
-/* Profile menu: the same dividers as the fly-out rows, between every item. */
 .settings-menu li + li {
-  border-top: 1px solid var(--tear-divider) !important;
+  border-top: 1px solid var(--tear-divider);
 }
 
-/* With the fly-out open, the bar's shadow would fall across the menu's top edge. */
-body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top {
-  box-shadow: none !important;
+&[data-tear-drawer-open] body #header-wrapper-top {
+  box-shadow: none;
 }
 
-/* Torn's #555 top border on the menu's list doubled up with the divider under the mail buttons. */
 [class^="flyOutPanel___"] [class^="areas___"] {
-  border-top: 0 !important;
+  border-top: 0;
 }
 
-/* Fly-out: mail buttons pinned to the bottom, links scrolling underneath, so the first link
-   meets the top bar with no divider. The menu is its own scroll container (Torn caps its height). */
 [class^="flyOutPanel___"] {
-  display: flex !important;
+  display: flex;
   flex-direction: column;
 }
 
@@ -2396,85 +2169,77 @@ body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top {
 
 [class^="flyOutPanel___"] > [class^="accountLinksWrap___"] {
   order: 2;
-  position: sticky !important;
+  position: sticky;
   bottom: 0;
   z-index: 2;
   flex: none;
-  margin-top: auto !important; /* at the bottom even when the links are short */
-  border-top: 1px solid var(--tear-divider) !important;
-  border-bottom: 0 !important;
-  background: inherit !important; /* the menu's colour, Torn's tints included */
+  margin-top: auto;
+  border-top: 1px solid var(--tear-divider);
+  border-bottom: 0;
+  background: inherit;
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > :last-child a {
-  border-top-right-radius: 0 !important;
+  border-top-right-radius: 0;
 }
 
-/* Torn colours the list counts (Friends, Targets...) white for its dark menu. */
 body:not(.dark-mode) [class^="flyOutPanel___"] [class^="listAmount___"] {
-  color: var(--tear-muted) !important;
+  color: var(--tear-muted);
 }
 
-/* Fly-out mail area: the menu's own (solid) colour, no divider above it, no icon shadows. */
 [class^="flyOutPanel___"] > [class^="accountLinksWrap___"] {
-  border-top: 0 !important;
-  background: inherit !important;
-  box-shadow: 0 -2px 6px var(--tear-shadow); /* lifts it off the links scrolling underneath */
+  border-top: 0;
+  background: inherit;
+  box-shadow: 0 -2px 6px var(--tear-shadow);
 }
 
 [class^="accountLinksWrap___"] a svg {
-  filter: none !important;
+  filter: none;
 }
 
-/* Pinned at the bottom, the tooltips open upwards; hanging below, they added 31px of scroll. */
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] a::after {
-  top: auto !important;
-  bottom: calc(100% + 7px) !important;
+  top: auto;
+  bottom: calc(100% + 7px);
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] a::before {
-  top: auto !important;
-  bottom: 100% !important;
-  border-top: 7px solid var(--tooltip-bg-color, #444) !important;
-  border-bottom: 0 !important;
-  filter: drop-shadow(0 1px 0 var(--tooltip-border-color, #333)) !important;
+  top: auto;
+  bottom: 100%;
+  border-top: 7px solid var(--tooltip-bg-color, #444);
+  border-bottom: 0;
+  filter: drop-shadow(0 1px 0 var(--tooltip-border-color, #333));
 }
 
-/* The menu's side shadow blurred up over the top bar; clip it at the menu's top edge. */
 [class^="flyOutPanel___"] {
   clip-path: inset(0 -12px -12px 0);
 }
 
-/* The bar's bottom border would sit as a line across the open menu's top edge
-   (the bar's gradient runs under it, so transparent leaves no gap). */
-body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top {
-  border-bottom-color: transparent !important;
+&[data-tear-drawer-open] body #header-wrapper-top {
+  border-bottom-color: transparent;
 }
 
-/* The bar's darker bottom pixels still read as a line across the open menu's top. Cover them
-   with a strip in the menu's colour, as wide as the menu, so the menu runs up into the bar. */
-body:has([class^="flyOutPanel___"][class*="visible___"]) {
-  --menu-bg: rgb(51, 51, 51); /* Torn's menu colours, as for the button's connector */
+&[data-tear-drawer-open] body {
+  --menu-bg: rgb(51, 51, 51);
   --menu-w: max(50vw, 166px);
 }
 
-body:has([class^="flyOutPanel___"][class*="visible___"][class*="inHospital___"]) { --menu-bg: rgb(68, 68, 68); }
-body:has([class^="flyOutPanel___"][class*="visible___"][class*="inJail___"]) { --menu-bg: rgb(61, 61, 51); }
-body:not(.dark-mode):has([class^="flyOutPanel___"][class*="visible___"]) { --menu-bg: var(--tear-surface); }
+&[data-tear-drawer-open] body.hospital { --menu-bg: rgb(68, 68, 68); }
+&[data-tear-drawer-open] body.jail { --menu-bg: rgb(61, 61, 51); }
+&[data-tear-drawer-open] body:not(.dark-mode) { --menu-bg: var(--tear-surface); }
 
 @media (max-width: 600px) {
-  body:has([class^="flyOutPanel___"][class*="visible___"]) { --menu-w: 80vw; }
+  &[data-tear-drawer-open] body { --menu-w: 80vw; }
 }
 
-body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top {
+&[data-tear-drawer-open] body #header-wrapper-top {
   position: relative;
 }
 
-body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top::after {
+&[data-tear-drawer-open] body #header-wrapper-top::after {
   content: "";
   position: absolute;
   left: 0;
-  bottom: -1px; /* over the (transparent) bottom border too */
+  bottom: -1px;
   width: calc(var(--menu-w) + 1px); /* covers sub-pixel rounding of the menu's width */
   height: 3px;
   z-index: 1;
@@ -2482,12 +2247,8 @@ body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top::af
   background: var(--menu-bg);
 }
 
-/* ---- Desktop sidebar: draggable sections (main.js sets each piece's order) ----
-   userInformation dissolves into the sidebar so its pieces sort alongside the
-   other blocks. Each section starts with a grip drawn as the engraved delimiter. */
-
 [class^="sidebar___"][class*=" desktop___"] {
-  display: flex !important;
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
   align-content: flex-start;
@@ -2495,34 +2256,43 @@ body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top::af
 }
 
 [class^="sidebar___"][class*=" desktop___"] > [class^="userInformation___"] {
-  display: contents !important;
+  display: contents;
 }
 
-/* The grips replace Torn's delimiters. */
 [class^="sidebar___"][class*=" desktop___"] hr[class^="delimiter___"] {
-  display: none !important;
+  display: none;
 }
 
-/* Spacing now comes from the gap and grips. */
 [class^="sidebar___"][class*=" desktop___"] > :is([class^="accountLinksWrap___"], [class^="areas___"], [class^="header___"]:has(+ :is([class*="area-desktop___"], [class*="area-mobile___"]))) {
-  margin-top: 0 !important;
+  margin-top: 0;
 }
 
 [class^="sidebar___"][class*=" desktop___"] [data-tear-stat="money"] {
-  margin: 0 !important;
+  margin: 0;
 }
 
+/* 24px hit area around the 12px groove, without moving the sections. */
 [data-tear-grip] {
   all: unset;
   position: relative;
-  box-sizing: border-box;
   flex: 0 0 100%;
-  height: var(--tear-space-3);
+  height: calc(var(--tear-space-3) + var(--tear-space-1) * 3);
+  margin-block: calc(var(--tear-space-1) * -1.5);
+  padding-block: calc(var(--tear-space-1) * 1.5);
+  background-clip: content-box;
   cursor: grab;
   touch-action: none;
 }
 
-/* The engraved groove, as on the old delimiters. */
+.tear-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 [data-tear-grip]::before {
   content: "";
   position: absolute;
@@ -2539,7 +2309,6 @@ body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top::af
   display: none;
 }
 
-/* A dotted handle shows while the sidebar is hovered. */
 [data-tear-grip]::after {
   content: "";
   position: absolute;
@@ -2590,146 +2359,1855 @@ body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top::af
   pointer-events: none;
 }
 
-/* ---- TEAR dock: info and settings buttons, bottom left (content/settings.js) ----
-   Copies of Torn's chat-bar buttons, each in its own colour. */
-
-#tear-dock {
-  position: fixed;
-  z-index: 2147482999;
-  left: var(--tear-dock-left, 8px);
-  bottom: 0;
-  display: flex;
-  gap: var(--tear-space-1);
-}
-
-/* Room under the page so the end of it scrolls clear of the dock. A spacer rather than
-   padding, so it adds to whatever room Torn already leaves for its chat bar. */
-body.body::after {
-  content: "";
-  display: block;
-  clear: both;
-  height: calc(38px + var(--tear-space-2));
-}
-
-#tear-dock > button {
-  --button: var(--tear-settings-button);
-  all: unset;
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 5px 5px 0 0;
-  background-image: linear-gradient(var(--button), color-mix(in srgb, var(--button), #000 55%));
-  color: #fff;
-  cursor: pointer;
-  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.25), 0 -2px 4px rgba(0, 0, 0, 0.5);
-}
-
-#tear-dock > button[hidden] {
-  display: none;
-}
-
-#tear-dock > [data-tear-info] {
-  --button: var(--tear-info-button);
-}
-
-#tear-dock > button:hover,
-#tear-dock > button[aria-expanded="true"] {
-  filter: brightness(1.2);
-}
-
-#tear-dock > button:focus-visible {
-  outline: 2px solid var(--tear-link);
-  outline-offset: 2px;
-}
-
-/* ---- Sidebar footer as the info popup -----------------------------------
-   Hidden in the sidebar; with the info button pressed it opens upwards from the
-   dock, styled like the profile menu: Torn's menu colour, dividers between rows. */
-
 body {
   --tear-popup-bg: var(--tear-surface);
 }
 
 body.dark-mode {
-  --tear-popup-bg: rgb(51, 51, 51); /* Torn's menu colour */
+  --tear-popup-bg: rgb(51, 51, 51);
 }
 
 [class^="sidebar___"] > [class^="footerMenu___"] {
-  display: none !important;
+  display: none;
 }
 
-html[data-tear-info-open] [class^="sidebar___"] > [class^="footerMenu___"] {
-  display: block !important;
-  position: fixed !important;
-  z-index: 2147483000;
-  left: var(--tear-dock-left, 8px);
-  bottom: calc(38px + var(--tear-space-2));
+/* Page grid. Torn's wrappers dissolve (display: contents) so sidebar and content are its
+   areas; the stacked layout follows Torn's mobile sidebar, not a width. */
+
+body.body {
+  --page-gutter: clamp(var(--tear-space-2), 2.5vw, 3rem);
+  --page-gap: clamp(var(--tear-space-3), 1.5vw, 1.5rem);
+  --sidebar-w: clamp(10.75rem, 14vw, 15rem); /* never under the 172px logo */
+  --page-main: calc(100% - 2 * var(--page-gutter));
+
+  display: grid;
+  grid-template-columns:
+    [full-start] var(--page-gutter)
+    [main-start] var(--sidebar-w)
+    var(--page-gap)
+    minmax(0, 1fr)
+    [main-end] var(--page-gutter)
+    [full-end];
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "header header  header header  header"
+    ".      sidebar .      content ."
+    "footer footer  footer footer  footer";
+  align-content: start;
+  min-height: 100dvh;
+  margin: 0;
+}
+
+body.body:not(:has(#sidebarroot)),
+body.body.without-sidebar {
+  grid-template-areas:
+    "header header  header  header  header"
+    ".      content content content ."
+    "footer footer  footer  footer  footer";
+}
+
+body.body:has([class^="sidebar___"][class*=" mobile___"]) {
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    "header header  header  header  header"
+    ".      sidebar sidebar sidebar ."
+    ".      content content content ."
+    "footer footer  footer  footer  footer";
+}
+
+/* Unplaced children would auto-place into the gutters: send them to rows after the footer. */
+body.body > *,
+body.body::after {
+  grid-column: full-start / full-end;
+}
+
+body.body > .content.responsive-sidebar-container,
+body.body #mainContainer {
+  display: contents;
+}
+
+body.body > #header-root {
+  grid-area: header;
+  min-width: 0;
+}
+
+body.body #sidebarroot {
+  grid-area: sidebar;
+  align-self: start;
+  min-width: 0;
+  width: auto;
+  max-width: none;
+  margin: var(--page-gap) 0 0;
+}
+
+body.body #sidebar {
+  width: 100%;
+}
+
+body.body .content-wrapper {
+  grid-area: content;
+  min-width: 0;
+  width: auto;
+  max-width: none;
+  margin: var(--page-gap) 0 calc(var(--page-gap) * 2);
+}
+
+body.body > .footer {
+  grid-area: footer;
+}
+
+body.body .header .container {
   box-sizing: border-box;
-  width: max-content !important;
-  min-width: 13.75rem;
-  max-width: calc(100vw - 16px);
-  height: auto !important;
-  margin: 0 !important;
-  padding: var(--tear-space-1) 0 !important;
-  border: 1px solid var(--tear-line);
-  border-radius: var(--tear-radius) !important;
-  background: var(--tear-popup-bg) !important;
-  color: var(--tear-text) !important;
-  box-shadow: 0 -6px 20px var(--tear-shadow);
-  text-align: left !important;
+  width: var(--page-main);
+  max-width: none;
+  margin-inline: auto;
 }
 
-/* The arrow down to the info button. */
-html[data-tear-info-open] [class^="sidebar___"] > [class^="footerMenu___"]::after {
+body.body:not(:has([class^="sidebar___"][class*=" mobile___"])) #header-wrapper-top > .container {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr) auto;
+  grid-template-areas: "logo menu tools";
+  column-gap: var(--page-gap);
+  align-items: start;
+}
+
+body.body #header-wrapper-top > .container > .logo {
+  grid-area: logo;
+  left: auto;
+}
+
+body.body #header-wrapper-top > .container > .header-menu {
+  grid-area: menu;
+  float: none;
+  min-width: 0;
+  padding-left: 0;
+}
+
+body.body #header-wrapper-top > .container > .header-navigation {
+  grid-area: tools;
+  float: none;
+  justify-self: end;
+}
+
+[data-tear-columns="2"] {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  grid-template-rows: var(--tear-rows, none);
+  gap: var(--page-gap);
+  align-items: start;
+}
+
+[data-tear-columns="2"] > [data-tear-col] {
+  grid-row: var(--tear-row, auto);
+  float: none;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  margin: 0;
+}
+
+[data-tear-columns="2"] > [data-tear-col] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--page-gap);
+}
+
+[data-tear-columns="2"] > [data-tear-col] > * {
+  margin-block: 0;
+}
+
+[data-tear-columns="2"] > [data-tear-col="main"] { grid-column: 1; }
+[data-tear-columns="2"] > [data-tear-col="side"] { grid-column: 2; }
+
+[data-tear-columns="2"] > .clear {
+  display: none;
+}
+
+[data-tear-columns="2"] > :not([data-tear-col]) {
+  grid-column: 1 / -1;
+}
+
+[data-tear-stack] > * + :not(.clear, script, style) {
+  margin-top: var(--page-gap);
+}
+
+@media (max-width: 784px) {
+  [data-tear-columns="2"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+
+  [data-tear-columns="2"] > [data-tear-col] {
+    grid-row: auto;
+    grid-column: 1;
+  }
+}
+
+&[data-tear-page="profiles"] .user-information .cont {
+  align-items: stretch;
+  gap: var(--page-gap);
+  padding: var(--page-gap);
+}
+
+&[data-tear-page="profiles"] .profile-image {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tear-space-2);
+}
+
+&[data-tear-page="profiles"] .profile-image-info-container {
+  position: relative;
+  width: 100%;
+  border-radius: var(--tear-radius);
+  overflow: hidden;
+}
+
+&[data-tear-page="profiles"] .profile-image-information {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--tear-space-1) var(--tear-space-2);
+  background: color-mix(in srgb, #000 55%, transparent);
+  font-size: var(--tear-fs-label);
+}
+
+&[data-tear-page="profiles"] .profile-image-information a {
+  color: #fff;
+}
+
+/* Torn's letter sprite can't be cut per letter from its CSS: the name is real text. */
+&[data-tear-page="profiles"] .profile-image .user.name,
+&[data-tear-page="profiles"] .userHonor {
+  width: 100%;
+  margin: 0;
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap {
+  container-type: inline-size;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap > * {
+  grid-area: 1 / 1;
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  border-radius: var(--tear-radius-sm);
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap .honor-text-svg {
+  display: none;
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap .honor-text:not(.honor-text-svg) {
+  color: #fff;
+  font-weight: bold;
+  font-size: clamp(0.75rem, 5.2cqi, 1.5rem);
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px #000, 0 0 2px #000, 0 0 4px #000;
+}
+
+&[data-tear-page="profiles"] .profile-image-wrapper .img-wrap {
+  background: var(--tear-surface-sunk);
+}
+
+&[data-tear-page="profiles"] .profile-image-wrapper img {
+  aspect-ratio: 4 / 5;
+  max-height: clamp(16rem, 45vh, 26rem);
+  object-fit: contain;
+  object-position: center;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper {
+  display: flex;
+  flex: 0 0 clamp(9rem, 32%, 13rem);
+  flex-direction: column;
+  gap: var(--tear-space-2);
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .box-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tear-space-1);
+  padding: var(--tear-space-2) var(--tear-space-3) var(--tear-space-3);
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-surface-dim);
+  background-image: none;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .box-name {
+  color: var(--tear-label);
+  font-size: var(--tear-fs-caption);
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper :is(.reflection, .l-ear, .r-ear, .clear) {
+  display: none;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper :is(.block-value, .box-value) {
+  width: auto;
+  background: none;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .box-value {
+  display: flex;
+  justify-content: center;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .box-value > li {
+  display: flex;
+  float: none;
+  height: auto;
+  background: none;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .digit {
+  float: none;
+  color: var(--tear-text-strong);
+  font-size: 1.75rem;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  background: none;
+}
+
+/* Torn pads short numbers with a blank digit. */
+&[data-tear-page="profiles"] .profile-information-wrapper .digit.zero::before {
+  content: "0";
+  opacity: 0.25;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .rank .digit {
+  font-size: var(--tear-fs-title);
+  text-align: center;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .two-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper {
+  height: auto;
+  background: none;
+}
+
+&[data-tear-page="profiles"] .profile-status .cont {
+  padding: var(--tear-space-3);
+  border-left: 3px solid var(--tear-live);
+  border-radius: var(--tear-radius);
+}
+
+&[data-tear-page="profiles"] .profile-status .profile-container {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-3);
+  height: auto;
+}
+
+&[data-tear-page="profiles"] .profile-status .profile-container > * {
+  position: static;
+  float: none;
+  margin: 0;
+}
+
+&[data-tear-page="profiles"] .cont > .profile-container:not(.p10) {
+  padding: var(--tear-space-3);
+}
+
+&[data-tear-page="profiles"] .basic-info > .icons {
+  float: none;
+  margin-bottom: var(--tear-space-2);
+}
+
+&[data-tear-page="profiles"] .basic-info > .icons ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tear-space-1);
+}
+
+&[data-tear-page="profiles"] .basic-info > .icons li {
+  float: none;
+}
+
+& .header .logo {
+  width: 172px;
+  height: 77px;
+  background: var(--tear-asset-logo-desktop, var(--tear-logo-desktop)) 0 0 / auto 100% no-repeat;
+}
+
+& .header .logo:hover {
+  background-position: 100% 0;
+}
+
+& body:not(:has([class^="sidebar___"][class*=" mobile___"])) #header-wrapper-top > .container > .logo {
+  position: absolute;
+  top: 0;
+  z-index: 2;
+}
+
+/* Kept for screen readers; the image is the logo. */
+& .header .logo > h1 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* --logo-w/--logo-h come from the mobile header: fixed sizes here break the menu button's offset. */
+& body:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+  width: var(--logo-w);
+  height: var(--logo-h);
+  background-image: var(--tear-asset-logo-tablet, var(--tear-logo-tablet));
+}
+
+@media (max-width: 784px) {
+  & body:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+    background-image: var(--tear-asset-logo-mobile, var(--tear-logo-mobile));
+  }
+}
+
+/* One sprite, an 18px cell per icon (--tear-icon from main.js); a row per size. */
+& :is([class^="statusIcons___"] > li, li[class*="user-status-16-"]) {
+  --tear-icon-row: 0px;
+  --tear-icon-nudge: 0px;
+  display: inline-block;
+  width: 17px;
+  height: 17px;
+  background: var(--tear-asset-status-icons)
+    calc(var(--tear-icon, 0) * -18px - var(--tear-icon-nudge)) var(--tear-icon-row) no-repeat;
+}
+
+& [class^="statusIcons___"][class*="medium___"] > li {
+  --tear-icon-row: -19px;
+  --tear-icon-nudge: 1px;
+  width: 14px;
+  height: 14px;
+}
+
+& [class^="statusIcons___"][class*="small___"] > li {
+  --tear-icon-row: -38px;
+  --tear-icon-nudge: 2px;
+  width: 12px;
+  height: 12px;
+}
+
+& :is([class^="statusIcons___"] > li, li[class*="user-status-16-"]) > a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+&[data-tear-page="profiles"] .buttons-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tear-space-2);
+}
+
+&[data-tear-page="profiles"] .profile-button {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-surface-dim);
+  color: var(--tear-text);
+}
+
+&[data-tear-page="profiles"] .profile-button:is(:hover, :focus-visible) {
+  border-color: var(--tear-accent);
+  background: var(--tear-surface-hover);
+  text-decoration: none;
+}
+
+&[data-tear-page="profiles"] .profile-button svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+&[data-tear-page="profiles"] [class*="interactionLog___"] {
+  padding: var(--tear-space-2) var(--tear-space-3);
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-panel-bg);
+}
+
+&[data-tear-page="profiles"] [class*="interactionTable___"] {
+  width: 100%;
+}
+
+&[data-tear-page="profiles"] [class*="interactionTable___"] tr + tr td {
+  border-top: 1px solid var(--tear-divider);
+}
+
+&[data-tear-page="profiles"] [class*="interactionTable___"] td {
+  padding: var(--tear-space-2) var(--tear-space-1);
+  vertical-align: top;
+}
+
+&[data-tear-page="profiles"] [class*="logLink___"] {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--tear-space-1);
+}
+
+&[data-tear-page="profiles"] .badgesPanel .icon-placeholder,
+&[data-tear-page="profiles"] [class*="badgesPanel"] svg {
+  fill: var(--tear-line);
+}
+
+#chatRoot > div > div:last-child button {
+  border: 1px solid var(--tear-line);
+  border-bottom: 0;
+  border-radius: 5px 5px 0 0;
+  background: linear-gradient(var(--tear-surface), var(--tear-surface-sunk));
+  color: var(--tear-text);
+  box-shadow: inset 0 1px 0 var(--tear-overlay), 0 -2px 6px var(--tear-shadow);
+}
+
+#chatRoot > div > div:last-child button:is(:hover, :focus-visible) {
+  background: linear-gradient(var(--tear-surface-hover), var(--tear-surface));
+  color: var(--tear-text-strong);
+}
+
+#chatRoot > div > div:last-child button:focus-visible {
+  outline: 2px solid var(--tear-accent);
+  outline-offset: 2px;
+}
+
+#chatRoot > div > div:last-child button svg {
+  width: 1.375rem;
+  height: 1.375rem;
+}
+
+#chatRoot > div > div:last-child button svg :is(path, circle, rect, polygon) {
+  fill: currentColor;
+}
+
+body.body > #header-root {
+  position: relative;
+  z-index: 999996;
+}
+
+:is(.header .avatar.active .settings-menu, .react-dropdown-default.dropdown-opened .dropdownList, .header-menu.active .menu-items) {
+  padding: var(--tear-space-1) 0;
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-popup-bg);
+  color: var(--tear-text);
+  box-shadow: 0 8px 24px var(--tear-shadow);
+}
+
+.header .avatar.active .settings-menu {
+  top: calc(100% + var(--tear-space-1));
+}
+
+.settings-menu li > :is(a, label, .info-container) {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-2);
+  padding: var(--tear-space-2) var(--tear-space-3);
+  color: var(--tear-text);
+  cursor: pointer;
+}
+
+.settings-menu li > :is(a, label):is(:hover, :focus-visible) {
+  background: var(--tear-nav-hover);
+  text-decoration: none;
+}
+
+.settings-menu .icon-wrapper svg,
+.settings-menu .icon-wrapper svg * {
+  fill: currentColor;
+}
+
+.settings-menu .marker-css {
+  display: none;
+}
+
+.settings-menu .checkbox-css {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--tear-accent);
+}
+
+.settings-menu .server-info .info-container {
+  color: var(--tear-muted);
+  font-size: var(--tear-fs-label);
+  cursor: default;
+}
+
+.react-dropdown-default.dropdown-opened .dropdownList {
+  min-width: 11rem;
+  top: calc(100% + var(--tear-space-1));
+  z-index: 100;
+}
+
+.react-dropdown-default .dropdownList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tear-space-3);
+  padding: var(--tear-space-2) var(--tear-space-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.react-dropdown-default .dropdownList li:is(:hover, [aria-selected="true"]) {
+  background: var(--tear-nav-hover);
+}
+
+.header-menu.active .menu-items .menu-item-href {
+  padding: var(--tear-space-2) var(--tear-space-3);
+}
+
+/* Torn's own size (its Width/Height settings scale it inline): its script places windows by it. */
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  max-width: calc(100vw - 25px);
+  height: 440px;
+  max-height: calc(100vh - 50px);
+  overflow: hidden;
+  border: 1px solid var(--tear-line);
+  border-bottom: 0;
+  border-radius: var(--tear-radius) var(--tear-radius) 0 0;
+  background: var(--tear-popup-bg);
+  color: var(--tear-text);
+  box-shadow: 0 -4px 20px var(--tear-shadow);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :first-child {
+  flex: none;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--tear-line);
+  background: var(--tear-surface-dim);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :first-child:is(button),
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :first-child > button:first-child {
+  display: flex;
+  flex: none;
+  width: 100%;
+  align-items: center;
+  min-width: 0;
+  padding: var(--tear-space-2) var(--tear-space-3);
+  color: var(--tear-text-strong);
+  font-weight: bold;
+  text-align: left;
+}
+
+#chatRoot :is([class*="actionButton___"], [class*="textContainer___"]) {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-2);
+  min-width: 0;
+}
+
+#chatRoot [class*="minimizeIcon___"] {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+#chatRoot button:hover > [class*="minimizeIcon___"] {
+  opacity: 1;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :first-child svg {
+  flex: none;
+}
+
+#chatRoot [class*="arrowIcon___"] {
+  width: 0.625rem;
+  height: auto;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) svg :is(path, rect, circle, polygon) {
+  fill: currentColor;
+}
+
+#chatRoot [class*="headingH1___"][class*="overflow___"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] > :has(> [class*="scrollWrapper___"]) {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"]:not(:has([class*="scrollWrapper___"])) {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: var(--tear-space-2);
+}
+
+#chatRoot [class*="virtualItem___"] {
+  padding: var(--tear-space-1) var(--tear-space-3);
+}
+
+#chatRoot [class*="senderContainer___"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--tear-space-1);
+  margin-right: var(--tear-space-1);
+  font-weight: bold;
+}
+
+#chatRoot [class*="senderContainer___"] img {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+#chatRoot [class*="message___"] {
+  overflow-wrap: anywhere;
+}
+
+#chatRoot [class*="virtualItem___"] [class*="divider"] {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-2);
+  color: var(--tear-muted);
+  font-size: var(--tear-fs-caption);
+}
+
+#chatRoot [class*="virtualItem___"] [class*="divider"]::before,
+#chatRoot [class*="virtualItem___"] [class*="divider"]::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--tear-line);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] > :has(> textarea) {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--tear-space-2);
+  padding: var(--tear-space-2);
+  border-top: 1px solid var(--tear-line);
+}
+
+#chatRoot [class*="textarea___"] {
+  flex: 1;
+  min-height: 2.25rem;
+  max-height: 8rem;
+  padding: var(--tear-space-2);
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius-sm);
+  background: var(--tear-surface-sunk);
+  color: var(--tear-text);
+  font: inherit;
+  resize: none;
+}
+
+#chatRoot [class*="textarea___"]:focus-visible {
+  outline: 2px solid var(--tear-accent);
+  outline-offset: 1px;
+}
+
+#chatRoot [class*="iconWrapper___"] {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--tear-text);
+}
+
+#chatRoot [class*="iconWrapper___"] svg :is(path, circle, rect, polygon) {
+  fill: currentColor;
+}
+
+/* Torn's script offsets each window with translateX within this one cell. */
+#chatRoot > div > div:first-child {
+  display: grid;
+  align-items: end;
+  justify-items: end;
+}
+
+#chatRoot > div > div:first-child > * {
+  grid-area: 1 / 1;
+  max-width: calc(100vw - 10px);
+}
+
+#chatRoot [class*="subtitle___"][class*="header___"] {
+  display: block;
+  margin-top: var(--tear-space-2);
+  padding: var(--tear-space-2) var(--tear-space-3) var(--tear-space-1);
+  color: var(--tear-label);
+  font-size: var(--tear-fs-caption);
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] div:has(> [class*="label___"]) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tear-space-3);
+  padding: var(--tear-space-1) var(--tear-space-3);
+}
+
+#chatRoot input[type="range"] {
+  flex: 1;
+  max-width: 12rem;
+  accent-color: var(--tear-accent);
+}
+
+#chatRoot input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--tear-accent);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] div:has(> [class*="label___"]) > button {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-2);
+  padding: var(--tear-space-1) var(--tear-space-2);
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius-sm);
+  background: var(--tear-surface-sunk);
+}
+
+#chatRoot [class*="arrow___"]:empty {
+  width: 0;
+  height: 0;
+  border: 4px solid transparent;
+  border-top-color: currentColor;
+  border-bottom: 0;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] div:has(> label > input[type="checkbox"]) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tear-space-2) var(--tear-space-3);
+  padding: var(--tear-space-1) var(--tear-space-3);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] [class*="container___"] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tear-space-2) var(--tear-space-3);
+  padding: var(--tear-space-1) var(--tear-space-3);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] [class*="container___"] > label,
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] label:has(> input[type="checkbox"]) {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: var(--tear-space-1);
+  cursor: pointer;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] div:has(> button > [class*="iconWrapper___"]),
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] div:has(> button > svg + *) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tear-space-2);
+  padding: var(--tear-space-1) var(--tear-space-3);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button:has(> [class*="iconWrapper___"]),
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] div:has(> [class*="subtitle___"][class*="header___"]) > div > button:has(> svg) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tear-space-1);
+  min-width: 4.5rem;
+  padding: var(--tear-space-2);
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-surface-dim);
+  color: var(--tear-text);
+  font-size: var(--tear-fs-label);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button:has(> [class*="iconWrapper___"]):is(:hover, :focus-visible) {
+  border-color: var(--tear-accent);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button > [class*="iconWrapper___"] {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button > [class*="divider___"] {
+  display: none;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] > :last-child:not(:has(> textarea, [class*="header___"])) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tear-space-2);
+  margin-top: var(--tear-space-2);
+  padding: var(--tear-space-2) var(--tear-space-3) 0;
+  border-top: 1px solid var(--tear-line);
+  color: var(--tear-muted);
+  font-size: var(--tear-fs-caption);
+}
+
+/* Torn's script sets the offset inline; only !important undoes it. */
+
+#chatRoot [data-tear-chat-hidden] {
+  display: none;
+}
+
+#chatRoot [data-tear-chat-active] {
+  transform: none !important;
+}
+
+body:has(#tear-chat-tabs) #chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) {
+  max-height: calc(100dvh - var(--tear-bar-h) - var(--tear-chat-bar-h) - 2.5rem - var(--tear-space-2));
+}
+
+#chatRoot [data-tear-chat-active] [class*="visible___"]:has(> [class*="content___"]) {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+#tear-chat-tabs {
+  position: fixed;
+  left: var(--tear-tabs-left);
+  bottom: var(--tear-tabs-bottom);
+  z-index: 999991;
+  display: flex;
+  width: var(--tear-tabs-width);
+  overflow-x: auto;
+  scrollbar-width: none;
+  border: 1px solid var(--tear-line);
+  border-bottom: 0;
+  border-radius: var(--tear-radius) var(--tear-radius) 0 0;
+  background: var(--tear-surface-sunk);
+  box-shadow: 0 -4px 16px var(--tear-shadow);
+}
+
+#tear-chat-tabs [role="tab"] {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: var(--tear-space-1);
+  min-width: 0;
+  padding: var(--tear-space-2) var(--tear-space-3);
+  border: 0;
+  border-right: 1px solid var(--tear-line);
+  background: none;
+  color: var(--tear-text);
+  font: inherit;
+  font-size: var(--tear-fs-label);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+#tear-chat-tabs [role="tab"] span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#tear-chat-tabs [role="tab"]:not([aria-selected="true"]):has(svg) span {
+  display: none;
+}
+
+#tear-chat-tabs [role="tab"][aria-selected="true"] {
+  flex: 1 1 auto;
+}
+
+#tear-chat-tabs [role="tab"] svg {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+}
+
+#tear-chat-tabs [role="tab"] svg :is(path, rect, circle, polygon) {
+  fill: currentColor;
+}
+
+#tear-chat-tabs [role="tab"]:hover {
+  color: var(--tear-text);
+}
+
+#tear-chat-tabs [role="tab"][aria-selected="true"] {
+  background: var(--tear-surface-dim);
+  color: var(--tear-text-strong);
+  box-shadow: inset 0 2px 0 var(--tear-accent);
+}
+
+#tear-chat-tabs [role="tab"]:focus-visible {
+  outline: 2px solid var(--tear-accent);
+  outline-offset: -2px;
+}
+
+&[data-tear-drawer-open] body :is(#chatRoot > div, #tear-chat-tabs) {
+  z-index: 999980;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :nth-child(2):not([class*="content___"]) {
+  flex: none;
+  display: flex;
+  gap: var(--tear-space-1);
+  padding: var(--tear-space-1) var(--tear-space-2);
+  border-bottom: 1px solid var(--tear-line);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :nth-child(2):not([class*="content___"]) > [class*="divider___"] {
+  display: none;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :nth-child(2):not([class*="content___"]) > button {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2rem;
+  border-radius: var(--tear-radius-sm);
+  color: var(--tear-muted);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :nth-child(2):not([class*="content___"]) > button:hover {
+  color: var(--tear-text);
+  background: var(--tear-nav-hover);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :nth-child(2):not([class*="content___"]) > button[class*="selected___"] {
+  color: var(--tear-text-strong);
+  background: var(--tear-nav-active);
+  box-shadow: inset 0 -2px 0 var(--tear-accent);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > :nth-child(2):not([class*="content___"]) svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] [class*="placeholder___"]:has(> input) {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-1);
+  margin: var(--tear-space-2) var(--tear-space-3);
+  padding: 0 var(--tear-space-2);
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius-sm);
+  background: var(--tear-surface-sunk);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] [class*="placeholder___"] > input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--tear-space-1) 0;
+  border: 0;
+  background: none;
+  color: var(--tear-text);
+  font: inherit;
+  outline: none;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] [class*="placeholder___"] > svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] [class*="placeholder___"]:focus-within {
+  border-color: var(--tear-accent);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button:has(> a > img[class*="avatar"]) {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  align-items: center;
+  gap: var(--tear-space-2);
+  width: 100%;
+  padding: var(--tear-space-2) var(--tear-space-3);
+  border-bottom: 1px solid var(--tear-divider);
+  color: var(--tear-text);
+  text-align: left;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button:has(> a > img[class*="avatar"]):hover {
+  background: var(--tear-nav-hover);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button > a > img[class*="avatar"] {
+  display: block;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button [class*="wrapper___"] {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  width: auto;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button [class*="wrapper___"] > [class*="header___"] {
+  background: none;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--tear-space-2);
+  margin: 0;
+  padding: 0;
+  font-size: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button [class*="wrapper___"] [class*="metadata___"] {
+  flex: none;
+  color: var(--tear-muted);
+  font-size: var(--tear-fs-caption);
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button [class*="wrapper___"] > [class*="content___"] {
+  max-height: 1.45em;
+  overflow: hidden;
+  background: none;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button [class*="wrapper___"] > [class*="content___"] *,
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button [class*="description___"] {
+  overflow: hidden;
+  color: var(--tear-muted);
+  font-size: var(--tear-fs-label);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button > a:is([class*="offline___"], [class*="online___"], [class*="idle___"]) {
+  position: relative;
+}
+
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button > a:is([class*="offline___"], [class*="online___"], [class*="idle___"])::after {
   content: "";
   position: absolute;
-  top: 100%;
-  left: calc(19px - 6px);
-  border: 6px solid transparent;
-  border-top-color: var(--tear-popup-bg);
+  right: 0;
+  bottom: 0;
+  width: 0.625rem;
+  height: 0.625rem;
+  border: 2px solid var(--tear-popup-bg);
+  border-radius: 50%;
+  background: var(--tear-muted);
 }
 
-/* Each top-level line is a row (inside a single wrapper, if Torn adds one);
-   what's inside a row, like the date's parts or "Server:" and its link, stays on one line. */
-[class^="footerMenu___"] > :not(:only-child),
-[class^="footerMenu___"] > :only-child > * {
-  display: block !important;
-  float: none !important;
-  margin: 0 !important;
-  padding: calc(var(--tear-space-1) * 1.5) var(--tear-space-3) !important;
-  color: var(--tear-text) !important;
-  font-size: var(--tear-fs-label) !important;
-  line-height: 1.4 !important;
-  white-space: nowrap !important;
-  text-align: left !important;
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button > a[class*="online___"]::after { background: #4caf50; }
+#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"]) > [class*="content___"] button > a[class*="idle___"]::after { background: #f0b429; }
+
+/* Torn colours its icons in its CSS; without it they'd be black. */
+:where(svg:not([fill])) {
+  fill: currentColor;
 }
 
-[class^="footerMenu___"] > :only-child {
-  display: block !important;
-  margin: 0 !important;
-  padding: 0 !important;
+.header .avatar .circle-wrapper svg {
+  fill: none;
+  stroke: var(--tear-line);
 }
 
-[class^="footerMenu___"] > :not(:only-child) + *,
-[class^="footerMenu___"] > :only-child > * + * {
-  border-top: 1px solid var(--tear-divider) !important;
+[class^="flyOutPanel___"] {
+  z-index: 2147483200;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tear-line) transparent;
 }
 
-:is([class^="footerMenu___"] > :not(:only-child), [class^="footerMenu___"] > :only-child > *) * {
-  display: inline !important;
-  float: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  white-space: nowrap !important;
+[class^="flyOutPanel___"] [class*="areaRow___"] > a {
+  padding-inline: var(--page-gutter) var(--tear-space-3);
 }
 
-/* Links read as links: inline, in the link colour. */
-[class^="footerMenu___"] a {
-  color: var(--tear-link) !important;
-  text-decoration: none !important;
+[class^="flyOutPanel___"] [class^="header___"] {
+  padding-inline: var(--page-gutter);
 }
 
-[class^="footerMenu___"] a:is(:hover, :focus-visible) {
-  text-decoration: underline !important;
+
+body {
+  --tear-bar-h: 2.75rem;
+  --tear-motion-in: 160ms;
+  --tear-motion-out: 110ms;
+  --tear-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --tear-ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Torn closes these with display: none; allow-discrete lets them animate out too. */
+:is(.header .avatar .settings-menu, .react-dropdown-default .dropdownList, .header-menu .menu-items) {
+  opacity: 0;
+  scale: 0.96;
+  translate: 0 -4px;
+  transition: opacity var(--tear-motion-out) var(--tear-ease-in), scale var(--tear-motion-out) var(--tear-ease-in),
+    translate var(--tear-motion-out) var(--tear-ease-in), display var(--tear-motion-out) allow-discrete;
+}
+
+:is(.header .avatar.active .settings-menu, .react-dropdown-default.dropdown-opened .dropdownList, .header-menu.active .menu-items) {
+  opacity: 1;
+  scale: 1;
+  translate: 0 0;
+  transition-duration: var(--tear-motion-in);
+  transition-timing-function: var(--tear-ease-out);
+
+  @starting-style {
+    opacity: 0;
+    scale: 0.96;
+    translate: 0 -4px;
+  }
+}
+
+.header .avatar .settings-menu {
+  transform-origin: top right;
+}
+
+:is(.react-dropdown-default .dropdownList, .header-menu .menu-items) {
+  transform-origin: top left;
+}
+
+@keyframes tear-rise {
+  from {
+    opacity: 0;
+    scale: 0.97;
+    translate: 0 8px;
+  }
+}
+
+#chatRoot [data-tear-chat-active] [class*="visible___"]:has(> [class*="content___"]),
+#chatRoot [class*="item___"]:not([data-tear-chat-hidden]) [class*="visible___"]:has(> [class*="content___"]) {
+  transform-origin: bottom right;
+  animation: tear-rise var(--tear-motion-in) var(--tear-ease-out);
+}
+
+#tear-chat-tabs {
+  transform-origin: bottom right;
+  animation: tear-rise var(--tear-motion-in) var(--tear-ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+
+  .scroll-wrap[data-tear-looped] {
+    animation: none;
+  }
+}
+
+}
+
+/* Layout Torn's CSS provided. A layer, so TEAR's own rules above always win. */
+
+@layer tear-structure {
+html.tear-enabled {
+  & :where(div, span, h1, h2, h3, h4, h5, h6, p, a, img, ul, ol, li, dl, dt, dd, form, fieldset,
+      label, legend, table, caption, tbody, tfoot, thead, tr, th, td, article, aside, footer,
+      header, nav, section, figure, figcaption, blockquote, hr, i, b, em, strong, small) {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: inherit;
+    vertical-align: baseline;
+  }
+
+  & :where(ul, ol) {
+    list-style: none;
+  }
+
+  & table {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  & button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+  }
+
+  & :where(img, svg, video, canvas) {
+    max-width: 100%;
+  }
+
+  & svg:where(:not([width])) {
+    width: 1.25em;
+    height: 1.25em;
+  }
+
+  & body {
+    color: var(--tear-text);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.8125rem;
+    line-height: 1.45;
+  }
+
+  & a {
+    color: var(--tear-link);
+    text-decoration: none;
+  }
+
+  & a:is(:hover, :focus-visible) {
+    text-decoration: underline;
+  }
+
+  & :where(h1, h2, h3, h4, h5, h6) {
+    color: var(--tear-text-strong);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  & :where(h1) { font-size: 1.5rem; }
+  & :where(h2) { font-size: 1.25rem; }
+  & :where(h3) { font-size: 1.0625rem; }
+  & :where(h4, h5, h6) { font-size: 0.9375rem; }
+  & .content-title h4 { font-size: 1.375rem; }
+
+  & :where(small, .t-gray-9, .t-gray-6) {
+    color: var(--tear-muted);
+  }
+
+  & :is(.title-black, .title-gray, .title-green, .title-red, .title-blue) {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-2);
+    min-height: 2.25rem;
+    padding: 0 var(--tear-space-3);
+    border-bottom: 1px solid var(--tear-line);
+    background: var(--tear-surface-dim);
+    color: var(--tear-text-strong);
+    font-weight: 600;
+    font-size: var(--tear-fs-body);
+  }
+
+  & :is(.cont-gray, .cont-black, .cont-white, .cont, .tutorial-desc) {
+    background: var(--tear-panel-bg);
+    color: var(--tear-text);
+  }
+
+  & :is(.cont-gray, .cont-black, .cont-white, .tutorial-desc):not(.profile-container *) {
+    padding: var(--tear-space-3);
+  }
+
+  & .top-round { border-radius: var(--tear-radius) var(--tear-radius) 0 0; }
+  & .bottom-round { border-radius: 0 0 var(--tear-radius) var(--tear-radius); }
+  & .border-round { border-radius: var(--tear-radius); }
+
+  & :is(.cont-gray, .cont, .profile-container).bottom-round,
+  & .border-round {
+    overflow: hidden;
+  }
+
+  & hr {
+    height: 0;
+    margin-block: var(--tear-space-3);
+    border: 0;
+    border-top: 1px solid var(--tear-line);
+  }
+
+  & :where(table) th {
+    font-weight: 600;
+    text-align: left;
+  }
+
+  & :where(table) :is(th, td) {
+    padding: var(--tear-space-1) var(--tear-space-2);
+    vertical-align: middle;
+  }
+
+  & :where(.content-wrapper) img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  & :where(.content-wrapper) :is(figure, picture, .img-wrap, [class*="image-wrapper"], [class*="imageWrapper"]) {
+    display: block;
+    width: 100%;
+  }
+
+  & :where(.content-wrapper) :is(figure, picture, .img-wrap, [class*="image-wrapper"], [class*="imageWrapper"]) img {
+    display: block;
+    width: 100%;
+  }
+
+  & :where(.content-wrapper) :is(div, section):has(> .left):has(> .right):not([data-tear-columns], .content-title) {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--tear-space-3);
+  }
+
+  & :where(.content-wrapper) :is(div, section):has(> .left):has(> .right):not([data-tear-columns], .content-title) > :is(.left, .right) {
+    float: none;
+  }
+
+  & :where(.content-wrapper) :is(div, section):has(> .left):has(> .right):not([data-tear-columns], .content-title) > .left {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  & :where(.content-wrapper) :is(div, section):has(> .left):has(> .right):not([data-tear-columns], .content-title) > .right {
+    flex: 0 1 auto;
+  }
+
+  & :where(.content-wrapper) :is(div, section):has(> .left):has(> .right):not([data-tear-columns], .content-title) > .clear {
+    display: none;
+  }
+
+  & .left { float: left; }
+  & .right { float: right; }
+  & .clear { clear: both; }
+  & :is(.clearfix, .cont, .profile-container)::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  & .hide { display: none; }
+  & .p10 { padding: 10px; }
+  & .m-top10 { margin-top: 10px; }
+  & .m-bottom10 { margin-bottom: 10px; }
+
+  & .content-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--tear-space-2);
+  }
+
+  & .content-title > :is(.left, .right) {
+    float: none;
+  }
+
+  & .content-title > .clear {
+    display: none;
+  }
+
+  & .content-title > hr {
+    flex-basis: 100%;
+  }
+
+  & .content-title .links-top-wrap,
+  & .content-title .links-top-wrap > * {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-3);
+  }
+
+  & .info-table > li {
+    display: grid;
+    grid-template-columns: minmax(7rem, min(14rem, 35%)) minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--tear-space-1) var(--tear-space-3);
+    padding-block: var(--tear-space-1);
+  }
+
+  & .info-table > li > * {
+    float: none;
+    width: auto;
+    min-width: 0;
+  }
+
+  & [class*="area-desktop___"] [class^="areaRow___"] {
+    display: flex;
+    align-items: stretch;
+  }
+
+  & [class*="area-desktop___"] [class^="areaRow___"] > a {
+    flex: 1;
+    min-width: 0;
+  }
+
+  & [class*="area-desktop___"] [class^="toggleBtn___"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+  }
+
+  & [class^="sidebar___"] [class^="header___"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  & [class^="titleChild___"][class*="hoverOnly___"] {
+    opacity: 0;
+  }
+
+  & [class^="header___"]:hover [class^="titleChild___"],
+  & [class^="titleChild___"]:is([class*="visible___"], :focus-within) {
+    opacity: 1;
+  }
+
+  & .swiper-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  & .swiper-wrapper {
+    display: flex;
+    box-sizing: content-box;
+  }
+
+  & .swiper-slide {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  & :is(.swiper-button-prev, .swiper-button-next) {
+    position: absolute;
+    top: 50%;
+    z-index: 10;
+    translate: 0 -50%;
+    cursor: pointer;
+  }
+
+  & .swiper-button-prev { left: 0; }
+  & .swiper-button-next { right: 0; }
+
+  /* Torn's screen-reader text: hidden visually, still read; skip links show on focus. */
+  .wai {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  body > a.wai:focus {
+    width: auto;
+    height: auto;
+    clip-path: none;
+    left: var(--tear-space-2);
+    top: var(--tear-space-2);
+    z-index: 1000000;
+  }
+
+  .header ul,
+  #chatRoot ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .header button {
+    cursor: pointer;
+  }
+
+  #header-wrapper-top > .container {
+    display: flex;
+    align-items: center;
+    gap: var(--page-gap, 12px);
+    min-height: 2.5rem;
+  }
+
+  .header .logo {
+    position: relative;
+    flex: none;
+  }
+
+  .header .logo > .logo-link {
+    position: absolute;
+    inset: 0;
+  }
+
+  .header-menu {
+    position: relative;
+    min-width: 0;
+  }
+
+  .header-menu .menu-items {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--tear-space-3);
+  }
+
+  .header-menu .menu-item-href {
+    display: block;
+    padding-block: var(--tear-space-1);
+    white-space: nowrap;
+  }
+
+  .header-menu .icon-wrapper,
+  .header-menu-arrow,
+  .header-menu-icon,
+  .search-mobile-button,
+  .search-type-radio {
+    display: none;
+  }
+
+  #header-wrapper-top > .container > :is(.header-menu, .header-navigation) {
+    align-self: center;
+  }
+
+  #header-wrapper-top {
+    display: flex;
+    align-items: stretch;
+    min-height: var(--tear-bar-h);
+  }
+
+  .header-navigation {
+    margin-left: auto;
+  }
+
+  .header-navigation .toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-1);
+  }
+
+  .header-navigation .toolbar > li {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .header .top_header_button {
+    display: grid;
+    place-items: center;
+    min-width: 2.125rem;
+    min-height: 2.125rem;
+    padding: 0;
+  }
+
+  .header .top_header_button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .header .find .clearfix,
+  #searchForm {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-1);
+  }
+
+  .header .find .input-wrapper,
+  .header .find .torn-react-autocomplete,
+  .header .find .autocomplete-wrapper {
+    position: relative;
+  }
+
+  .header .find .searchInput {
+    width: clamp(8rem, 14vw, 14rem);
+  }
+
+  .header .find .input-wrapper.search {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-1);
+  }
+
+  .header .find .input-wrapper.search > .searchBtn {
+    flex: none;
+  }
+
+  .header .avatar .icon-wrapper {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+
+  .header .avatar .mini-avatar-image {
+    display: block;
+    width: 1.5rem;
+    height: 1.5rem;
+    object-fit: cover;
+  }
+
+  .header .avatar .circle-wrapper {
+    position: absolute;
+    inset: -3px;
+    pointer-events: none;
+  }
+
+  .header .avatar .circle-wrapper svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .react-dropdown-default {
+    position: relative;
+  }
+
+  .react-dropdown-default .toggler {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-1);
+  }
+
+  .react-dropdown-default .dropdownList,
+  .header .autocomplete-wrapper > .hide,
+  .header .settings-menu,
+  .header .tc-clock-tooltip {
+    display: none;
+  }
+
+  .react-dropdown-default.dropdown-opened .dropdownList {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    min-width: 100%;
+  }
+
+  .header .avatar.active .settings-menu {
+    display: block;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 100;
+    min-width: 13.75rem;
+  }
+
+  .header .settings-menu li > :is(a, label) {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-2);
+  }
+
+  .header .settings-menu .choice-container {
+    margin-left: auto;
+  }
+
+  .r .header .settings-menu .setting.desktop-view {
+    display: none;
+  }
+
+  .header .tc-clock.active .tc-clock-tooltip {
+    display: block;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 100;
+  }
+
+  .header .recent-history-content {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 100;
+  }
+
+  .header .recent-history-content:empty {
+    display: none;
+  }
+
+  body:has([class^="sidebar___"][class*=" mobile___"]) {
+    & .header-menu-icon,
+    & .search-mobile-button {
+      display: grid;
+    }
+
+    & .header-menu .menu-items {
+      display: none;
+    }
+
+    & .header-menu.active .menu-items {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      z-index: 100;
+      min-width: 12rem;
+    }
+
+    & .header .find .input-wrapper.search {
+      display: none;
+    }
+
+    & .header .find .input-wrapper.search.visible {
+      display: block;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      z-index: 100;
+    }
+  }
+
+  #chatRoot > div {
+    position: fixed;
+    bottom: 0;
+    left: 5px;
+    right: 5px;
+    z-index: 999990;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    pointer-events: none;
+  }
+
+  #chatRoot > div > * {
+    pointer-events: auto;
+  }
+
+  #chatRoot > div > div:first-child {
+    display: grid;
+    align-items: end;
+    justify-items: end;
+  }
+
+  #chatRoot > div > div:last-child {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  #chatRoot > div > div:last-child button {
+    display: grid;
+    place-items: center;
+    width: var(--tear-dock-button);
+    height: var(--tear-dock-button);
+    padding: 0;
+    cursor: pointer;
+  }
+
+  #chatRoot > div > div:last-child button svg {
+    max-width: 24px;
+    max-height: 24px;
+  }
+}
 }

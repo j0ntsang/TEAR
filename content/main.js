@@ -1,4 +1,6 @@
-(() => {
+// Only with TEAR enabled (Torn's CSS off); the Dev switch reloads the page.
+chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
+  if (!tornCssOff) return;
   const { slugify, pageName, routeName } = TEAR;
   const root = document.documentElement;
 
@@ -31,13 +33,13 @@
       const copy = el.cloneNode(true);
       copy.dataset.tearSource = el.textContent;
       copy.setAttribute("data-tear-clone", "");
-      copy.setAttribute("aria-hidden", "true");
+      copy.inert = true;
       wrap.append(copy);
     }
     wrap.setAttribute("data-tear-looped", "");
   }
 
-  function setLength(el) {
+  function setCharCount(el) {
     if (!el) return;
     const len = String(el.textContent.trim().length || 1);
     if (el.style.getPropertyValue("--tear-len") !== len) el.style.setProperty("--tear-len", len);
@@ -58,9 +60,9 @@
       // Happy can go over its maximum; a ring can't.
       const pct = Math.min(100, (current / total) * 100).toFixed(1);
       if (bar.dataset.tearRing !== kind) bar.dataset.tearRing = kind;
+      if (!bar.parentElement.hasAttribute("data-tear-rings")) bar.parentElement.setAttribute("data-tear-rings", "");
       const full = current >= total;
       bar.toggleAttribute("data-tear-full", full);
-      // A full bar's readout can show just its total ("1475" for "1475 / 1475").
       const valueEl = bar.querySelector('[class^="barValue___"]');
       const totalText = full ? value.split("/").pop().trim() : "";
       if (valueEl && valueEl.dataset.tearTotal !== totalText) {
@@ -69,13 +71,12 @@
         valueEl.style.setProperty("--tear-total-len", String(totalText.length || 1));
       }
       if (bar.style.getPropertyValue("--tear-pct") !== pct) bar.style.setProperty("--tear-pct", pct);
-      setLength(bar.querySelector('[class^="barValue___"]'));
+      setCharCount(bar.querySelector('[class^="barValue___"]'));
       countdown(kind, bar, bar.querySelector('[class^="barDescr___"], [class^="barTimeLeft___"]'));
     }
   }
 
-  // The timers count down to the next regen tick. Tick length isn't in the DOM and
-  // depends on donator status, so start at the shortest and grow to the longest seen.
+  // Tick length isn't in the DOM and varies with donator status: start short, grow to the longest seen.
   const TICK_SECONDS = { energy: 600, nerve: 300, happy: 900, life: 300, chain: 300 };
   function countdown(kind, bar, el) {
     const parts = el?.textContent.trim().match(/^(?:(\d+):)?(\d+):(\d{2})$/);
@@ -93,19 +94,185 @@
     if (bar.style.getPropertyValue("--tear-timer") !== pct) bar.style.setProperty("--tear-timer", pct);
   }
 
-  // Recolour only the links Torn draws in some blue; its grey nav and white overlay links stay.
-  function tagLinks() {
-    for (const a of document.querySelectorAll("a:not([data-tear-link])")) {
-      const [r, g, b] = (getComputedStyle(a).color.match(/[\d.]+/g) ?? []).map(Number);
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      const blue = max === b && g >= r && b - r > 40 && (max - min) / (max || 1) > 0.35;
-      a.dataset.tearLink = blue ? "1" : "0";
+  // With Torn's CSS off, floats come only from its .left/.right classes.
+  const sideOf = (el) => (el.classList.contains("left") ? "left" : el.classList.contains("right") ? "right" : "");
+
+  function tagColumns() {
+    const content = document.querySelector(".content-wrapper");
+    if (!content) return;
+    // Only the outermost columns: floats inside a panel are that panel's own layout.
+    for (const box of content.querySelectorAll("div:has(> .left):has(> .right):not([data-tear-columns], [data-tear-col] div)")) {
+      const kids = [...box.children].filter((k) => !k.matches(".clear, hr, script, style") && k.offsetHeight > 0);
+      if (kids.length < 2) continue;
+      const sides = kids.map(sideOf);
+      if (!sides.includes("left") || !sides.includes("right") || sides.includes("")) continue;
+      // Without Torn's CSS the floats shrink to their content, so their widths say nothing.
+      if (box.getBoundingClientRect().width < content.getBoundingClientRect().width * 0.6 || kids.some((k) => k.offsetHeight < 40)) continue;
+
+      const main = kids.filter((k, i) => sides[i] === "left");
+      const side = kids.filter((k, i) => sides[i] === "right");
+      const rows = Math.max(main.length, side.length);
+      for (const [col, blocks] of [["main", main], ["side", side]]) {
+        blocks.forEach((k, i) => {
+          k.dataset.tearCol = col;
+          const last = i === blocks.length - 1;
+          k.style.setProperty("--tear-row", `${i + 1} / ${last ? rows + 1 : i + 2}`);
+        });
+      }
+      // Earlier rows fit their blocks; the last takes whatever height a spanning block adds.
+      box.style.setProperty("--tear-rows", `${"auto ".repeat(rows - 1)}1fr`);
+      box.dataset.tearColumns = "2";
+      box.parentElement.dataset.tearStack = "";
+    }
+    const layout = content.querySelector('[data-tear-columns="2"]') ? "dual" : "single";
+    if (content.dataset.tearLayout !== layout) content.dataset.tearLayout = layout;
+  }
+
+  const TORN_IMAGES = "https://www.torn.com/images/v2";
+
+  // Torn's logo rules win in this order, last first.
+  const LOGO_COUNTRIES = ["argentina", "canada", "cayman-islands", "china", "hawaii", "japan", "mexico", "south-africa", "switzerland", "uae", "uk"];
+  const LOGO_CELEBRATIONS = ["aprils-fool", "boxing-day", "christmas-day", "christmas-eve", "easter-sunday", "guy-fawkes", "halloween", "independence", "new-year", "st-patrick", "st-valentine", "thanks-giving", "pride-day"];
+  const LOGO_LAYOUTS = ["regular", "hospital", "jail", "federal"];
+  function logoFolder({ darkModeLogo, country, celebration, traveling, layout }) {
+    if (darkModeLogo === "regular") return "dark_mode/regular";
+    if (LOGO_COUNTRIES.includes(country)) return country;
+    if (country === "torn" && LOGO_CELEBRATIONS.includes(celebration)) return celebration;
+    if (country === "torn" && traveling === "true") return "travel-home";
+    return LOGO_LAYOUTS.includes(layout) ? layout : "regular";
+  }
+
+  const imageSet = (path) =>
+    `image-set(url("${path}@1x.webp") 1x type("image/webp"), url("${path}@2x.webp") 2x type("image/webp"), url("${path}@1x.png") 1x type("image/png"))`;
+
+  function setLogo() {
+    const folder = logoFolder(document.body.dataset);
+    if (root.dataset.tearLogo === folder) return;
+    root.dataset.tearLogo = folder;
+    for (const size of ["desktop", "tablet", "mobile"]) {
+      root.style.setProperty(`--tear-logo-${size}`, imageSet(`${TORN_IMAGES}/torn_logo/${folder}/${size}/logo`));
     }
   }
 
+  const STATUS_ICONS = [
+    "online", "offline", "donator", "subscriber", "level-100", "male", "female", "marriage", "faction", "committee",
+    "staff", "low-life", "bounty", "mission", "hospital", "jail", "racing-active", "racing-inactive", "education-complete", "education",
+    "job-army", "job-casino", "job-doctor", "job-grocer", "job-lawyer", "job-teacher", "job-company", "outstanding-bookie-collection", "bank-investment", "bank-investment-ready",
+    "cayman-islands-bank", "vault", "loan", "auction-house", "bazaar", "item-market", "trade", "stock-market", "booster-cooldown-1", "booster-cooldown-2",
+    "booster-cooldown-3", "booster-cooldown-4", "booster-cooldown-5", "medical-cooldown-1", "medical-cooldown-2", "medical-cooldown-3", "medical-cooldown-4", "medical-cooldown-5", "drug-cooldown-1", "drug-cooldown-2",
+    "drug-cooldown-3", "drug-cooldown-4", "drug-cooldown-5", "points-market", "auction-house-bid", "auction-house-outbid", "minor-drug-1", "minor-drug-2", "moderate-drug", "severe-drug-1",
+    "severe-drug-2", "away", "drug-addiction-50", "drug-addiction-100", "drug-addiction-200", "drug-addiction-300", "drug-addiction-500",
+  ];
+  const kebab = (name) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/([a-z])(\d)/g, "$1-$2").toLowerCase();
+
+  function setIconCell(el, cell) {
+    if (cell >= 0 && el.style.getPropertyValue("--tear-icon") !== String(cell)) el.style.setProperty("--tear-icon", String(cell));
+  }
+
+  function tagStatusIcons() {
+    for (const li of document.querySelectorAll('[class^="statusIcons___"] > li')) {
+      const n = li.className.match(/\bicon(\d+)___/)?.[1];
+      if (n) setIconCell(li, Number(n) - 1);
+    }
+    for (const li of document.querySelectorAll('li[class*="user-status-16-"]')) {
+      const name = li.className.match(/user-status-16-([\w-]+)/)?.[1];
+      if (name) setIconCell(li, STATUS_ICONS.indexOf(kebab(name)));
+    }
+  }
+
+  // Rows inside some panels have content blocks of their own; only the visible root is a window.
+  const CHAT_WINDOW = '#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"])';
+  // Tabs are keyed by each window's item element: titles can repeat.
+  const chatIds = new WeakMap();
+  let lastChatId = 0;
+  const chatId = (item) => chatIds.get(item) ?? (chatIds.set(item, ++lastChatId), lastChatId);
+  let activeChat = 0;
+  let knownChats = [];
+  const chatTabs = Object.assign(document.createElement("div"), { id: "tear-chat-tabs" });
+  chatTabs.setAttribute("role", "tablist");
+  chatTabs.setAttribute("aria-label", "Open chats");
+
+  const chatTitle = (win) => win.querySelector('[class*="headingH1___"]')?.textContent.trim() || "Chat";
+
+  const setStyleVar = (el, name, value) => {
+    if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
+  };
+
+  function layoutChat() {
+    const windows = [...document.querySelectorAll(CHAT_WINDOW)];
+    const items = windows.map((win) => win.closest('[class*="item___"]'));
+    const ids = items.map(chatId);
+    const titles = windows.map(chatTitle);
+    const opened = ids.find((id) => !knownChats.includes(id));
+    // The active chat survives a reload by its title.
+    if (!knownChats.length && !activeChat) activeChat = ids[titles.indexOf(sessionStorage.getItem("tearActiveChat"))] ?? 0;
+    else if (opened) activeChat = opened;
+    knownChats = ids;
+    if (!ids.includes(activeChat)) activeChat = ids.at(-1) ?? 0;
+    const activeTitle = titles[ids.indexOf(activeChat)] ?? "";
+    if (sessionStorage.getItem("tearActiveChat") !== activeTitle) sessionStorage.setItem("tearActiveChat", activeTitle);
+
+    items.forEach((item, i) => {
+      const active = ids[i] === activeChat;
+      item.toggleAttribute("data-tear-chat-active", active);
+      item.toggleAttribute("data-tear-chat-hidden", !active);
+    });
+    for (const item of document.querySelectorAll("#chatRoot :is([data-tear-chat-active], [data-tear-chat-hidden])")) {
+      if (!items.includes(item)) item.removeAttribute("data-tear-chat-active"), item.removeAttribute("data-tear-chat-hidden");
+    }
+
+    if (windows.length < 2) {
+      chatTabs.remove();
+      return;
+    }
+    if (!chatTabs.isConnected) document.body.append(chatTabs);
+    const key = ids.map((id, i) => `${id}:${titles[i]}`).join("\n") + "\n" + activeChat;
+    if (chatTabs.dataset.key !== key) {
+      chatTabs.dataset.key = key;
+      chatTabs.replaceChildren(
+        ...windows.map((win, i) => {
+          const tab = document.createElement("button");
+          tab.type = "button";
+          tab.setAttribute("role", "tab");
+          tab.dataset.chat = String(ids[i]);
+          tab.title = titles[i];
+          tab.setAttribute("aria-label", titles[i]);
+          tab.setAttribute("aria-selected", String(ids[i] === activeChat));
+          tab.tabIndex = ids[i] === activeChat ? 0 : -1;
+          const icon = win.querySelector(":scope > :first-child svg");
+          if (icon) tab.append(icon.cloneNode(true));
+          tab.append(Object.assign(document.createElement("span"), { textContent: titles[i] }));
+          return tab;
+        }),
+      );
+    }
+    const box = windows[ids.indexOf(activeChat)].getBoundingClientRect();
+    setStyleVar(chatTabs, "--tear-tabs-left", `${box.left}px`);
+    setStyleVar(chatTabs, "--tear-tabs-bottom", `${innerHeight - box.top}px`);
+    setStyleVar(chatTabs, "--tear-tabs-width", `${box.width}px`);
+  }
+
+  function selectChat(id, focus) {
+    activeChat = id;
+    layoutChat();
+    if (focus) chatTabs.querySelector(`[data-chat="${id}"]`)?.focus();
+  }
+
+  chatTabs.addEventListener("click", (event) => {
+    const tab = event.target.closest("[role=tab]");
+    if (tab) selectChat(Number(tab.dataset.chat), false);
+  });
+  chatTabs.addEventListener("keydown", (event) => {
+    const tabs = [...chatTabs.querySelectorAll("[role=tab]")];
+    const at = tabs.findIndex((t) => Number(t.dataset.chat) === activeChat);
+    const next = { ArrowRight: at + 1, ArrowLeft: at - 1, Home: 0, End: tabs.length - 1 }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    selectChat(Number(tabs[(next + tabs.length) % tabs.length].dataset.chat), true);
+  });
+  addEventListener("resize", () => requestAnimationFrame(layoutChat));
+
   function tagStats() {
-    // The narrow-window panel's labels are the visually hidden .wai.
     for (const row of document.querySelectorAll('[class^="userInformation"] [class^="point-block___"]')) {
       if (!row.dataset.tearStat) {
         const slug = slugify(row.querySelector('[class^="name___"], .wai')?.textContent ?? "");
@@ -115,7 +282,7 @@
         row.setAttribute("role", "button");
         row.tabIndex = 0;
       }
-      setLength(row.querySelector('[class^="value___"]'));
+      setCharCount(row.querySelector('[class^="value___"]'));
     }
   }
 
@@ -141,8 +308,6 @@
   // Keyed by the first merit after each divider, so new sections don't shift names.
   const MERIT_SECTIONS = { "Nerve Bar": "General", Brawn: "Combat" };
 
-  // Torn inserts a card's info panel after its original row of three, which the
-  // fluid grid splits; CSS order puts it after the selected card's visual row.
   function layoutMerits() {
     const tab = document.querySelector('[class^="meritsTab___"]');
     if (!tab) return;
@@ -170,12 +335,12 @@
   // The body observer doesn't see a resize, but the column count changes.
   addEventListener("resize", () => requestAnimationFrame(layoutMerits));
 
-  // Each nav section cycles full -> top 10 -> collapsed, remembered by heading text.
   const TOP_ROWS = 10;
   const sectionState = {};
-  chrome.storage.local.get(["sectionStates", "collapsedSections"]).then(({ sectionStates = {}, collapsedSections = [] }) => {
-    collapsedSections.forEach((name) => (sectionState[name] = "collapsed"));
+  chrome.storage.local.get(["sectionStates", "collapsedSections"]).then(({ sectionStates = {}, collapsedSections }) => {
+    collapsedSections?.forEach((name) => (sectionState[name] = "collapsed"));
     Object.assign(sectionState, sectionStates);
+    if (collapsedSections) chrome.storage.local.remove("collapsedSections");
     tagSections();
   });
 
@@ -201,7 +366,6 @@
       const hidden = state === "top" ? Math.max(0, rows.length - TOP_ROWS) : 0;
       rows.forEach((row, i) => {
         row.toggleAttribute("data-tear-extra", i >= TOP_ROWS);
-        // The last row shown carries the hidden count for its tab.
         if (hidden && i === TOP_ROWS - 1) row.dataset.tearMore = `+${hidden}`;
         else row.removeAttribute("data-tear-more");
       });
@@ -220,7 +384,6 @@
     const hasTop = sectionRows(header).length > TOP_ROWS;
     sectionState[name] = current === "full" ? (hasTop ? "top" : "collapsed") : current === "top" ? "collapsed" : "full";
     chrome.storage.local.set({ sectionStates: sectionState });
-    chrome.storage.local.remove("collapsedSections");
     tagSections();
   }
   addEventListener("click", toggleSection);
@@ -231,8 +394,6 @@
     }
   });
 
-  // Desktop sidebar sections, reordered by dragging the grip above each one.
-  // CSS flattens the sidebar into one flex container, so `order` places every piece.
   const SIDEBAR = '[class^="sidebar___"][class*=" desktop___"]';
   const SECTION_NAMES = { status: "Status", profile: "Profile", bars: "Bars", account: "Account links", areas: "Areas", lists: "Lists" };
   const DEFAULT_ORDER = Object.keys(SECTION_NAMES);
@@ -275,6 +436,7 @@
         grip.dataset.tearGrip = key;
         grip.title = `Drag to move ${SECTION_NAMES[key]} (or focus and use the arrow keys)`;
         grip.setAttribute("aria-label", `Move ${SECTION_NAMES[key]} section`);
+        grip.setAttribute("aria-description", "Drag, or use the Up and Down arrow keys");
         sb.append(grip);
       }
       grip.toggleAttribute("data-tear-first", first);
@@ -287,15 +449,19 @@
     });
   }
 
+  const announcer = Object.assign(document.createElement("div"), { className: "tear-announcer" });
+  announcer.setAttribute("aria-live", "polite");
+
   function moveSection(key, to) {
     const keys = sectionKeys().filter((k) => k !== key);
     keys.splice(to, 0, key);
     savedOrder = keys;
     chrome.storage.local.set({ sidebarOrder: keys });
     arrangeSidebar();
+    if (!announcer.isConnected) document.body.append(announcer);
+    announcer.textContent = `${SECTION_NAMES[key]} moved to position ${keys.indexOf(key) + 1} of ${keys.length}`;
   }
 
-  // Only sections that are on screen count as drop targets; a collapsed section's rows have no box.
   function sectionBoxes(sb) {
     const sections = sidebarSections(sb);
     return sectionKeys()
@@ -334,14 +500,17 @@
     const onMove = (e) => {
       const boxes = sectionBoxes(sb);
       const others = boxes.filter((b) => b.key !== key);
-      // Index among the other sections where the dragged one would land.
+      if (!others.length) {
+        target = null;
+        marker.hidden = true;
+        return;
+      }
       const to = others.filter((b) => e.clientY > (b.top + b.bottom) / 2).length;
       const before = others[to - 1];
       const after = others[to];
       const y = before && after ? (before.bottom + after.top) / 2 : before ? before.bottom + 4 : after.top - 4;
       const sbBox = sb.getBoundingClientRect();
       Object.assign(marker.style, { top: `${y}px`, left: `${sbBox.left}px`, width: `${sbBox.width}px` });
-      // Map the slot among visible sections back to a slot in the full order.
       const keys = sectionKeys().filter((k) => k !== key);
       const slot = after ? keys.indexOf(after.key) : before ? keys.indexOf(before.key) + 1 : 0;
       target = slot === sectionKeys().indexOf(key) ? null : slot;
@@ -369,18 +538,51 @@
     moveSection(key, Math.max(0, at + (event.key === "ArrowUp" ? -1 : 1)));
   });
 
+  // The drawer's state as one attribute on <html>, so CSS needn't body:has() for it.
+  let watchedDrawer = null;
+  const drawerObserver = new MutationObserver(() => {
+    root.toggleAttribute("data-tear-drawer-open", /\bvisible___/.test(watchedDrawer?.className ?? ""));
+  });
+  function watchDrawer() {
+    const drawer = document.querySelector('[class^="flyOutPanel___"]');
+    if (drawer === watchedDrawer) return;
+    drawerObserver.disconnect();
+    watchedDrawer = drawer;
+    if (drawer) drawerObserver.observe(drawer, { attributes: true, attributeFilter: ["class"] });
+    root.toggleAttribute("data-tear-drawer-open", /\bvisible___/.test(drawer?.className ?? ""));
+  }
+
+  // The ticker and sidebar sit outside #mainContainer and update text in place. Chat
+  // messages arrive constantly: they only re-lay out the chat tabs.
+  const chatRoot = () => document.getElementById("chatRoot");
   let bodyFrame = 0;
-  // The ticker and sidebar sit outside #mainContainer and update text in place.
-  new MutationObserver(() => {
+  let pageDirty = true;
+  let chatDirty = true;
+  new MutationObserver((records) => {
+    const chat = chatRoot();
+    for (const { type, target } of records) {
+      if (chat?.contains(target)) chatDirty ||= type === "childList";
+      else pageDirty = true;
+    }
+    if (!pageDirty && !chatDirty) return;
     bodyFrame ||= requestAnimationFrame(() => {
       bodyFrame = 0;
-      loopTicker();
-      ringBars();
-      tagStats();
-      tagLinks();
-      layoutMerits();
-      tagSections();
-      arrangeSidebar();
+      if (pageDirty) {
+        pageDirty = false;
+        loopTicker();
+        ringBars();
+        tagStats();
+        layoutMerits();
+        tagSections();
+        arrangeSidebar();
+        tagColumns();
+        tagStatusIcons();
+        watchDrawer();
+      }
+      if (chatDirty) {
+        chatDirty = false;
+        layoutChat();
+      }
     });
   }).observe(document.body, { childList: true, subtree: true, characterData: true });
 
@@ -402,6 +604,9 @@
   loopTicker();
   ringBars();
   tagStats();
-  tagLinks();
   layoutMerits();
-})();
+  tagColumns();
+  tagStatusIcons();
+  setLogo();
+  new MutationObserver(setLogo).observe(document.body, { attributes: true, attributeFilter: ["data-layout", "data-country", "data-celebration", "data-traveling", "data-dark-mode-logo"] });
+});

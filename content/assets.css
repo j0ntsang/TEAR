@@ -1,0 +1,6 @@
+/* Torn's images by name, each falling back to Torn's file: define one to replace it. torn-css.js
+   names the rest --tear-asset-<path> and lists them in chrome.storage.local "tornAssets". */
+
+:root {
+  --tear-asset-status-icons: url("https://www.torn.com/images/v2/svg_icons/sprites/user_status_icons_sprite.svg");
+}
