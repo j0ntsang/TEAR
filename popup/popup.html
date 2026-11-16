@@ -4,34 +4,22 @@
     <meta charset="utf-8" />
     <title>TEAR</title>
     <link rel="stylesheet" href="../lib/ui.css" />
-    <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <header class="row">
-      <h1>TEAR</h1>
-      <label class="profile">
-        <span class="visually-hidden">Profile</span>
-        <select id="profile"></select>
+    <h1>TEAR</h1>
+    <form id="theme">
+      <label class="field">
+        <span>Background</span>
+        <input type="color" id="bg" />
       </label>
-    </header>
-
-    <section>
-      <h2>Theme</h2>
-      <form id="theme"></form>
-    </section>
-
-    <section>
-      <h2>Panels</h2>
-      <p id="panels-note" class="note"></p>
-      <ul id="panels" class="checklist"></ul>
-    </section>
-
-    <footer>
-      <button type="button" id="options">Edit layout, tabs &amp; nav…</button>
-    </footer>
+      <label class="field">
+        <span>Font</span>
+        <select id="font"></select>
+      </label>
+      <button type="button" id="reset">Reset</button>
+    </form>
 
     <script src="../lib/model.js"></script>
-    <script src="../lib/theme-form.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

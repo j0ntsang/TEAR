@@ -1,6 +1,6 @@
 # Torn theme extension — build plan (superseded)
 
-> **Implemented as TEAR** in [`tear/`](../../tear/). The build differs from this spec in these ways:
+> **Implemented as TEAR** at the repo root, later cut down to background + font + a hand-edited stylesheet. The build differs from this spec in these ways:
 > - No `activeTab`: the torn.com host permission already lets the popup message the tab.
 > - Shared code lives in `lib/model.js`, loaded first by every script, with no bundler.
 > - Settings are per-profile keys (`profile:<id>`) instead of `theme`/`hiddenPanels`.

@@ -1,123 +1,1346 @@
-/*
- * TEAR styles, injected into every torn.com page. The restyle is the port of
- * docs/torn-theme/theme.css (selector choices explained in ui-map.md); values
- * come from --tear-* properties that content/main.js sets from the profile,
- * with fallbacks so the defaults show before storage has loaded.
- */
+/* Torn's selectors are specific: write declarations with !important. Hooks from
+   content/main.js: html[data-tear-page|route], [data-tear-panel|ring|stat|label], --tear-pct, --tear-len. */
 
-/* ---- Page-wide background ---- */
+body {
+  /* --tear-bg and --tear-font-family are set by the popup at runtime. */
+  /* Torn's theme variables flip on body.dark-mode, so these must live on body, not :root. */
+  --tear-surface: var(--default-bg-panel-color, #f2f2f2);
+  --tear-surface-sunk: var(--default-panel-divider-outer-side-color, #ccc);
+  --tear-text: var(--default-full-text-color, #333);
+  --tear-panel-bg: var(--tear-surface);
+  --tear-money: var(--default-green-color, #678c00);
+  --tear-text-strong: #000;
+  --tear-link: #0a58ca; /* AA on every light panel, down to #dfdfdf */
+  --tear-shadow: rgba(0, 0, 0, 0.15);
+  --tear-hole: rgba(255, 255, 255, 0.6);
+
+  --tear-surface-dim: color-mix(in srgb, var(--tear-surface), var(--tear-surface-sunk) 50%);
+  --tear-surface-hover: color-mix(in srgb, var(--tear-surface), var(--tear-surface-sunk) 25%);
+  --tear-overlay: color-mix(in srgb, var(--tear-text) 5%, transparent);
+  --tear-line: color-mix(in srgb, var(--tear-text) 15%, transparent);
+  --tear-muted: color-mix(in srgb, var(--tear-text) 65%, transparent);
+
+  --tear-accent: var(--tear-link);
+  --tear-nav-hover: color-mix(in srgb, var(--tear-link) 8%, transparent);
+  --tear-nav-active: color-mix(in srgb, var(--tear-link) 12%, transparent);
+  --tear-gold: #e8b64c;
+  --tear-live: #c8102e;
+  --tear-live-dot: #39ff6a;
+
+  --tear-strip: #f5f5f5;
+  --tear-strip-text: #000;
+
+  --tear-space-1: 4px;
+  --tear-space-2: 8px;
+  --tear-space-3: 12px;
+  --tear-space-4: 16px;
+  --tear-gutter: var(--tear-space-2);
+  --tear-radius-sm: 6px;
+  --tear-radius: 8px;
+  --tear-radius-lg: 12px;
+
+  --tear-fs-caption: 0.625rem;
+  --tear-fs-label: 0.75rem;
+  --tear-fs-body: 0.875rem;
+  --tear-fs-title: 1.125rem;
+  --tear-fs-display: 1.5rem;
+
+  /* Shrink-to-fit width per character, measured in Torn's font: raise it for a wider popup font. */
+  --tear-char-em: 0.52;
+}
+
+/* Values Torn has no theme variable for, or where TEAR's dark look differs from Torn's. */
+body.dark-mode {
+  --tear-panel-bg: #2a2a2a;
+  --tear-text: #ddd;
+  --tear-link: #93c5fd;
+  --tear-money: #8fd16a;
+  --tear-text-strong: #fff;
+  --tear-shadow: rgba(0, 0, 0, 0.5);
+  --tear-hole: rgba(0, 0, 0, 0.35);
+}
 
 body.body {
   background-color: var(--tear-bg, #1a1a1a) !important;
 }
 
-/* ---- Font family + size: only when the profile overrides them ---- */
-
-/* Legacy pages inherit from <body>; Crimes/React pages set "Fjalla One"
-   deeper in the tree, so the universal selector is needed to win there. */
+/* Crimes sets its font deeper in the tree, so the universal selector is needed. */
 html[data-tear-font] body.body,
 html[data-tear-font] body.body * {
   font-family: var(--tear-font-family) !important;
 }
 
-html[data-tear-size] body.body,
-html[data-tear-size] body.body * {
-  font-size: var(--tear-font-size) !important;
+body.body.dark-mode {
 }
 
-/* ---- Legacy dashboard panels ---- */
-
-.sortable-box .cont-gray {
-  background-color: var(--tear-panel-bg, #2a2a2a) !important;
-  color: var(--tear-text, #ddd) !important;
+/* main.js tags the links Torn draws in blue (data-tear-link="1"). */
+[data-tear-link="1"] {
+  color: var(--tear-link) !important;
 }
 
-.sortable-box .title.title-black {
+[data-tear-link="1"]:hover {
+  text-decoration: underline !important;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--tear-link) !important;
+  outline-offset: 2px;
+}
+
+#header-root {
+}
+
+#topHeaderBanner {
+}
+
+/* The popup's background only repaints Torn's chrome in dark mode; light mode keeps Torn's. */
+body.dark-mode [class*="header___"] {
+  background-color: var(--tear-bg, #1a1a1a) !important;
+  color: var(--tear-text) !important;
+}
+
+#sidebarroot,
+#sidebar {
+}
+
+body.dark-mode [class*="sidebar___"] {
+  background-color: var(--tear-bg, #1a1a1a) !important;
+  color: var(--tear-text) !important;
+}
+
+body.dark-mode [class*="userInformation___"] {
+  background-color: var(--tear-bg, #1a1a1a) !important;
+  color: var(--tear-text) !important;
+}
+
+body.dark-mode [class*="areas___"] {
+  background-color: var(--tear-bg, #1a1a1a) !important;
+  color: var(--tear-text) !important;
+}
+
+body.dark-mode [class*="accountLinksWrap___"] {
+  background-color: var(--tear-bg, #1a1a1a) !important;
+  color: var(--tear-text) !important;
+}
+
+#mainContainer {
+}
+
+#chatRoot {
+}
+
+#react-profile-mini-root {
+}
+
+
+.sortable-box {
+}
+
+body.dark-mode .sortable-box .title.title-black {
   background-color: var(--tear-bg, #1a1a1a) !important;
 }
 
 .sortable-box .box-title {
-  color: var(--tear-text, #ddd) !important;
+  color: var(--tear-text) !important;
 }
 
-/* ---- React sidebar / header (hashed CSS Modules: substring match) ---- */
-
-[class*="sidebar___"],
-[class*="header___"],
-[class*="userInformation___"],
-[class*="accountLinksWrap___"],
-[class*="areas___"] {
-  background-color: var(--tear-bg, #1a1a1a) !important;
-  color: var(--tear-text, #ddd) !important;
+.sortable-box .cont-gray {
+  background-color: var(--tear-panel-bg) !important;
+  color: var(--tear-text) !important;
 }
 
-/* ---- Crimes SPA pages ---- */
+html[data-tear-page="index"] #mainContainer {
+}
 
-.crime-root {
+html[data-tear-page="index"] [data-tear-panel="job-information"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="general-information"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="battle-stats"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="working-stats"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="personal-perks"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="skill-levels"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="equipped-weapons-and-armor"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="property-information"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="faction-information"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="criminal-record"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="latest-messages"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="latest-attacks"] .cont-gray {
+}
+
+html[data-tear-page="index"] [data-tear-panel="latest-events"] .cont-gray {
+}
+
+html[data-tear-page="preferences"] #mainContainer {
+}
+
+html[data-tear-page="crimes"] #mainContainer {
+}
+
+body.dark-mode .crime-root {
   background-color: var(--tear-bg, #1a1a1a) !important;
+}
+
+.crime-root [class*="crimeSlider___"] {
+}
+
+.crime-root [class*="currentCrime___"] {
+}
+
+.crime-root [class*="crimeOptionSection___"] {
 }
 
 [class*="crimeOption___"],
-.virtual-item {
-  background-color: var(--tear-panel-bg, #2a2a2a) !important;
-  color: var(--tear-text, #ddd) !important;
+.crime-root .virtual-item {
+  background-color: var(--tear-panel-bg) !important;
+  color: var(--tear-text) !important;
 }
 
-/* ---- Links: Torn leaves these at the browser's #0000EE ---- */
-
-a {
-  color: var(--tear-link, #6cb6ff) !important;
+.crime-root [class*="virtualList___"] {
 }
 
-/* ---- Panel show/hide and tab filtering ---- */
+.crime-root.cardskimming-root {
+}
 
-[data-tear-hidden],
-[data-tear-tab-hidden] {
+.crime-root.bootlegging-root {
+}
+
+.crime-root.graffiti-root {
+}
+
+.crime-root.pickpocketing-root {
+}
+
+.crime-root.shoplifting-root {
+}
+
+.crime-root.searchforcash-root {
+}
+
+/* title___ and name___ are generic prefixes: always scope under page + route. */
+
+html[data-tear-page="page"][data-tear-route="market"] #mainContainer {
+}
+
+html[data-tear-route="market"] [class*="itemListWrapper___"] {
+}
+
+html[data-tear-route="market"] [class*="itemList___"] {
+}
+
+html[data-tear-route="market"] [class*="itemTile___"] {
+}
+
+html[data-tear-route="market"] [class*="itemTile___"] [class*="title___"] {
+}
+
+html[data-tear-route="market"] [class*="itemTile___"] [class*="name___"] {
+}
+
+html[data-tear-page="city"] #mainContainer {
+}
+
+html[data-tear-page="hospitalview"] #mainContainer {
+}
+
+html[data-tear-page="jobs"] #mainContainer {
+}
+
+html[data-tear-page="item"] #mainContainer {
+}
+
+html[data-tear-page="gym"] #mainContainer {
+}
+
+html[data-tear-page="newspaper"] #mainContainer {
+}
+
+html[data-tear-page="bounties"] #mainContainer {
+}
+
+html[data-tear-page="properties"] #mainContainer {
+}
+
+html[data-tear-page="estateagents"] #mainContainer {
+}
+
+html[data-tear-page="usersonline"] #mainContainer {
+}
+
+body.hospital {}
+
+@property --tear-pct {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --tear-timer {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+.header-wrapper-bottom {
+  background: var(--tear-strip) !important;
+}
+
+/* Torn's own left fade; it now shows as a band beside LIVE. */
+.news-ticker-slider-wrapper [class*="shadow-box"] {
   display: none !important;
 }
 
-/* ---- TEAR's own UI ---- */
+.news-ticker-slider-wrapper {
+  --ticker-tab: 4.5rem;
+  position: relative;
+  overflow: hidden;
+  padding-left: var(--ticker-tab) !important;
+  box-shadow: inset 0 -2px 0 var(--tear-live);
+}
 
-.tear-tabbar,
-.tear-navbar {
+.news-ticker-slider-wrapper::before {
+  content: "LIVE";
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  width: var(--ticker-tab);
   display: flex;
+  align-items: center;
+  padding-left: 1.375rem;
+  box-sizing: border-box;
+  color: #fff; /* on the red tab in both themes */
+  font: bold 0.6875rem/1 sans-serif;
+  letter-spacing: 0.12em;
+  background:
+    radial-gradient(circle at 0.75rem 50%, var(--tear-live-dot) 3px, transparent 3.5px),
+    var(--tear-live);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.625rem) 100%, 0 100%);
+  animation: ticker-blink 1.6s ease-in-out infinite;
+}
+
+@keyframes ticker-blink {
+  50% {
+    background:
+      radial-gradient(circle at 0.75rem 50%, transparent 3px, transparent 3.5px),
+      var(--tear-live);
+  }
+}
+
+/* Mask the static slide, not the moving strip inside it. */
+.news-ticker-slider-wrapper .news-ticker-slide {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+}
+
+/* Torn swaps headlines with a vertical slide: hide the outgoing one, pin the incoming. */
+.news-ticker-slider-wrapper .news-ticker-exit {
+  display: none !important;
+}
+
+.news-ticker-slider-wrapper .news-ticker-enter,
+.news-ticker-slider-wrapper .news-ticker-enter-active {
+  transform: none !important;
+  transition: none !important;
+}
+
+/* main.js appends a copy, so -50% is exactly one copy. The layer and smoothing stop text
+   redrawing heavier when hover pauses it. */
+.news-ticker-slider-wrapper .scroll-wrap[data-tear-looped] {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  width: max-content !important;
+  align-items: center !important;
+  animation: scroll-left 20s linear infinite !important;
+  will-change: transform;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.news-ticker-slider-wrapper:hover .scroll-wrap[data-tear-looped] {
+  animation-play-state: paused !important;
+}
+
+@keyframes scroll-left {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.news-ticker-slider-wrapper .scroll-wrap[data-tear-looped] > a {
+  flex: none !important;
+  white-space: nowrap;
+}
+
+/* Not tied to [data-tear-looped]: a just-swapped headline is unmarked and Torn's hover would show. */
+.news-ticker-slider-wrapper .headline,
+.news-ticker-slider-wrapper a.headline:hover {
+  color: var(--tear-strip-text) !important;
+  font-size: var(--tear-fs-body) !important;
+  text-shadow: none !important;
+  font-weight: normal !important;
+}
+
+.news-ticker-slider-wrapper .scroll-wrap[data-tear-looped] > svg {
+  width: 1rem !important;
+  height: 1rem !important;
+  margin: 0 1em !important;
+  fill: var(--tear-live) !important;
+}
+
+.news-ticker-slider-wrapper:hover .scroll-wrap[data-tear-looped] > svg {
+  fill: var(--tear-strip-text) !important;
+}
+
+[class^="userInformation"] [class^="progress___"],
+[class^="userInformation"] [data-tear-ring] [class^="tickList___"] {
+  display: none !important;
+}
+
+[data-tear-ring="energy"] { --ring-color: #6cad2b; --ring-i: 0; }
+[data-tear-ring="nerve"]  { --ring-color: #cc7032; --ring-i: 1; }
+[data-tear-ring="happy"]  { --ring-color: #cccc32; --ring-i: 2; }
+[data-tear-ring="life"]   { --ring-color: #708bdb; --ring-i: 3; }
+[data-tear-ring="chain"]  { --ring-color: #b0b0b0; --ring-i: 4; }
+
+/* Sprite icons positioned in px: zoom, not width/height. auto-fit so a few icons still spread. */
+[class^="userInformation"] [class^="statusIcons___"] {
+  --icon-zoom: 1.5; /* the grid's column width reads this too */
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(calc(17px * var(--icon-zoom)), 1fr));
+  gap: var(--tear-space-2) var(--tear-space-1);
+  justify-items: center;
+  height: auto !important;
+  margin: 0 0 var(--tear-space-2) !important;
+  padding: 0 !important;
+}
+
+[class^="userInformation"] [class^="statusIcons___"] > li {
+  zoom: var(--icon-zoom);
+  margin: 0 !important;
+}
+
+[class^="userInformation___"] div:has(> [data-tear-ring]) {
+  --ring-width: 6.5cqi;
+  --ring-step: 9cqi;
+  container-type: inline-size;
+  position: relative;
+  display: flex !important;
+  flex-direction: column;
+  gap: var(--tear-space-3); /* not cqi: on the container itself it resolves to the viewport */
+  padding: 0 0 var(--tear-space-1) !important;
+}
+
+/* Reserves the rings' square: a container can't size its own padding in cqi. */
+[class^="userInformation___"] div:has(> [data-tear-ring])::before {
+  content: "";
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  margin-bottom: 3.5cqi;
+}
+
+/* Must stay static so its ring anchors to the parent. */
+[class^="userInformation___"] [data-tear-ring] {
+  position: static !important;
+  display: flex !important;
+  align-items: center;
+  gap: 4cqi;
+  width: auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  text-decoration: none !important;
+  transition: --tear-pct 0.6s ease;
+}
+
+[class^="userInformation___"] [data-tear-ring]::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--ring-i) * var(--ring-step));
+  left: calc(var(--ring-i) * var(--ring-step));
+  width: calc(100cqi - 2 * var(--ring-i) * var(--ring-step));
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--ring-color) calc(var(--tear-pct) * 1%),
+    color-mix(in srgb, var(--ring-color) 22%, transparent) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-width)), #000 calc(100% - var(--ring-width) + 0.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-width)), #000 calc(100% - var(--ring-width) + 0.5px));
+}
+
+/* Sized like the countdown circle even as a plain dot, so every row's text lines up. */
+[class^="userInformation___"] [data-tear-ring]::after {
+  content: "";
+  flex: none;
+  order: -1;
+  width: var(--timer-size);
+  height: var(--timer-size);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--ring-color) 3cqi, transparent calc(3cqi + 0.5px));
+}
+
+[class^="userInformation___"] [data-tear-ring][data-tear-timer]::after {
+  background: conic-gradient(
+    var(--ring-color) calc(var(--tear-timer) * 1%),
+    color-mix(in srgb, var(--ring-color) 22%, transparent) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-size) / 4), #000 calc(100% - var(--timer-size) / 4 + 0.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-size) / 4), #000 calc(100% - var(--timer-size) / 4 + 0.5px));
+  transition: --tear-timer 1s linear;
+}
+
+[class^="userInformation___"] [data-tear-ring] [class^="barStats___"] {
+  flex: 1;
+  display: flex !important;
+  align-items: baseline;
+  gap: 3cqi;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+[class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > p {
+  float: none !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap;
+  font-size: var(--tear-fs-body) !important;
+  font-weight: normal !important;
+}
+
+[class^="userInformation___"] [data-tear-ring] [class^="barName___"] {
+  opacity: 0.8;
+}
+
+[class^="userInformation___"] [data-tear-ring] [class^="barValue___"] {
+  font-weight: bold !important;
+}
+
+/* Must out-rank the "> p { margin: 0 }" reset or margin-left: auto loses. */
+[class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > [class^="barDescr___"],
+[class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > [class^="barTimeLeft___"] {
+  margin-left: auto !important;
+  font-size: 7cqi !important;
+  opacity: 0.7;
+}
+
+/* The "Information" heading only: a later header___ titles "Areas". */
+[class^="header___"]:has(+ [class^="userInformation___"]) {
+  display: none !important;
+}
+
+[class^="userInformation___"] {
+  display: flex !important;
   flex-wrap: wrap;
-  gap: 4px;
-  padding: 6px;
-  margin-bottom: 8px;
-  background-color: var(--tear-panel-bg, #2a2a2a);
-  border-radius: 5px;
+  align-items: center;
+  gap: var(--tear-space-2);
+}
+
+[class^="userInformation___"] > *,
+[class^="userInformation___"] > [class^="points___"] > * { flex-basis: 100%; }
+[class^="userInformation___"] > [class^="points___"] { display: contents !important; }
+
+[data-tear-stat="level"]                                    { order: 2; }
+[class^="userInformation___"] > [class^="menuInfoRow___"]   { order: 3; }
+[data-tear-stat="money"]                                    { order: 4; }
+[data-tear-stat="points"]                                   { order: 5; }
+[data-tear-stat="merits"]                                   { order: 6; }
+[class^="userInformation___"] > hr                          { order: 7; }
+[class^="userInformation___"] > div:has(> [data-tear-ring]) { order: 8; }
+
+[class^="userInformation___"] [data-tear-stat],
+[class^="userInformation___"] > [class^="menuInfoRow___"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: auto !important;
+  line-height: 1.2 !important;
+}
+
+[class^="userInformation___"] [data-tear-stat="level"] {
+  flex: none !important;
+  display: grid !important;
+  place-items: center;
+  width: 3.25rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--tear-surface) 60%, transparent 61%),
+    conic-gradient(from 200deg, var(--tear-gold), color-mix(in srgb, var(--tear-gold), #fff 70%), var(--tear-gold), color-mix(in srgb, var(--tear-gold), #000 35%), var(--tear-gold));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tear-gold) 35%, transparent);
+}
+
+[class^="userInformation___"] [data-tear-stat="level"] [class^="name___"] { display: none !important; }
+
+[class^="userInformation___"] [data-tear-stat="level"] [class^="value___"] {
+  margin: 0 !important;
+  color: var(--tear-text-strong) !important;
+  font-size: 1.375rem !important;
+  font-weight: bold !important;
+}
+
+[class^="userInformation___"] > [class^="menuInfoRow___"] {
+  flex: 1 1 0 !important;
+  min-width: 0;
+}
+
+[class^="userInformation___"] > [class^="menuInfoRow___"] [class^="menuName___"] { display: none !important; }
+
+[class^="userInformation___"] > [class^="menuInfoRow___"] [class^="menuValue___"] {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  color: var(--tear-text-strong) !important;
+  font-size: var(--tear-fs-title) !important;
+  font-weight: bold !important;
+  text-decoration: none !important;
+}
+
+[class^="userInformation___"] [data-tear-stat="money"],
+[class^="userInformation___"] [data-tear-stat="points"],
+[class^="userInformation___"] [data-tear-stat="merits"] {
+  container-type: inline-size;
+  min-width: 0;
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--tear-space-2);
+  padding: var(--tear-space-2) !important;
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius-sm);
+  background: var(--tear-overlay);
   box-sizing: border-box;
 }
 
-.tear-navbar {
-  margin: 0 auto;
-  border-radius: 0;
-}
-
-.tear-tabbar button,
-.tear-navbar a {
-  padding: 4px 10px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--tear-text, #ddd) !important;
+[class^="userInformation___"] [data-tear-stat="points"],
+[class^="userInformation___"] [data-tear-stat="merits"] {
   cursor: pointer;
-  text-decoration: none;
+  flex: 1 1 calc(50% - var(--tear-space-1)) !important;
+  justify-content: center;
+  text-align: center;
 }
 
-.tear-tabbar button:hover,
-.tear-navbar a:hover {
-  border-color: var(--tear-link, #6cb6ff);
+/* Hide Torn's "Money :" label text; ::after prints ours. */
+[class^="userInformation___"] [data-tear-stat] [class^="name___"] {
+  flex-basis: 100%;
+  width: auto !important;
+  margin: 0 0 var(--tear-space-2) !important;
+  font-size: 0 !important;
 }
 
-.tear-tabbar button[aria-selected="true"] {
-  background-color: var(--tear-bg, #1a1a1a);
-  border-color: var(--tear-link, #6cb6ff);
+[class^="userInformation___"] [data-tear-stat] [class^="name___"]::after {
+  color: var(--tear-muted);
+  font: bold var(--tear-fs-caption)/1 sans-serif;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
-.tear-tabbar button:focus-visible,
-.tear-navbar a:focus-visible {
-  outline: 2px solid var(--tear-link, #6cb6ff);
-  outline-offset: 1px;
+[data-tear-stat="money"]  [class^="name___"]::after { content: "Wallet"; }
+[data-tear-stat="points"] [class^="name___"]::after { content: "Points"; }
+[data-tear-stat="merits"] [class^="name___"]::after { content: "Merits"; }
+
+[class^="userInformation___"] [data-tear-stat="money"] [class^="value___"],
+[class^="userInformation___"] [data-tear-stat="points"] [class^="value___"],
+[class^="userInformation___"] [data-tear-stat="merits"] [class^="value___"] {
+  --fit-max: var(--tear-fs-title);
+  flex-basis: 100%;
+  min-width: 0;
+  margin: 0 !important;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  font-weight: bold !important;
+  font-size: clamp(7px, calc(100cqi / (var(--tear-len, 4) * var(--tear-char-em))), var(--fit-max)) !important;
+}
+
+[class^="userInformation___"] [data-tear-stat="money"] {
+  margin: var(--tear-space-1) 0 !important;
+  padding: var(--tear-space-2) var(--tear-space-3) !important;
+  border: 1px solid color-mix(in srgb, var(--tear-money) 35%, transparent) !important;
+  border-left: 3px solid var(--tear-money) !important;
+  background:
+    repeating-linear-gradient(135deg, color-mix(in srgb, var(--tear-money) 5%, transparent) 0 6px, transparent 6px 12px),
+    linear-gradient(90deg, color-mix(in srgb, var(--tear-money) 18%, transparent), color-mix(in srgb, var(--tear-money) 4%, transparent)) !important;
+  box-shadow: inset 0 1px 0 var(--tear-overlay);
+}
+
+[class^="userInformation___"] [data-tear-stat="money"] [class^="name___"]::after {
+  color: var(--tear-money);
+}
+
+[class^="userInformation___"] [data-tear-stat="money"] [class^="value___"] {
+  --fit-max: 1.25rem;
+  color: var(--tear-money) !important;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--tear-money) 35%, transparent) !important;
+}
+
+[class^="userInformation___"] [data-tear-stat] [class^="use___"] {
+  flex-basis: 100%;
+  text-align: center;
+  margin-top: var(--tear-space-1) !important;
+  font-size: var(--tear-fs-caption) !important;
+  text-transform: uppercase;
+  text-decoration: none !important;
+}
+
+/* Torn centres this in #sidebarroot at 171px; stretch it to full width. */
+
+#sidebarroot:has([class^="sidebar___"][class*=" mobile___"]) {
+  align-self: stretch !important;
+  width: auto !important;
+  padding: var(--tear-space-2) var(--tear-gutter) 0;
+  box-sizing: border-box;
+}
+
+#sidebarroot:has([class^="sidebar___"][class*=" mobile___"]) > div,
+[class^="sidebar___"][class*=" mobile___"] {
+  width: 100% !important;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+[class^="userInformationMobile___"] {
+  container-type: inline-size;
+  display: flex !important;
+  flex-direction: column;
+  gap: var(--tear-space-3);
+  width: 100% !important;
+  height: auto !important;
+  padding: var(--tear-space-3);
+  box-sizing: border-box;
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius-lg);
+  background: radial-gradient(120% 140% at 50% 0%, var(--tear-surface), color-mix(in srgb, var(--tear-surface-sunk), var(--tear-surface) 30%) 70%);
+  box-shadow: 0 6px 18px var(--tear-shadow), inset 0 1px 0 var(--tear-overlay);
+}
+
+[class^="userInformationMobile___"] [class^="barsMobile___"] {
+  display: grid !important;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 3cqi;
+  height: auto !important;
+  margin: 0 !important;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] {
+  --ring-width: 8cqi; /* cqi of the orb itself from here down */
+  container-type: inline-size;
+  position: relative;
+  display: grid !important;
+  place-items: center;
+  width: 100% !important;
+  max-width: 16cqi;
+  height: auto !important;
+  aspect-ratio: 1;
+  justify-self: center;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--tear-hole) 55%, transparent 56%) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--ring-color) 35%, transparent);
+  text-decoration: none !important;
+  transition: --tear-pct 0.6s ease;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--ring-color) calc(var(--tear-pct) * 1%),
+    color-mix(in srgb, var(--ring-color) 20%, transparent) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-width)), #000 calc(100% - var(--ring-width) + 0.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-width)), #000 calc(100% - var(--ring-width) + 0.5px));
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"] {
+  position: relative;
+  z-index: 1;
+  display: flex !important;
+  flex-direction: column !important; /* Torn's barStatsFlex___ sets row */
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2cqi;
+  width: 76cqi !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="svgIconWrap___"] {
+  zoom: 1.3;
+  margin: 0 !important;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barValue___"] {
+  max-width: 100%;
+  margin: 0 !important;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--tear-text-strong) !important;
+  font-weight: bold !important;
+  line-height: 1.1 !important;
+  /* +0.03: " / " makes these wider per character */
+  font-size: clamp(7px, calc(76cqi / (var(--tear-len, 5) * (var(--tear-char-em) + 0.03))), 18cqi) !important;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"],
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barDescr___"],
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barTimeLeft___"] {
+  margin: 0 !important;
+  padding: 0 !important;
+  color: var(--tear-muted) !important;
+  font-size: 12cqi !important;
+  line-height: 1 !important;
+}
+
+[class^="userInformationMobile___"] [class^="swiperWrapper___"] {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: var(--tear-space-3);
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  transform: none !important;
+}
+
+[class^="userInformationMobile___"] [class^="points-mobile___"] {
+  display: grid !important;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 2cqi;
+  width: auto !important;
+  height: auto !important;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat] {
+  container-type: inline-size;
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tear-space-1);
+  min-width: 0;
+  height: auto !important;
+  margin: 0 !important;
+  padding: var(--tear-space-2) var(--tear-space-2) !important;
+  box-sizing: border-box;
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-overlay) !important;
+  text-decoration: none !important;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat]::before {
+  color: var(--tear-muted);
+  font: bold var(--tear-fs-caption)/1 sans-serif;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat="money"]::before  { content: "Wallet"; }
+[class^="userInformationMobile___"] [data-tear-stat="points"]::before { content: "Points"; }
+[class^="userInformationMobile___"] [data-tear-stat="merits"]::before { content: "Merits"; }
+
+[class^="userInformationMobile___"] [data-tear-stat] [class^="point-icon___"] {
+  display: none !important;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat] [class^="value___"] {
+  max-width: 100%;
+  margin: 0 !important;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--tear-text-strong) !important;
+  font-weight: bold !important;
+  font-size: clamp(8px, calc(100cqi / (var(--tear-len, 4) * var(--tear-char-em))), 1.25rem) !important;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat="money"] {
+  border: 1px solid color-mix(in srgb, var(--tear-money) 35%, transparent) !important;
+  border-left: 3px solid var(--tear-money) !important;
+  background:
+    repeating-linear-gradient(135deg, color-mix(in srgb, var(--tear-money) 5%, transparent) 0 6px, transparent 6px 12px),
+    linear-gradient(90deg, color-mix(in srgb, var(--tear-money) 18%, transparent), color-mix(in srgb, var(--tear-money) 4%, transparent)) !important;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat="money"]::before { color: var(--tear-money); }
+
+[class^="userInformationMobile___"] [data-tear-stat="money"] [class^="value___"] {
+  color: var(--tear-money) !important;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--tear-money) 35%, transparent) !important;
+}
+
+/* Torn hangs these in a 26px vertical dropdown. */
+[class^="userInformationMobile___"] [class^="statusIcons___"] {
+  --icon-zoom: 2;
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Torn only shrinks the logo below 784px; until then it hangs over the ticker row. */
+
+html:has([class^="sidebar___"][class*=" mobile___"]) .header {
+  --logo-h: 2rem;
+  --logo-w: 5rem;
+}
+
+html:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+  width: var(--logo-w) !important;
+  height: var(--logo-h) !important;
+}
+
+/* 785px+: Torn's tablet sprite holds two logos (left darker); show the right half.
+   Below that Torn's mobile sprite already fits. */
+@media (min-width: 785px) {
+  html:has([class^="sidebar___"][class*=" mobile___"]) .header {
+    --logo-w: calc(var(--logo-h) * 151 / 66); /* one logo of the 302x66 sprite */
+  }
+
+  html:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+    background-size: 200% 100% !important;
+    background-repeat: no-repeat !important;
+    background-position: 100% 50% !important;
+  }
+}
+
+html:has([class^="sidebar___"][class*=" mobile___"]) .header .logo > a {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+html:has([class^="sidebar___"][class*=" mobile___"]) .header .logo > h1 {
+  margin-top: var(--logo-h) !important;
+}
+
+html:has([class^="sidebar___"][class*=" mobile___"]) #fly-out-menu-button {
+  left: calc(var(--logo-w) + var(--tear-space-1)) !important;
+}
+
+html:has([class^="sidebar___"][class*=" mobile___"]) .header-bottom-text {
+  padding-left: 0 !important;
+}
+
+html:has([class^="sidebar___"][class*=" mobile___"]) #header-swiper-container {
+  width: 100% !important;
+}
+
+/* Torn's bottom_pattern texture covers the ticker row. */
+html:has([class^="sidebar___"][class*=" mobile___"]) .header-wrapper-bottom::after {
+  display: none !important;
+}
+
+html:has([class^="sidebar___"][class*=" mobile___"]) .content-wrapper {
+  align-self: stretch !important;
+  width: auto !important;
+  margin-left: var(--tear-gutter) !important;
+  margin-right: var(--tear-gutter) !important;
+}
+
+/* Awards tabs styled like the sidebar navigation rows. */
+[class^="tabList___"] {
+  display: flex !important;
+  gap: 1px;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-bottom: 2px solid var(--tear-accent);
+  background: var(--tear-surface-sunk);
+}
+
+[class^="tabList___"] > [class^="tab___"] {
+  position: relative;
+  flex: 1;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  background: var(--tear-surface) !important;
+}
+
+[class^="tabList___"] > [class^="tab___"] a {
+  color: var(--tear-text) !important;
+  font-size: var(--tear-fs-body) !important;
+  text-decoration: none !important;
+  transition: color 0.15s;
+}
+
+[class^="tabList___"] > [class^="tab___"]:is(:hover, :focus-within) {
+  background: color-mix(in srgb, var(--tear-surface), var(--tear-link) 8%) !important;
+}
+
+[class^="tabList___"] > [class^="tab___"]:is(:hover, :focus-within) a,
+[class^="tabList___"] > [class*="selectedTab___"] a {
+  color: var(--tear-link) !important;
+}
+
+[class^="tabList___"] > [class*="selectedTab___"] {
+  background: color-mix(in srgb, var(--tear-surface), var(--tear-link) 12%) !important;
+}
+
+/* Torn's rows of three fixed cards only fit 784px: flatten into one grid. */
+
+[class^="meritsTab___"] {
+  --merit-min: 18.75rem;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--merit-min)), 1fr));
+  gap: var(--tear-space-1);
+  background: var(--tear-surface-sunk) !important;
+}
+
+[class^="meritsTab___"] > * {
+  grid-column: 1 / -1;
+}
+
+[class^="meritsTab___"] > :not([class^="meritsList___"]) {
+  background-color: var(--tear-surface);
+}
+
+[class^="meritsTab___"] > [class^="meritsList___"] {
+  display: contents !important;
+}
+
+[class^="meritsTab___"] [class^="merit___"] {
+  width: auto !important;
+  height: auto !important; /* Torn fixes cards at 60px */
+  min-width: 0;
+  padding: calc(var(--tear-space-3) * 1.25) var(--tear-space-3) !important;
+  border: 0 !important; /* Torn's per-card borders only line up 3 across */
+  box-sizing: border-box;
+}
+
+[class^="meritsTab___"] [class^="meritWrap___"] {
+  width: 100% !important;
+  height: auto !important;
+  align-items: center;
+  gap: var(--tear-space-3);
+}
+
+[class^="meritsTab___"] [class^="meritInfo___"],
+[class^="meritsTab___"] [class^="meritInfo___"] > p {
+  flex: 1;
+  width: auto !important;
+  min-width: 0;
+}
+
+[class^="meritsTab___"] [class^="meritInfo___"] {
+  flex-direction: column;
+  justify-content: center;
+  gap: calc(var(--tear-space-1) * 1.5);
+}
+
+[class^="meritsTab___"] [class^="progressEffect___"] {
+  height: 100% !important;
+  box-sizing: border-box;   /* its 2px top border stays inside the card */
+}
+
+[class^="meritsTab___"] > [class^="blackLine___"][data-tear-label] {
+  height: auto !important;
+  padding: var(--tear-space-3) var(--tear-space-3) var(--tear-space-2) !important;
+  border: 0 !important;
+  border-bottom: 2px solid var(--tear-accent) !important;
+  background: var(--tear-surface-dim) !important;
+}
+
+[class^="meritsTab___"] > [class^="blackLine___"][data-tear-label]::before {
+  content: attr(data-tear-label);
+  color: var(--tear-text);
+  font: bold var(--tear-fs-label)/1 sans-serif;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+[class^="meritsTab___"] > [class^="meritsValue___"] {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr));
+  gap: var(--tear-space-1);
+  height: auto !important;
+  padding: 0 !important;
+  background: var(--tear-surface-sunk) !important;
+}
+
+[class^="meritsTab___"] > [class^="meritsValue___"] > p {
+  display: grid !important;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  column-gap: var(--tear-space-3);
+  row-gap: var(--tear-space-1);
+  margin: 0 !important;
+  padding: var(--tear-space-4) var(--tear-space-3) !important;
+  background: var(--tear-surface);
+}
+
+[class^="meritsTab___"] > [class^="meritsValue___"] > p > [class^="currency-merits"] {
+  grid-row: 1 / 3;
+  zoom: 1.6; /* sprite icon: zoom keeps its background offset in step */
+  vertical-align: middle !important;
+  margin: 0 !important;
+}
+
+[class^="meritsTab___"] > [class^="meritsValue___"] [class^="label___"],
+[class^="meritsTab___"] > [class^="meritsValue___"] [class^="violet___"] {
+  grid-column: 2;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left;
+}
+
+[class^="meritsTab___"] > [class^="meritsValue___"] [class^="label___"] {
+  font-size: 0 !important; /* replaced by ::after, without Torn's colon */
+  color: var(--tear-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+[class^="meritsTab___"] > [class^="meritsValue___"] [class^="label___"]::after {
+  content: "Available";
+  font-size: var(--tear-fs-caption);
+}
+
+[class^="meritsTab___"] > [class^="meritsValue___"] > p:has(.currency-merits-used) [class^="label___"]::after {
+  content: "Used";
+}
+
+[class^="meritsTab___"] > [class^="meritsValue___"] [class^="violet___"] {
+  font-size: var(--tear-fs-display) !important;
+  font-weight: bold !important;
+  line-height: 1 !important;
+}
+
+/* ---- Top bar (light mode) [#] -------------------------------------- */
+
+body:not(.dark-mode) #header-wrapper-top {
+  background: linear-gradient(var(--tear-surface), var(--tear-surface-dim)) !important;
+  border-bottom: 1px solid var(--tear-line);
+}
+
+body:not(.dark-mode) #header-wrapper-top .menu-item-href {
+  color: var(--tear-link) !important;
+  text-shadow: none !important;
+}
+
+body:not(.dark-mode) #header-wrapper-top .menu-item-href:hover {
+  text-decoration: underline !important;
+}
+
+/* Torn fills these icons with a light gradient made for the dark bar. */
+body:not(.dark-mode) #header-wrapper-top .top_header_button svg,
+body:not(.dark-mode) #header-wrapper-top .top_header_button svg *,
+body:not(.dark-mode) #fly-out-menu-button svg,
+body:not(.dark-mode) #fly-out-menu-button svg * {
+  fill: var(--tear-muted) !important;
+}
+
+/* ---- Sidebar Areas and Lists rows [#] ------------------------------ */
+
+[class*="area-desktop___"],
+[class*="area-desktop___"] [class^="areaRow___"],
+[class*="area-desktop___"] [class^="areaRow___"] > a {
+  height: auto !important;
+}
+
+[class*="area-desktop___"] [class^="areaRow___"] > a {
+  display: flex !important;
+  align-items: center;
+  padding-block: var(--tear-space-2) !important;
+  font-size: var(--tear-fs-body) !important;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+/* Torn's icons have different viewBox sizes; fit each into the same em box. */
+[class*="area-desktop___"] [class^="svgIconWrap___"] {
+  display: flex !important;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.4em !important;
+  height: 1.5em !important;
+}
+
+[class*="area-desktop___"] [class^="svgIconWrap___"] > * {
+  display: flex !important;
+  width: 1.5em !important;
+  height: 1.5em !important;
+}
+
+[class*="area-desktop___"] [class^="svgIconWrap___"] svg {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Torn fills the icons with a fixed gradient; currentColor makes them follow the text. */
+[class*="area-desktop___"] [class^="svgIconWrap___"] svg,
+[class*="area-desktop___"] [class^="svgIconWrap___"] svg * {
+  fill: currentColor !important;
+}
+
+[class*="area-desktop___"] [class^="areaRow___"] > a:is(:hover, :focus-visible) {
+  background: var(--tear-nav-hover) !important;
+}
+
+[class*="area-desktop___"] [class^="areaRow___"] > a:is(:hover, :focus-visible),
+[class*="area-desktop___"] [class^="areaRow___"] > a:is(:hover, :focus-visible) * {
+  color: var(--tear-link) !important;
+}
+
+/* ---- Sidebar Areas: current page [#] ------------------------------
+   Same treatment Torn gives an "attention" item: tinted row, blue text, dot. */
+
+[class*="area-desktop___"][class*="active___"] {
+  position: relative;
+}
+
+[class*="area-desktop___"][class*="active___"] [class^="areaRow___"] {
+  background: var(--tear-nav-active) !important;
+}
+
+[class*="area-desktop___"][class*="active___"] a,
+[class*="area-desktop___"][class*="active___"] [class^="linkName___"],
+[class*="area-desktop___"][class*="active___"] [class^="svgIconWrap___"] {
+  color: var(--tear-link) !important;
+}
+
+[class*="area-desktop___"][class*="active___"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 6px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(0deg, color-mix(in srgb, var(--tear-link), #fff 45%), var(--tear-link));
+}
+
+/* ---- Bar timers as countdown circles -------------------------------
+   main.js sets --tear-timer (time left as % of the tick) on the bar. The text
+   stays in the DOM because main.js reads the countdown from it. */
+
+/* Must out-rank the desktop and HUD timer font-size rules above. */
+[class^="userInformation"] [data-tear-ring] [class^="barStats___"] > [data-tear-timer],
+[class^="userInformation"] [data-tear-ring] [class^="barStats___"] [data-tear-timer] {
+  display: block !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+[data-tear-ring] [data-tear-timer]::before {
+  content: "";
+  display: block;
+  width: var(--timer-size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--ring-color) calc(var(--tear-timer) * 1%),
+    color-mix(in srgb, var(--ring-color) 22%, transparent) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-size) / 4), #000 calc(100% - var(--timer-size) / 4 + 0.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-size) / 4), #000 calc(100% - var(--timer-size) / 4 + 0.5px));
+  transition: --tear-timer 1s linear;
+}
+
+/* cqi of the legend column on desktop, of the orb in the HUD. */
+[class^="userInformation___"] [data-tear-ring] { --timer-size: 14cqi; }
+[class^="userInformationMobile___"] [data-tear-ring] { --timer-size: 24cqi; }
+
+/* On desktop the circle is the row's dot (above), so the timer text goes, "FULL" included. */
+[class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > [class^="barDescr___"],
+[class^="userInformation___"] [data-tear-ring] [class^="barStats___"] > [class^="barTimeLeft___"],
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"]:not(:has([data-tear-timer])) {
+  display: none !important;
+}
+
+/* ---- Settings menu (preferences.php) as sidebar-style rows [#] ----- */
+
+#prefs-tab-menu .ui-tabs-nav {
+  border-right: 1px solid var(--tear-surface-sunk) !important;
+  background: var(--tear-surface-sunk) !important;
+}
+
+#prefs-tab-menu .ui-tabs-nav > li {
+  position: relative;
+  height: auto !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--tear-surface-sunk) !important;
+  background: var(--tear-surface) !important;
+}
+
+#prefs-tab-menu .ui-tabs-nav > li > a {
+  height: auto !important;
+  padding: var(--tear-space-3) !important;
+  background: transparent !important;
+  color: var(--tear-text) !important;
+  font-size: var(--tear-fs-body) !important;
+  font-weight: normal !important;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+#prefs-tab-menu .ui-tabs-nav > li > a:is(:hover, :focus-visible) {
+  background: var(--tear-nav-hover) !important;
+  color: var(--tear-link) !important;
+}
+
+#prefs-tab-menu .ui-tabs-nav > li.ui-tabs-active > a {
+  background: var(--tear-nav-active) !important;
+  color: var(--tear-link) !important;
+}
+
+/* Same dot as the sidebar's current page. */
+#prefs-tab-menu .ui-tabs-nav > li.ui-tabs-active::after,
+[class^="tabList___"] > [class*="selectedTab___"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 6px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(0deg, color-mix(in srgb, var(--tear-link), #fff 45%), var(--tear-link));
+}
+
+/* ---- Awards: Torn's merit violet in the link blue ------------------ */
+
+[class^="awardsPage___"] [class^="violet___"] {
+  color: var(--tear-link) !important;
+}
+
+/* The merit icons are purple images; rotate the hue onto the blue. */
+[class^="awardsPage___"] [class^="currency-merits"] {
+  filter: hue-rotate(-50deg);
 }

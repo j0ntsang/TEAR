@@ -1,89 +1,195 @@
-// Applies the active profile to the page and keeps it applied: Torn renders
-// parts of the page late, and the popup/options page change settings live.
-
 (() => {
-  const { getActiveProfile, profileKey, activeTabKey, panels, nav } = TEAR;
+  const { getTheme, slugify, pageName, routeName } = TEAR;
   const root = document.documentElement;
-  let profile = null;
-  let activeTab = "all";
-  let lastPanels = "";
-  let lastAreas = "";
 
   function applyTheme(t) {
     root.style.setProperty("--tear-bg", t.bgColor);
-    root.style.setProperty("--tear-panel-bg", t.panelBg);
-    root.style.setProperty("--tear-text", t.textColor);
-    root.style.setProperty("--tear-link", t.linkColor);
-    // Font overrides are opt-in attributes: "Torn default" / size 0 must leave
-    // Torn's own stacks alone, not fall back to the CSS defaults.
+    // "Torn default" must leave Torn's own font stacks alone.
     root.toggleAttribute("data-tear-font", Boolean(t.fontFamily));
     root.style.setProperty("--tear-font-family", t.fontFamily || "initial");
-    root.toggleAttribute("data-tear-size", t.fontSize > 0);
-    root.style.setProperty("--tear-font-size", `${t.fontSize}px`);
   }
 
-  function pickTab(id) {
-    activeTab = id;
-    chrome.storage.local.set({ [activeTabKey(profile.id)]: id });
-    applyLayout();
+  function stampPage() {
+    root.dataset.tearPage = pageName(location.pathname);
+    root.dataset.tearRoute = routeName(location.hash);
   }
 
-  function applyLayout() {
-    const found = panels.apply(profile.layout, activeTab, pickTab);
-    const known = JSON.stringify(found.map(({ slug, label }) => ({ slug, label })));
-    if (found.length && known !== lastPanels) {
-      lastPanels = known;
-      chrome.storage.local.set({ knownPanels: JSON.parse(known) });
+  function tagPanels() {
+    for (const box of document.querySelectorAll("#mainContainer .sortable-box:not([data-tear-panel])")) {
+      const slug = slugify(box.querySelector(".box-title")?.textContent ?? "");
+      if (slug) box.dataset.tearPanel = slug;
     }
   }
 
-  function harvestAreas() {
-    const areas = nav.harvest();
-    const known = JSON.stringify(areas);
-    if (areas.length && known !== lastAreas) {
-      lastAreas = known;
-      chrome.storage.local.set({ knownAreas: areas });
+  // Torn's React swaps the items, so the copy is rebuilt whenever it goes stale.
+  function loopTicker() {
+    const wrap = document.querySelector(".news-ticker-slider-wrapper .scroll-wrap");
+    if (!wrap) return;
+    const kids = [...wrap.children];
+    const originals = kids.filter((el) => !el.hasAttribute("data-tear-clone"));
+    const clones = kids.filter((el) => el.hasAttribute("data-tear-clone"));
+    const inSync =
+      clones.length === originals.length &&
+      originals.every((el, i) => el.textContent === clones[i].dataset.tearSource);
+    if (inSync && wrap.hasAttribute("data-tear-looped")) return;
+
+    clones.forEach((el) => el.remove());
+    for (const el of originals) {
+      const copy = el.cloneNode(true);
+      copy.dataset.tearSource = el.textContent;
+      copy.setAttribute("data-tear-clone", "");
+      copy.setAttribute("aria-hidden", "true");
+      wrap.append(copy);
+    }
+    wrap.setAttribute("data-tear-looped", "");
+  }
+
+  function setLength(el) {
+    if (!el) return;
+    const len = String(el.textContent.trim().length || 1);
+    if (el.style.getPropertyValue("--tear-len") !== len) el.style.setProperty("--tear-len", len);
+  }
+
+  const RING_KINDS = /\b(energy|nerve|happy|life|chain)(?:Bar)?___/;
+  const BARS = '[class^="userInformation"] [class^="bar___"], [class^="userInformation"] [class^="chainBar___"]';
+  const parseAmount = (n) => {
+    const [, digits, unit = ""] = n.match(/([\d.,]+)\s*([km]?)/i);
+    return Number(digits.replace(/,/g, "")) * ({ k: 1e3, m: 1e6 }[unit.toLowerCase()] ?? 1);
+  };
+  function ringBars() {
+    for (const bar of document.querySelectorAll(BARS)) {
+      const kind = bar.className.match(RING_KINDS)?.[1];
+      const value = bar.querySelector('[class^="barValue___"]')?.textContent ?? "";
+      const [current, total] = (value.match(/[\d.,]+\s*[km]?/gi) ?? []).map(parseAmount);
+      if (!kind || !total) continue;
+      // Happy can go over its maximum; a ring can't.
+      const pct = Math.min(100, (current / total) * 100).toFixed(1);
+      if (bar.dataset.tearRing !== kind) bar.dataset.tearRing = kind;
+      if (bar.style.getPropertyValue("--tear-pct") !== pct) bar.style.setProperty("--tear-pct", pct);
+      setLength(bar.querySelector('[class^="barValue___"]'));
+      countdown(kind, bar, bar.querySelector('[class^="barDescr___"], [class^="barTimeLeft___"]'));
     }
   }
 
-  async function load() {
-    profile = await getActiveProfile();
-    const key = activeTabKey(profile.id);
-    activeTab = (await chrome.storage.local.get(key))[key] ?? "all";
-    applyTheme(profile.theme);
-    applyLayout();
-    nav.render(profile.nav);
+  // The timers count down to the next regen tick. Tick length isn't in the DOM and
+  // depends on donator status, so start at the shortest and grow to the longest seen.
+  const TICK_SECONDS = { energy: 600, nerve: 300, happy: 900, life: 300, chain: 300 };
+  function countdown(kind, bar, el) {
+    const parts = el?.textContent.trim().match(/^(?:(\d+):)?(\d+):(\d{2})$/);
+    if (!parts) {
+      el?.removeAttribute("data-tear-timer");
+      bar.removeAttribute("data-tear-timer");
+      return;
+    }
+    const [h, m, sec] = parts.slice(1).map((v) => Number(v ?? 0));
+    const left = h * 3600 + m * 60 + sec;
+    const tick = (TICK_SECONDS[kind] = Math.max(TICK_SECONDS[kind] ?? 300, Math.ceil(left / 300) * 300));
+    const pct = ((left / tick) * 100).toFixed(1);
+    el.setAttribute("data-tear-timer", "");
+    bar.setAttribute("data-tear-timer", "");
+    if (bar.style.getPropertyValue("--tear-timer") !== pct) bar.style.setProperty("--tear-timer", pct);
   }
+
+  // Recolour only the links Torn draws in some blue; its grey nav and white overlay links stay.
+  function tagLinks() {
+    for (const a of document.querySelectorAll("a:not([data-tear-link])")) {
+      const [r, g, b] = (getComputedStyle(a).color.match(/[\d.]+/g) ?? []).map(Number);
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const blue = max === b && g >= r && b - r > 40 && (max - min) / (max || 1) > 0.35;
+      a.dataset.tearLink = blue ? "1" : "0";
+    }
+  }
+
+  function tagStats() {
+    // The narrow-window panel's labels are the visually hidden .wai.
+    for (const row of document.querySelectorAll('[class^="userInformation"] [class^="point-block___"]')) {
+      if (!row.dataset.tearStat) {
+        const slug = slugify(row.querySelector('[class^="name___"], .wai')?.textContent ?? "");
+        if (slug) row.dataset.tearStat = slug;
+      }
+      setLength(row.querySelector('[class^="value___"]'));
+    }
+  }
+
+  // A click that ends a text selection is left alone so values stay copyable.
+  addEventListener("click", (event) => {
+    const card = event.target.closest?.('[data-tear-stat="points"], [data-tear-stat="merits"]');
+    if (!card || event.target.closest("a")) return;
+    if (!getSelection().isCollapsed) return;
+    card.querySelector('[class^="use___"]')?.click();
+  });
+
+  // Keyed by the first merit after each divider, so new sections don't shift names.
+  const MERIT_SECTIONS = { "Nerve Bar": "General", Brawn: "Combat" };
+
+  // Torn inserts a card's info panel after its original row of three, which the
+  // fluid grid splits; CSS order puts it after the selected card's visual row.
+  function layoutMerits() {
+    const tab = document.querySelector('[class^="meritsTab___"]');
+    if (!tab) return;
+    const setOrder = (el, n) => {
+      if (el.style.order !== String(n)) el.style.order = String(n);
+    };
+    let order = 0;
+    for (const child of tab.children) {
+      if (child.matches('[class^="meritsList___"]')) {
+        for (const card of child.children) setOrder(card, (order += 2));
+      } else if (!child.matches('[class^="dialogWrap___"]')) {
+        setOrder(child, (order += 2));
+        if (child.matches('[class^="blackLine___"]')) {
+          const first = child.nextElementSibling?.querySelector('[class^="title___"] span')?.textContent.trim();
+          const label = MERIT_SECTIONS[first];
+          if (label && child.dataset.tearLabel !== label) child.dataset.tearLabel = label;
+        }
+      }
+    }
+    const dialog = tab.querySelector(':scope > [class^="dialogWrap___"]');
+    const selected = tab.querySelector('[class^="merit___"][class*="selected___"]');
+    if (!dialog || !selected) return;
+    const rowEnd = [...tab.querySelectorAll('[class^="merit___"]')]
+      .filter((card) => card.offsetTop === selected.offsetTop)
+      .reduce((max, card) => Math.max(max, Number(card.style.order)), 0);
+    setOrder(dialog, rowEnd + 1);
+  }
+  // The body observer doesn't see a resize, but the column count changes.
+  addEventListener("resize", () => requestAnimationFrame(layoutMerits));
+
+  let bodyFrame = 0;
+  // The ticker and sidebar sit outside #mainContainer and update text in place.
+  new MutationObserver(() => {
+    bodyFrame ||= requestAnimationFrame(() => {
+      bodyFrame = 0;
+      loopTicker();
+      ringBars();
+      tagStats();
+      tagLinks();
+      layoutMerits();
+    });
+  }).observe(document.body, { childList: true, subtree: true, characterData: true });
 
   let frame = 0;
-  const schedule = () => {
-    if (frame || !profile) return;
-    frame = requestAnimationFrame(() => {
-      frame = 0;
-      applyLayout();
-      nav.render(profile.nav);
-    });
-  };
-
-  const isOurs = (node) => node.nodeType === 1 && node.closest(".tear-tabbar, .tear-navbar");
-  const observer = new MutationObserver((records) => {
-    if (records.every((r) => isOurs(r.target))) return;
-    schedule();
-  });
   const main = document.getElementById("mainContainer");
-  if (main) observer.observe(main, { childList: true, subtree: true });
-  // Torn's React header can re-render and drop the nav bar from beside it.
-  observer.observe(document.body, { childList: true });
+  if (main) {
+    new MutationObserver(() => {
+      frame ||= requestAnimationFrame(() => {
+        frame = 0;
+        tagPanels();
+      });
+    }).observe(main, { childList: true, subtree: true });
+  }
 
+  addEventListener("hashchange", stampPage);
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === "sync" && profile && ("activeProfile" in changes || profileKey(profile.id) in changes)) load();
+    if (area === "sync" && "theme" in changes) getTheme().then(applyTheme);
   });
 
-  chrome.runtime.onMessage.addListener((message, _sender, reply) => {
-    if (message?.type === "GET_PANELS") reply(panels.tag().map(({ slug, label }) => ({ slug, label })));
-  });
-
-  load();
-  // The React sidebar mounts after document_idle on slow loads.
-  for (const delay of [0, 1500, 5000]) setTimeout(harvestAreas, delay);
+  stampPage();
+  tagPanels();
+  loopTicker();
+  ringBars();
+  tagStats();
+  tagLinks();
+  layoutMerits();
+  getTheme().then(applyTheme);
 })();

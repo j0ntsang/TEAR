@@ -80,7 +80,7 @@ Checked `/preferences.php` end to end. Full settings nav: General settings, Secu
 - **Font is different here**: computed `font-family` is `"Fjalla One", sans-serif` — a Google web font — not the Arial used on the legacy dashboard. `font-size` for crime option rows is `13px`.
 - A crime "option" row background: `rgb(42, 42, 42)` (`[class*="crimeOption___"]`), slightly lighter than the dashboard's `.cont-gray` (`rgb(51,51,51)`) — these are two independently-styled dark grays, not one shared variable in Torn's own CSS.
 
-**Implication for theming**: a font-family override must hit at least two separate stacks to be complete — `Arial` (legacy/server-rendered pages: Home, Settings, most tables) and `"Fjalla One", sans-serif` (React SPA pages: Crimes and likely Missions/other newer sections). A single `body { font-family: ... }` rule will not reach the Crimes page because Fjalla One is set explicitly on nested elements, not inherited from `<body>` — needs its own override targeting `.crime-root` and descendants (or a broad `*` override, see theme.css).
+**Implication for theming**: a font-family override must hit at least two separate stacks to be complete — `Arial` (legacy/server-rendered pages: Home, Settings, most tables) and `"Fjalla One", sans-serif` (React SPA pages: Crimes and likely Missions/other newer sections). A single `body { font-family: ... }` rule will not reach the Crimes page because Fjalla One is set explicitly on nested elements, not inherited from `<body>` — needs its own override targeting `.crime-root` and descendants (or a broad `*` override, see `content/content.css`).
 
 ## Item Market (`page.php#/market/...`) — React, Headless UI, Arial
 
