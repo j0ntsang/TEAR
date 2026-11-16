@@ -40,16 +40,41 @@ describe("normalizeTheme", () => {
     expect(TEAR.normalizeTheme(undefined)).toEqual(TEAR.DEFAULT_THEME);
   });
 
-  it("keeps valid fields, replaces bad ones, drops unknown ones", () => {
-    expect(TEAR.normalizeTheme({ bgColor: "#ABCDEF", fontFamily: "Comic Sans", extra: 1 })).toEqual({
-      bgColor: "#ABCDEF",
-      fontFamily: TEAR.DEFAULT_THEME.fontFamily,
+  it("keeps known hex colors per mode and drops everything else", () => {
+    const theme = TEAR.normalizeTheme({
+      fontFamily: "Comic Sans",
+      colors: { light: { link: "#ABCDEF", shadow: "#00000080", bogus: "#123456" }, dark: { text: "red" }, sepia: {} },
+      extra: 1,
     });
-    expect(TEAR.normalizeTheme({ bgColor: "red" }).bgColor).toBe(TEAR.DEFAULT_THEME.bgColor);
+    expect(theme).toEqual({
+      fontFamily: TEAR.DEFAULT_THEME.fontFamily,
+      colors: { light: { link: "#abcdef", shadow: "#00000080" }, dark: {} },
+    });
+  });
+
+  it("carries an old single background color into both modes", () => {
+    expect(TEAR.normalizeTheme({ bgColor: "#222222" }).colors).toEqual({ light: { bg: "#222222" }, dark: { bg: "#222222" } });
+    expect(TEAR.normalizeTheme({ bgColor: "#1a1a1a" }).colors).toEqual({ light: {}, dark: {} });
   });
 
   it("allows Torn's own font", () => {
     expect(TEAR.normalizeTheme({ fontFamily: "" }).fontFamily).toBe("");
+  });
+});
+
+describe("colorCss", () => {
+  it("is empty without overrides", () => {
+    expect(TEAR.colorCss({ light: {}, dark: {} })).toBe("");
+  });
+
+  it("sets each mode's overrides on body, scoped tokens on their element", () => {
+    const css = TEAR.colorCss({ light: { link: "#111111", text: "#222222" }, dark: { energy: "#333333" } });
+    expect(css).toBe(
+      [
+        "body.body:not(.dark-mode) { --tear-text: #222222 !important; --tear-link: #111111 !important; }",
+        'body.body.dark-mode [data-tear-ring="energy"] { --ring-color: #333333 !important; }',
+      ].join("\n"),
+    );
   });
 });
 
@@ -73,7 +98,10 @@ describe("theme storage", () => {
   });
 
   it("saves a cleaned theme", async () => {
-    await TEAR.saveTheme({ bgColor: "#222222", fontFamily: "nope" });
-    expect(await TEAR.getTheme()).toEqual({ bgColor: "#222222", fontFamily: TEAR.DEFAULT_THEME.fontFamily });
+    await TEAR.saveTheme({ fontFamily: "nope", colors: { dark: { money: "#00ff00" } } });
+    expect(await TEAR.getTheme()).toEqual({
+      fontFamily: TEAR.DEFAULT_THEME.fontFamily,
+      colors: { light: {}, dark: { money: "#00ff00" } },
+    });
   });
 });

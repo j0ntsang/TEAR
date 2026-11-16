@@ -1,13 +1,6 @@
 (() => {
-  const { getTheme, slugify, pageName, routeName } = TEAR;
+  const { slugify, pageName, routeName } = TEAR;
   const root = document.documentElement;
-
-  function applyTheme(t) {
-    root.style.setProperty("--tear-bg", t.bgColor);
-    // "Torn default" must leave Torn's own font stacks alone.
-    root.toggleAttribute("data-tear-font", Boolean(t.fontFamily));
-    root.style.setProperty("--tear-font-family", t.fontFamily || "initial");
-  }
 
   function stampPage() {
     root.dataset.tearPage = pageName(location.pathname);
@@ -118,6 +111,10 @@
         const slug = slugify(row.querySelector('[class^="name___"], .wai')?.textContent ?? "");
         if (slug) row.dataset.tearStat = slug;
       }
+      if (/^(points|merits)$/.test(row.dataset.tearStat) && !row.hasAttribute("role")) {
+        row.setAttribute("role", "button");
+        row.tabIndex = 0;
+      }
       setLength(row.querySelector('[class^="value___"]'));
     }
   }
@@ -129,6 +126,17 @@
     if (!getSelection().isCollapsed) return;
     card.querySelector('[class^="use___"]')?.click();
   });
+  addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const card = event.target.closest?.('[data-tear-stat="points"][role=button], [data-tear-stat="merits"][role=button]');
+    if (!card || event.target !== card) return;
+    event.preventDefault();
+    card.querySelector('[class^="use___"]')?.click();
+  });
+
+  const setOrder = (el, n) => {
+    if (el.style.order !== String(n)) el.style.order = String(n);
+  };
 
   // Keyed by the first merit after each divider, so new sections don't shift names.
   const MERIT_SECTIONS = { "Nerve Bar": "General", Brawn: "Combat" };
@@ -138,9 +146,6 @@
   function layoutMerits() {
     const tab = document.querySelector('[class^="meritsTab___"]');
     if (!tab) return;
-    const setOrder = (el, n) => {
-      if (el.style.order !== String(n)) el.style.order = String(n);
-    };
     let order = 0;
     for (const child of tab.children) {
       if (child.matches('[class^="meritsList___"]')) {
@@ -226,6 +231,144 @@
     }
   });
 
+  // Desktop sidebar sections, reordered by dragging the grip above each one.
+  // CSS flattens the sidebar into one flex container, so `order` places every piece.
+  const SIDEBAR = '[class^="sidebar___"][class*=" desktop___"]';
+  const SECTION_NAMES = { status: "Status", profile: "Profile", bars: "Bars", account: "Account links", areas: "Areas", lists: "Lists" };
+  const DEFAULT_ORDER = Object.keys(SECTION_NAMES);
+  let savedOrder = [];
+  chrome.storage.local.get("sidebarOrder").then(({ sidebarOrder = [] }) => {
+    savedOrder = sidebarOrder;
+    arrangeSidebar();
+  });
+
+  const sectionKeys = () => [...savedOrder.filter((k) => k in SECTION_NAMES), ...DEFAULT_ORDER.filter((k) => !savedOrder.includes(k))];
+
+  function sidebarSections(sb) {
+    const ui = sb.querySelector(':scope > [class^="userInformation___"]');
+    const stat = (name) => ui?.querySelector(`[data-tear-stat="${name}"]`);
+    const listsHeader = sb.querySelector(':scope > [class^="header___"]:has(+ [class*="area-desktop___"])');
+    const sections = {
+      status: [ui?.querySelector(':scope > div:has(> [class^="statusIcons___"])')],
+      profile: [stat("level"), ui?.querySelector(':scope > [class^="menuInfoRow___"]'), stat("money"), stat("points"), stat("merits")],
+      bars: [ui?.querySelector(':scope > div:has(> [class*="barDesktop___"])')],
+      account: [sb.querySelector(':scope > [class^="accountLinksWrap___"]')],
+      areas: [sb.querySelector(':scope > [class^="areas___"]')],
+      lists: listsHeader ? [listsHeader, ...sectionRows(listsHeader)] : [],
+    };
+    for (const key in sections) sections[key] = sections[key].filter(Boolean);
+    return sections;
+  }
+
+  function arrangeSidebar() {
+    const sb = document.querySelector(SIDEBAR);
+    if (!sb) return;
+    const sections = sidebarSections(sb);
+    let first = true;
+    sectionKeys().forEach((key, pos) => {
+      const members = sections[key];
+      let grip = sb.querySelector(`:scope > [data-tear-grip="${key}"]`);
+      if (!members.length) return grip?.remove();
+      if (!grip) {
+        grip = document.createElement("button");
+        grip.type = "button";
+        grip.dataset.tearGrip = key;
+        grip.title = `Drag to move ${SECTION_NAMES[key]} (or focus and use the arrow keys)`;
+        grip.setAttribute("aria-label", `Move ${SECTION_NAMES[key]} section`);
+        sb.append(grip);
+      }
+      grip.toggleAttribute("data-tear-first", first);
+      first = false;
+      setOrder(grip, pos * 1000);
+      members.forEach((el, i) => {
+        setOrder(el, pos * 1000 + 1 + i);
+        if (el.dataset.tearSection !== key) el.dataset.tearSection = key;
+      });
+    });
+  }
+
+  function moveSection(key, to) {
+    const keys = sectionKeys().filter((k) => k !== key);
+    keys.splice(to, 0, key);
+    savedOrder = keys;
+    chrome.storage.local.set({ sidebarOrder: keys });
+    arrangeSidebar();
+  }
+
+  // Only sections that are on screen count as drop targets; a collapsed section's rows have no box.
+  function sectionBoxes(sb) {
+    const sections = sidebarSections(sb);
+    return sectionKeys()
+      .map((key) => {
+        const rects = sections[key].map((el) => el.getBoundingClientRect()).filter((r) => r.height);
+        return rects.length && { key, top: Math.min(...rects.map((r) => r.top)), bottom: Math.max(...rects.map((r) => r.bottom)) };
+      })
+      .filter(Boolean);
+  }
+
+  const markSection = (key, attr, on) => {
+    for (const el of document.querySelectorAll(`${SIDEBAR} [data-tear-section="${key}"]`)) el.toggleAttribute(attr, on);
+  };
+
+  addEventListener("pointerover", (event) => {
+    const grip = event.target.closest?.("[data-tear-grip]");
+    if (grip) markSection(grip.dataset.tearGrip, "data-tear-section-hover", true);
+  });
+  addEventListener("pointerout", (event) => {
+    const grip = event.target.closest?.("[data-tear-grip]");
+    if (grip) markSection(grip.dataset.tearGrip, "data-tear-section-hover", false);
+  });
+
+  addEventListener("pointerdown", (event) => {
+    const grip = event.target.closest?.("[data-tear-grip]");
+    if (!grip || event.button !== 0) return;
+    event.preventDefault();
+    const sb = grip.parentElement;
+    const key = grip.dataset.tearGrip;
+    const marker = Object.assign(document.createElement("div"), { className: "tear-drop-marker" });
+    document.body.append(marker);
+    grip.setPointerCapture(event.pointerId);
+    markSection(key, "data-tear-dragging", true);
+    let target = null;
+
+    const onMove = (e) => {
+      const boxes = sectionBoxes(sb);
+      const others = boxes.filter((b) => b.key !== key);
+      // Index among the other sections where the dragged one would land.
+      const to = others.filter((b) => e.clientY > (b.top + b.bottom) / 2).length;
+      const before = others[to - 1];
+      const after = others[to];
+      const y = before && after ? (before.bottom + after.top) / 2 : before ? before.bottom + 4 : after.top - 4;
+      const sbBox = sb.getBoundingClientRect();
+      Object.assign(marker.style, { top: `${y}px`, left: `${sbBox.left}px`, width: `${sbBox.width}px` });
+      // Map the slot among visible sections back to a slot in the full order.
+      const keys = sectionKeys().filter((k) => k !== key);
+      const slot = after ? keys.indexOf(after.key) : before ? keys.indexOf(before.key) + 1 : 0;
+      target = slot === sectionKeys().indexOf(key) ? null : slot;
+      marker.hidden = target === null;
+    };
+    const onUp = () => {
+      grip.removeEventListener("pointermove", onMove);
+      grip.removeEventListener("pointerup", onUp);
+      grip.removeEventListener("pointercancel", onUp);
+      marker.remove();
+      markSection(key, "data-tear-dragging", false);
+      if (target !== null) moveSection(key, target);
+    };
+    grip.addEventListener("pointermove", onMove);
+    grip.addEventListener("pointerup", onUp);
+    grip.addEventListener("pointercancel", onUp);
+  });
+
+  addEventListener("keydown", (event) => {
+    const grip = event.target.closest?.("[data-tear-grip]");
+    if (!grip || (event.key !== "ArrowUp" && event.key !== "ArrowDown")) return;
+    event.preventDefault();
+    const key = grip.dataset.tearGrip;
+    const at = sectionKeys().indexOf(key);
+    moveSection(key, Math.max(0, at + (event.key === "ArrowUp" ? -1 : 1)));
+  });
+
   let bodyFrame = 0;
   // The ticker and sidebar sit outside #mainContainer and update text in place.
   new MutationObserver(() => {
@@ -237,6 +380,7 @@
       tagLinks();
       layoutMerits();
       tagSections();
+      arrangeSidebar();
     });
   }).observe(document.body, { childList: true, subtree: true, characterData: true });
 
@@ -252,9 +396,6 @@
   }
 
   addEventListener("hashchange", stampPage);
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === "sync" && "theme" in changes) getTheme().then(applyTheme);
-  });
 
   stampPage();
   tagPanels();
@@ -263,5 +404,4 @@
   tagStats();
   tagLinks();
   layoutMerits();
-  getTheme().then(applyTheme);
 })();

@@ -2,7 +2,7 @@
    content/main.js: html[data-tear-page|route], [data-tear-panel|ring|stat|label], --tear-pct, --tear-len. */
 
 body {
-  /* --tear-bg and --tear-font-family are set by the popup at runtime. */
+  /* --tear-font-family and color overrides come from the settings panel (content/settings.js). */
   /* Torn's theme variables flip on body.dark-mode, so these must live on body, not :root. */
   --tear-surface: var(--default-bg-panel-color, #f2f2f2);
   --tear-surface-sunk: var(--default-panel-divider-outer-side-color, #ccc);
@@ -34,6 +34,8 @@ body {
   --tear-gold: #e8b64c;
   --tear-live: #c8102e;
   --tear-live-dot: #39ff6a;
+  --tear-info-button: #3d5a73;
+  --tear-settings-button: #6e3a9c;
 
   --tear-strip: #f5f5f5;
   --tear-strip-text: #000;
@@ -53,7 +55,7 @@ body {
   --tear-fs-title: 1.125rem;
   --tear-fs-display: 1.5rem;
 
-  /* Shrink-to-fit width per character, measured in Torn's font: raise it for a wider popup font. */
+  /* Shrink-to-fit width per character, measured in Torn's font: raise it for a wider custom font. */
   --tear-char-em: 0.52;
   --tear-char-em-mono: 0.62;
   --tear-timer-color: var(--tear-text); /* countdown rings */
@@ -110,7 +112,7 @@ a:focus-visible {
 #topHeaderBanner {
 }
 
-/* The popup's background only repaints Torn's chrome in dark mode; light mode keeps Torn's. */
+/* The page background only repaints Torn's chrome in dark mode; light mode keeps Torn's. */
 body.dark-mode [class*="header___"] {
   background-color: var(--tear-bg, #1a1a1a) !important;
   color: var(--tear-text) !important;
@@ -724,19 +726,34 @@ body.hospital {}
 }
 
 [class^="userInformation___"] [data-tear-stat="money"] [class^="value___"] {
-  --fit-max: 1.25rem;
+  --fit-max: var(--tear-fs-body);
   color: var(--tear-money) !important;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 0 8px color-mix(in srgb, var(--tear-money) 35%, transparent) !important;
 }
 
+/* The whole card is the [use] button (main.js forwards the click), so the link itself goes. */
 [class^="userInformation___"] [data-tear-stat] [class^="use___"] {
-  flex-basis: 100%;
-  text-align: center;
-  margin-top: var(--tear-space-1) !important;
-  font-size: var(--tear-fs-caption) !important;
-  text-transform: uppercase;
-  text-decoration: none !important;
+  display: none !important;
+}
+
+[class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]) {
+  padding-block: var(--tear-space-1) !important;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+[class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]) [class^="name___"] {
+  margin-bottom: var(--tear-space-1) !important;
+}
+
+[class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]):is(:hover, :focus-visible) {
+  border-color: color-mix(in srgb, var(--tear-accent) 45%, transparent) !important;
+  background: color-mix(in srgb, var(--tear-accent) 10%, var(--tear-surface)) !important;
+}
+
+[class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]):focus-visible {
+  outline: 2px solid var(--tear-accent);
+  outline-offset: -2px;
 }
 
 /* Torn centres this in #sidebarroot at 171px; stretch it to full width. */
@@ -1432,7 +1449,7 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
 }
 
 /* Bar values as an LCD readout: scanlines, inset bezel, segment-style digits.
-   Out-ranks the popup's font rule on body.body * and the legend's "> p" reset. */
+   Out-ranks the custom font rule on body.body * and the legend's "> p" reset. */
 [class^="userInformation"] [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
   padding: 0.3em 0.6em !important;
   border-radius: 4px;
@@ -2463,4 +2480,256 @@ body:has([class^="flyOutPanel___"][class*="visible___"]) #header-wrapper-top::af
   z-index: 1;
   pointer-events: none;
   background: var(--menu-bg);
+}
+
+/* ---- Desktop sidebar: draggable sections (main.js sets each piece's order) ----
+   userInformation dissolves into the sidebar so its pieces sort alongside the
+   other blocks. Each section starts with a grip drawn as the engraved delimiter. */
+
+[class^="sidebar___"][class*=" desktop___"] {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: var(--tear-space-2);
+}
+
+[class^="sidebar___"][class*=" desktop___"] > [class^="userInformation___"] {
+  display: contents !important;
+}
+
+/* The grips replace Torn's delimiters. */
+[class^="sidebar___"][class*=" desktop___"] hr[class^="delimiter___"] {
+  display: none !important;
+}
+
+/* Spacing now comes from the gap and grips. */
+[class^="sidebar___"][class*=" desktop___"] > :is([class^="accountLinksWrap___"], [class^="areas___"], [class^="header___"]:has(+ :is([class*="area-desktop___"], [class*="area-mobile___"]))) {
+  margin-top: 0 !important;
+}
+
+[class^="sidebar___"][class*=" desktop___"] [data-tear-stat="money"] {
+  margin: 0 !important;
+}
+
+[data-tear-grip] {
+  all: unset;
+  position: relative;
+  box-sizing: border-box;
+  flex: 0 0 100%;
+  height: var(--tear-space-3);
+  cursor: grab;
+  touch-action: none;
+}
+
+/* The engraved groove, as on the old delimiters. */
+[data-tear-grip]::before {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 0;
+  border-top: 1px solid color-mix(in srgb, #000 35%, transparent);
+  border-bottom: 1px solid var(--tear-groove-light);
+  transform: translateY(-1px);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+
+[data-tear-grip][data-tear-first]::before {
+  display: none;
+}
+
+/* A dotted handle shows while the sidebar is hovered. */
+[data-tear-grip]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.75rem;
+  height: 0.5rem;
+  translate: -50% -50%;
+  border: 1px solid var(--tear-line);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, var(--tear-label) 1px, transparent 1.5px) center / 5px 4px,
+    var(--tear-surface);
+  opacity: 0;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+[class^="sidebar___"]:hover [data-tear-grip]::after {
+  opacity: 0.6;
+}
+
+[data-tear-grip]:is(:hover, :focus-visible)::after {
+  opacity: 1;
+  border-color: var(--tear-accent);
+}
+
+[data-tear-grip]:active {
+  cursor: grabbing;
+}
+
+[data-tear-section][data-tear-section-hover] {
+  outline: 1px dashed color-mix(in srgb, var(--tear-accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+[data-tear-section][data-tear-dragging] {
+  opacity: 0.45;
+}
+
+.tear-drop-marker {
+  position: fixed;
+  z-index: 100000;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--tear-accent);
+  box-shadow: 0 0 6px var(--tear-accent);
+  pointer-events: none;
+}
+
+/* ---- TEAR dock: info and settings buttons, bottom left (content/settings.js) ----
+   Copies of Torn's chat-bar buttons, each in its own colour. */
+
+#tear-dock {
+  position: fixed;
+  z-index: 2147482999;
+  left: var(--tear-dock-left, 8px);
+  bottom: 0;
+  display: flex;
+  gap: var(--tear-space-1);
+}
+
+/* Room under the page so the end of it scrolls clear of the dock. A spacer rather than
+   padding, so it adds to whatever room Torn already leaves for its chat bar. */
+body.body::after {
+  content: "";
+  display: block;
+  clear: both;
+  height: calc(38px + var(--tear-space-2));
+}
+
+#tear-dock > button {
+  --button: var(--tear-settings-button);
+  all: unset;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 5px 5px 0 0;
+  background-image: linear-gradient(var(--button), color-mix(in srgb, var(--button), #000 55%));
+  color: #fff;
+  cursor: pointer;
+  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.25), 0 -2px 4px rgba(0, 0, 0, 0.5);
+}
+
+#tear-dock > button[hidden] {
+  display: none;
+}
+
+#tear-dock > [data-tear-info] {
+  --button: var(--tear-info-button);
+}
+
+#tear-dock > button:hover,
+#tear-dock > button[aria-expanded="true"] {
+  filter: brightness(1.2);
+}
+
+#tear-dock > button:focus-visible {
+  outline: 2px solid var(--tear-link);
+  outline-offset: 2px;
+}
+
+/* ---- Sidebar footer as the info popup -----------------------------------
+   Hidden in the sidebar; with the info button pressed it opens upwards from the
+   dock, styled like the profile menu: Torn's menu colour, dividers between rows. */
+
+body {
+  --tear-popup-bg: var(--tear-surface);
+}
+
+body.dark-mode {
+  --tear-popup-bg: rgb(51, 51, 51); /* Torn's menu colour */
+}
+
+[class^="sidebar___"] > [class^="footerMenu___"] {
+  display: none !important;
+}
+
+html[data-tear-info-open] [class^="sidebar___"] > [class^="footerMenu___"] {
+  display: block !important;
+  position: fixed !important;
+  z-index: 2147483000;
+  left: var(--tear-dock-left, 8px);
+  bottom: calc(38px + var(--tear-space-2));
+  box-sizing: border-box;
+  width: max-content !important;
+  min-width: 13.75rem;
+  max-width: calc(100vw - 16px);
+  height: auto !important;
+  margin: 0 !important;
+  padding: var(--tear-space-1) 0 !important;
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius) !important;
+  background: var(--tear-popup-bg) !important;
+  color: var(--tear-text) !important;
+  box-shadow: 0 -6px 20px var(--tear-shadow);
+  text-align: left !important;
+}
+
+/* The arrow down to the info button. */
+html[data-tear-info-open] [class^="sidebar___"] > [class^="footerMenu___"]::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: calc(19px - 6px);
+  border: 6px solid transparent;
+  border-top-color: var(--tear-popup-bg);
+}
+
+/* Each top-level line is a row (inside a single wrapper, if Torn adds one);
+   what's inside a row, like the date's parts or "Server:" and its link, stays on one line. */
+[class^="footerMenu___"] > :not(:only-child),
+[class^="footerMenu___"] > :only-child > * {
+  display: block !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: calc(var(--tear-space-1) * 1.5) var(--tear-space-3) !important;
+  color: var(--tear-text) !important;
+  font-size: var(--tear-fs-label) !important;
+  line-height: 1.4 !important;
+  white-space: nowrap !important;
+  text-align: left !important;
+}
+
+[class^="footerMenu___"] > :only-child {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+[class^="footerMenu___"] > :not(:only-child) + *,
+[class^="footerMenu___"] > :only-child > * + * {
+  border-top: 1px solid var(--tear-divider) !important;
+}
+
+:is([class^="footerMenu___"] > :not(:only-child), [class^="footerMenu___"] > :only-child > *) * {
+  display: inline !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Links read as links: inline, in the link colour. */
+[class^="footerMenu___"] a {
+  color: var(--tear-link) !important;
+  text-decoration: none !important;
+}
+
+[class^="footerMenu___"] a:is(:hover, :focus-visible) {
+  text-decoration: underline !important;
 }

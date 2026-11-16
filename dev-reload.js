@@ -5,10 +5,9 @@ const WATCHED = [
   "manifest.json",
   "content/content.css",
   "content/main.js",
+  "content/settings.css",
+  "content/settings.js",
   "lib/model.js",
-  "lib/ui.css",
-  "popup/popup.html",
-  "popup/popup.js",
 ];
 
 const isUnpacked = !("update_url" in chrome.runtime.getManifest());

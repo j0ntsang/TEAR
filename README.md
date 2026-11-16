@@ -2,7 +2,7 @@
 
 A Chrome extension that restyles torn.com:
 
-- **Popup**: page background color and font family.
+- **Dock** (bottom left, under the sidebar): an **info** button that pops the sidebar's footer up like the profile menu, and a purple **settings** gear that opens the settings panel. The toolbar icon does nothing. **Colors** edits every TEAR color separately for light and dark mode; **Typography** picks the font. Changed values can be reset to default.
 - **`content/content.css`**: the stylesheet. Besides a skeleton of known Torn selectors to fill in, it restyles the header and news ticker, the sidebar (character card, resource rings, Areas/Lists), the narrow-window HUD, the fly-out and profile menus, and the Awards and Settings pages.
 - **Light and dark**: follows Torn's own Dark Mode setting by building on Torn's theme variables.
 
@@ -12,7 +12,7 @@ It's cosmetic only. TEAR never submits or automates anything in the game. Its sc
 
 1. Open `chrome://extensions` and turn on **Developer mode** (top right).
 2. Click **Load unpacked** and choose this folder.
-3. Pin TEAR from the puzzle-piece menu, then open or refresh torn.com.
+3. Open or refresh torn.com. The info and settings buttons sit in the bottom left.
 
 There's no build step: Chrome runs these files as they are.
 
@@ -50,9 +50,8 @@ CSS can't read the URL, text or numbers, so `content/main.js` stamps hooks the s
 | Changed | Then |
 |---|---|
 | `content/*`, `lib/model.js`, `manifest.json` | nothing: hot reload reloads the extension and torn.com tabs |
-| `popup/*`, `lib/ui.css` | close and reopen the popup |
 
-Content-script logs are in torn.com's own DevTools console (pick the TEAR context in the dropdown). For the popup, right-click it → **Inspect**.
+Content-script logs are in torn.com's own DevTools console (pick the TEAR context in the dropdown). The settings panel lives in a shadow root on `#tear-settings-host`.
 
 Unit tests for `lib/model.js` use vitest (`lib/__tests__/`).
 
@@ -60,7 +59,9 @@ Unit tests for `lib/model.js` use vitest (`lib/__tests__/`).
 
 | Area | Key | Holds |
 |---|---|---|
-| `sync` | `theme` | `{ bgColor, fontFamily }` from the popup |
+| `sync` | `theme` | `{ fontFamily, colors: { light, dark } }`: only the colors changed from default |
+| `local` | `tornDefaults` | per mode, the colors Torn's own variables resolved to (shown as defaults) |
+| `local` | `sidebarOrder` | desktop sidebar section order |
 | `local` | `sectionStates` | Areas/Lists heading → `full`, `top` or `collapsed` |
 
 ## Layout
@@ -68,11 +69,11 @@ Unit tests for `lib/model.js` use vitest (`lib/__tests__/`).
 ```
 manifest.json
 dev-reload.js        hot reload for unpacked installs
-lib/model.js         theme defaults, validation, storage, slug/page helpers
-lib/ui.css           popup styles
+lib/model.js         color tokens, theme defaults, validation, storage, slug/page helpers
 content/content.css  the stylesheet
-content/main.js      applies the popup theme, stamps the hooks above
-popup/               toolbar popup
+content/main.js      stamps the hooks above, sidebar section dragging
+content/settings.js  settings button and panel; applies the theme
+content/settings.css settings panel styles (inside its shadow root)
 torn-theme/          selector research (ui-map.md, layout-map.md)
 ```
 

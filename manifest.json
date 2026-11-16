@@ -2,21 +2,44 @@
   "manifest_version": 3,
   "name": "TEAR — Torn Element Arrange & Restyle",
   "short_name": "TEAR",
-  "description": "Restyle Torn's interface: background, font, and a hand-editable stylesheet. Cosmetic only.",
+  "description": "Restyle Torn's interface: colors, font, sidebar layout and a hand-editable stylesheet. Cosmetic only.",
   "version": "0.2.0",
-  "permissions": ["storage"],
-  "host_permissions": ["https://www.torn.com/*"],
-  "background": { "service_worker": "dev-reload.js" },
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.torn.com/*"
+  ],
+  "background": {
+    "service_worker": "dev-reload.js"
+  },
   "content_scripts": [
     {
-      "matches": ["https://www.torn.com/*"],
-      "css": ["content/content.css"],
-      "js": ["lib/model.js", "content/main.js"],
+      "matches": [
+        "https://www.torn.com/*"
+      ],
+      "css": [
+        "content/content.css"
+      ],
+      "js": [
+        "lib/model.js",
+        "content/main.js",
+        "content/settings.js"
+      ],
       "run_at": "document_idle"
     }
   ],
   "action": {
-    "default_title": "TEAR",
-    "default_popup": "popup/popup.html"
-  }
+    "default_title": "TEAR"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/settings.css"
+      ],
+      "matches": [
+        "https://www.torn.com/*"
+      ]
+    }
+  ]
 }
