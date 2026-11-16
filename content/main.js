@@ -65,6 +65,16 @@
       // Happy can go over its maximum; a ring can't.
       const pct = Math.min(100, (current / total) * 100).toFixed(1);
       if (bar.dataset.tearRing !== kind) bar.dataset.tearRing = kind;
+      const full = current >= total;
+      bar.toggleAttribute("data-tear-full", full);
+      // A full bar's readout can show just its total ("1475" for "1475 / 1475").
+      const valueEl = bar.querySelector('[class^="barValue___"]');
+      const totalText = full ? value.split("/").pop().trim() : "";
+      if (valueEl && valueEl.dataset.tearTotal !== totalText) {
+        if (totalText) valueEl.dataset.tearTotal = totalText;
+        else valueEl.removeAttribute("data-tear-total");
+        valueEl.style.setProperty("--tear-total-len", String(totalText.length || 1));
+      }
       if (bar.style.getPropertyValue("--tear-pct") !== pct) bar.style.setProperty("--tear-pct", pct);
       setLength(bar.querySelector('[class^="barValue___"]'));
       countdown(kind, bar, bar.querySelector('[class^="barDescr___"], [class^="barTimeLeft___"]'));
@@ -155,6 +165,67 @@
   // The body observer doesn't see a resize, but the column count changes.
   addEventListener("resize", () => requestAnimationFrame(layoutMerits));
 
+  // Each nav section cycles full -> top 10 -> collapsed, remembered by heading text.
+  const TOP_ROWS = 10;
+  const sectionState = {};
+  chrome.storage.local.get(["sectionStates", "collapsedSections"]).then(({ sectionStates = {}, collapsedSections = [] }) => {
+    collapsedSections.forEach((name) => (sectionState[name] = "collapsed"));
+    Object.assign(sectionState, sectionStates);
+    tagSections();
+  });
+
+  function sectionRows(header) {
+    const rows = [];
+    for (let el = header.nextElementSibling; el?.matches('[class*="area-desktop___"]'); el = el.nextElementSibling) rows.push(el);
+    return rows;
+  }
+
+  function tagSections() {
+    for (const header of document.querySelectorAll('[class^="sidebar___"] [class^="header___"]')) {
+      const rows = sectionRows(header);
+      const title = header.querySelector('[class^="title___"]');
+      const name = title?.textContent.trim();
+      if (!rows.length || !name) continue;
+      if (header.dataset.tearCollapsible !== name) {
+        header.dataset.tearCollapsible = name;
+        title.setAttribute("role", "button");
+        title.tabIndex = 0;
+      }
+      const state = sectionState[name] ?? "full";
+      if (header.dataset.tearState !== state) header.dataset.tearState = state;
+      const hidden = state === "top" ? Math.max(0, rows.length - TOP_ROWS) : 0;
+      rows.forEach((row, i) => {
+        row.toggleAttribute("data-tear-extra", i >= TOP_ROWS);
+        // The last row shown carries the hidden count for its tab.
+        if (hidden && i === TOP_ROWS - 1) row.dataset.tearMore = `+${hidden}`;
+        else row.removeAttribute("data-tear-more");
+      });
+      title.setAttribute("aria-expanded", String(state !== "collapsed"));
+    }
+  }
+
+  function toggleSection(event) {
+    // The heading's own controls, like Areas' settings cog, keep working.
+    if (event.target.closest('a, button, [class^="titleChild___"]')) return;
+    const header = event.target.closest("[data-tear-collapsible]");
+    if (!header) return;
+    const name = header.dataset.tearCollapsible;
+    const current = sectionState[name] ?? "full";
+    // Top 10 would look like full on a short section, so skip it there.
+    const hasTop = sectionRows(header).length > TOP_ROWS;
+    sectionState[name] = current === "full" ? (hasTop ? "top" : "collapsed") : current === "top" ? "collapsed" : "full";
+    chrome.storage.local.set({ sectionStates: sectionState });
+    chrome.storage.local.remove("collapsedSections");
+    tagSections();
+  }
+  addEventListener("click", toggleSection);
+  addEventListener("keydown", (event) => {
+    if ((event.key === "Enter" || event.key === " ") && event.target.closest?.("[data-tear-collapsible] [role=button]")) {
+      event.preventDefault();
+      toggleSection(event);
+    }
+  });
+
   let bodyFrame = 0;
   // The ticker and sidebar sit outside #mainContainer and update text in place.
   new MutationObserver(() => {
@@ -165,6 +236,7 @@
       tagStats();
       tagLinks();
       layoutMerits();
+      tagSections();
     });
   }).observe(document.body, { childList: true, subtree: true, characterData: true });
 
