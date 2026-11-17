@@ -80,6 +80,12 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
         else valueEl.removeAttribute("data-tear-total");
         valueEl.style.setProperty("--tear-total-len", String(totalText.length || 1));
       }
+      // Data attributes, not spans: React owns the text node.
+      if (valueEl) {
+        const [cur, max = ""] = value.split("/").map((s) => s.trim());
+        if (valueEl.dataset.tearCur !== cur) valueEl.dataset.tearCur = cur;
+        if (valueEl.dataset.tearMax !== max) valueEl.dataset.tearMax = max;
+      }
       if (bar.style.getPropertyValue("--tear-pct") !== pct) bar.style.setProperty("--tear-pct", pct);
       if (!bar.hasAttribute("data-tear-ring-armed") && !newRings.includes(bar)) {
         newRings.push(bar);
@@ -187,6 +193,11 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
   function tagStatusIcons() {
     for (const li of document.querySelectorAll('[class^="statusIcons___"] > li')) {
       const n = li.className.match(/\bicon(\d+)___/)?.[1];
+      if (n) setIconCell(li, Number(n) - 1);
+    }
+    // User lists (hospital, jail) number the icon in its id: Torn repeats id="iconTray" per row.
+    for (const li of document.querySelectorAll('[id="iconTray"] > li[id^="icon"]')) {
+      const n = li.id.match(/^icon(\d+)___/)?.[1];
       if (n) setIconCell(li, Number(n) - 1);
     }
     for (const li of document.querySelectorAll('li[class*="user-status-16-"]')) {
