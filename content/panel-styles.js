@@ -11,10 +11,9 @@ TEAR.panelStyles.replaceSync(`
   --accent: #6e3a9c;
   --focus: #0a58ca;
   all: initial;
+  /* Placed over its dock button by dock.css: anchor names are matched in the page's scope. */
   position: fixed;
   z-index: 2147483000;
-  right: var(--right, 8px);
-  bottom: var(--bottom, 48px);
   color-scheme: light;
 }
 
@@ -126,6 +125,47 @@ button {
   background: transparent;
   font-size: 18px;
   line-height: 1;
+}
+
+.power {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px 0 auto;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--fg);
+  font: bold 11px/1.2 Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+.power::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.power[aria-pressed="true"]::before {
+  background: #4caf50;
+  box-shadow: 0 0 6px #4caf50;
+}
+
+.power:hover {
+  background: color-mix(in srgb, var(--fg) 8%, var(--surface));
+}
+
+.power:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.power:disabled {
+  cursor: progress;
+  opacity: 0.6;
 }
 
 .close:hover {
@@ -253,25 +293,6 @@ input[type="range"] {
   color: var(--fg);
 }
 
-.check {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  cursor: pointer;
-}
-
-.check input {
-  margin: 2px 0 0;
-  accent-color: var(--accent);
-}
-
-.check small {
-  display: block;
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 11px;
-}
-
 .sample {
   margin: 12px 0 0;
   padding: 10px;
@@ -302,44 +323,105 @@ footer:has(.reset[hidden]) {
 }
 
 .panel.info {
+  /* Styled like TEAR's profile page cards; its own colours stand in while TEAR is off. */
+  transform-origin: bottom center;
   width: auto;
-  min-width: 11rem;
-  padding: 10px 14px 12px;
-  gap: 2px;
+  border: 1px solid var(--tear-line, var(--line));
+  border-radius: var(--tear-radius, 8px);
+  background: var(--tear-panel-bg, var(--surface));
+  color: var(--tear-text-strong, var(--fg));
+  box-shadow: 0 8px 24px var(--tear-shadow, rgba(0, 0, 0, 0.35));
 }
 
-.info p {
-  margin: 0;
-}
-
-.info .label {
-  color: var(--muted);
+.info header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 7px 12px 6px;
+  border-bottom: 1px solid var(--tear-line, var(--line));
+  color: var(--tear-muted, var(--muted));
   font-size: 10px;
-  font-weight: bold;
-  letter-spacing: 0.12em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
+.info .now {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+}
+
 .info .clock {
-  font-size: 22px;
-  font-weight: bold;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
+/* The colon ticks with the seconds, like a bedside clock. */
+.info .tick {
+  animation: tear-tick 1s steps(1) infinite;
+}
+
+@keyframes tear-tick {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .info .tick {
+    animation: none;
+  }
+}
+
 .info .date {
-  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  padding-left: 12px;
+  border-left: 1px solid var(--tear-line, var(--line));
+  color: var(--tear-muted, var(--muted));
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.info .date b {
+  color: var(--tear-text-strong, var(--fg));
+  font-weight: 600;
 }
 
 .info .server {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--line);
-  color: var(--muted);
+  color: inherit;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  text-transform: none;
 }
 
-.info .server span {
-  color: var(--fg);
-  font-weight: bold;
+.info .server::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: #4caf50;
+  vertical-align: 1px;
+}
+
+.info .server:hover,
+.info .server:focus-visible {
+  color: var(--tear-link, var(--focus));
+  text-decoration: underline;
+}
+
+.info .server:focus-visible {
+  outline: 2px solid var(--tear-link, var(--focus));
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .panel.info:focus {

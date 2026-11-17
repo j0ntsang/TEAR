@@ -51,6 +51,16 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     const [, digits, unit = ""] = n.match(/([\d.,]+)\s*([km]?)/i);
     return Number(digits.replace(/,/g, "")) * ({ k: 1e3, m: 1e6 }[unit.toLowerCase()] ?? 1);
   };
+  // A bar React re-creates (the sidebar swaps between desktop and mobile as the window resizes)
+  // starts at --tear-pct 0, so it would sweep up from empty. Its transition starts a frame after
+  // its first value is painted.
+  const newRings = [];
+  let ringFrame = 0;
+  function armRings() {
+    ringFrame = 0;
+    for (const bar of newRings.splice(0)) if (bar.isConnected) bar.setAttribute("data-tear-ring-armed", "");
+  }
+
   function ringBars() {
     for (const bar of document.querySelectorAll(BARS)) {
       const kind = bar.className.match(RING_KINDS)?.[1];
@@ -71,6 +81,11 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
         valueEl.style.setProperty("--tear-total-len", String(totalText.length || 1));
       }
       if (bar.style.getPropertyValue("--tear-pct") !== pct) bar.style.setProperty("--tear-pct", pct);
+      if (!bar.hasAttribute("data-tear-ring-armed") && !newRings.includes(bar)) {
+        newRings.push(bar);
+        // Two frames: the first value must be painted before the transition exists.
+        ringFrame ||= requestAnimationFrame(() => requestAnimationFrame(armRings));
+      }
       setCharCount(bar.querySelector('[class^="barValue___"]'));
       countdown(kind, bar, bar.querySelector('[class^="barDescr___"], [class^="barTimeLeft___"]'));
     }
@@ -194,10 +209,6 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
 
   const chatTitle = (win) => win.querySelector('[class*="headingH1___"]')?.textContent.trim() || "Chat";
 
-  const setStyleVar = (el, name, value) => {
-    if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
-  };
-
   function layoutChat() {
     const windows = [...document.querySelectorAll(CHAT_WINDOW)];
     const items = windows.map((win) => win.closest('[class*="item___"]'));
@@ -216,9 +227,14 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
       const active = ids[i] === activeChat;
       item.toggleAttribute("data-tear-chat-active", active);
       item.toggleAttribute("data-tear-chat-hidden", !active);
+      // The tabs are anchored to this in CSS, so they track it every frame without measuring.
+      windows[i].toggleAttribute("data-tear-chat-anchor", active);
     });
     for (const item of document.querySelectorAll("#chatRoot :is([data-tear-chat-active], [data-tear-chat-hidden])")) {
       if (!items.includes(item)) item.removeAttribute("data-tear-chat-active"), item.removeAttribute("data-tear-chat-hidden");
+    }
+    for (const win of document.querySelectorAll("#chatRoot [data-tear-chat-anchor]")) {
+      if (!windows.includes(win)) win.removeAttribute("data-tear-chat-anchor");
     }
 
     if (windows.length < 2) {
@@ -246,10 +262,6 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
         }),
       );
     }
-    const box = windows[ids.indexOf(activeChat)].getBoundingClientRect();
-    setStyleVar(chatTabs, "--tear-tabs-left", `${box.left}px`);
-    setStyleVar(chatTabs, "--tear-tabs-bottom", `${innerHeight - box.top}px`);
-    setStyleVar(chatTabs, "--tear-tabs-width", `${box.width}px`);
   }
 
   function selectChat(id, focus) {
@@ -270,7 +282,32 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     event.preventDefault();
     selectChat(Number(tabs[(next + tabs.length) % tabs.length].dataset.chat), true);
   });
-  addEventListener("resize", () => requestAnimationFrame(layoutChat));
+
+  // Each bottom bar button holds its unread count in a messageCount wrapper; replay the pop
+  // animation whenever a count goes up.
+  const CHAT_BAR_BUTTON = "#chatRoot > div > div:last-child button";
+  const badgeCounts = new WeakMap();
+
+  function tagChatBadges() {
+    for (const button of document.querySelectorAll(CHAT_BAR_BUTTON)) {
+      const badge = button.querySelector(':scope > [class^="messageCount___"]');
+      const count = parseInt(badge?.textContent ?? "", 10) || 0;
+      badge?.toggleAttribute("data-tear-badge", count > 0);
+      const previous = badgeCounts.get(button);
+      badgeCounts.set(button, count);
+      if (previous !== undefined && count > previous) popBadge(button);
+    }
+  }
+
+  function popBadge(button) {
+    button.removeAttribute("data-tear-badge-pop");
+    void button.offsetWidth; // restart the animation if it's mid-run
+    button.setAttribute("data-tear-badge-pop", "");
+  }
+
+  addEventListener("animationend", (event) => {
+    if (event.animationName === "tear-badge-glow") event.target.removeAttribute("data-tear-badge-pop");
+  });
 
   function tagStats() {
     for (const row of document.querySelectorAll('[class^="userInformation"] [class^="point-block___"]')) {
@@ -334,6 +371,108 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
   }
   // The body observer doesn't see a resize, but the column count changes.
   addEventListener("resize", () => requestAnimationFrame(layoutMerits));
+
+  // Items › loadouts: compact (Torn's crop; click it for the whole character) or expanded (the
+  // whole character always shown). The choice sits on #loadoutsRoot, which React doesn't manage.
+  let loadoutView = "compact";
+  const loadoutToggle = Object.assign(document.createElement("button"), { type: "button" });
+  loadoutToggle.dataset.tearLoadoutView = "";
+  loadoutToggle.innerHTML =
+    '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2.5a2.75 2.75 0 1 1 0 5.5 2.75 2.75 0 0 1 0-5.5zM9.25 9h5.5c.83 0 1.5.67 1.5 1.5V16h-2v5.5h-4.5V16h-2v-5.5c0-.83.67-1.5 1.5-1.5z"/></svg>';
+  chrome.storage.local.get("loadoutView").then(({ loadoutView: stored }) => {
+    if (stored === "expanded") loadoutView = stored;
+    tagLoadout();
+  });
+
+  // Expanded view: the equipped items as a cover flow round the selected one, at Torn's large image
+  // size. Built from the equipped grid, since the inspector holds only the selected item; a side
+  // item's click selects it through Torn's own button, so Torn's controls stay the accessible ones.
+  const flow = Object.assign(document.createElement("div"), { ariaHidden: "true" });
+  flow.dataset.tearCoverflow = "";
+  const flowItems = new Map();
+  // Shown at twice the large size, so each density gets the next image up.
+  const largeImage = (id) => `/images/items/${id}/large@2x.png 1x, /images/items/${id}/large@4x.png 2x`;
+
+  function coverFlow(loadouts) {
+    const review = loadouts.querySelector('[class^="itemReview___"]');
+    if (!review) return flow.remove();
+    if (flow.parentElement !== review) review.prepend(flow);
+    const entries = [...loadouts.querySelectorAll('[class^="itemWrapper___"]')]
+      .map((tile) => ({
+        tile,
+        button: tile.querySelector("button"),
+        id: tile.querySelector("img")?.getAttribute("src")?.match(/\/items\/(\d+)\//)?.[1],
+      }))
+      .filter(({ button, id }) => button && id);
+    const active = Math.max(0, entries.findIndex(({ tile }) => / active___/.test(tile.className)));
+    const count = entries.length;
+    const half = Math.floor(count / 2);
+    const shown = new Set();
+    entries.forEach(({ button, id }, i) => {
+      shown.add(button);
+      let item = flowItems.get(button);
+      if (!item) {
+        item = Object.assign(document.createElement("img"), { alt: "", draggable: false });
+        item.addEventListener("click", () => (item.dataset.dist === "0" ? review.querySelector(":scope > img") : button).click());
+        flowItems.set(button, item);
+      }
+      const srcset = largeImage(id);
+      if (item.getAttribute("srcset") !== srcset) Object.assign(item, { srcset, src: `/images/items/${id}/large@2x.png` });
+      // A ring: each item sits at its shortest distance round from the selection, so the first item
+      // has the last ones on its left. One crossing from end to end is out of sight both sides.
+      const offset = ((((i - active) % count) + count + half) % count) - half;
+      setVar(item, "--dist", String(Math.abs(offset)));
+      setVar(item, "--side", String(Math.sign(offset)));
+      if (item.dataset.dist !== String(Math.abs(offset))) item.dataset.dist = String(Math.abs(offset));
+      if (item.parentElement !== flow) flow.append(item);
+    });
+    for (const [button, item] of flowItems) {
+      if (!shown.has(button)) item.remove(), flowItems.delete(button);
+    }
+  }
+
+  const setVar = (el, name, value) => {
+    if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
+  };
+
+  // Selecting an item only swaps classes and image sources, which the page observer doesn't see.
+  let watchedLoadouts = null;
+  let flowFrame = 0;
+  const loadoutChanges = new MutationObserver((records) => {
+    if (records.every(({ target }) => flow.contains(target))) return;
+    flowFrame ||= requestAnimationFrame(() => {
+      flowFrame = 0;
+      tagLoadout();
+    });
+  });
+
+  function tagLoadout() {
+    const loadouts = document.getElementById("loadoutsRoot");
+    if (!loadouts) return;
+    if (loadouts !== watchedLoadouts) {
+      loadoutChanges.disconnect();
+      watchedLoadouts = loadouts;
+      loadoutChanges.observe(loadouts, { attributes: true, attributeFilter: ["class", "src"], subtree: true });
+    }
+    if (loadouts.dataset.tearLoadout !== loadoutView) loadouts.dataset.tearLoadout = loadoutView;
+    coverFlow(loadouts);
+    const header = loadouts.querySelector('header[class^="header___"]');
+    if (header && loadoutToggle.parentElement !== header) header.insertBefore(loadoutToggle, header.querySelector('[class^="icons___"]'));
+    const expanded = loadoutView === "expanded";
+    const label = expanded ? "Show the compact loadout" : "Always show the whole character";
+    if (loadoutToggle.title !== label) {
+      loadoutToggle.title = label;
+      loadoutToggle.setAttribute("aria-label", "Whole character");
+      loadoutToggle.setAttribute("aria-pressed", String(expanded));
+    }
+  }
+
+  loadoutToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    loadoutView = loadoutView === "expanded" ? "compact" : "expanded";
+    chrome.storage.local.set({ loadoutView });
+    tagLoadout();
+  });
 
   const TOP_ROWS = 10;
   const sectionState = {};
@@ -558,30 +697,40 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
   let bodyFrame = 0;
   let pageDirty = true;
   let chatDirty = true;
+  let badgesDirty = true;
   new MutationObserver((records) => {
     const chat = chatRoot();
     for (const { type, target } of records) {
-      if (chat?.contains(target)) chatDirty ||= type === "childList";
-      else pageDirty = true;
+      if (chat?.contains(target)) {
+        chatDirty ||= type === "childList";
+        badgesDirty = true;
+      } else pageDirty = true;
     }
-    if (!pageDirty && !chatDirty) return;
+    if (!pageDirty && !chatDirty && !badgesDirty) return;
     bodyFrame ||= requestAnimationFrame(() => {
       bodyFrame = 0;
+      // Reads before writes: tagColumns measures first, while layout may still be clean;
+      // layoutMerits measures its own reordering, so it goes last.
       if (pageDirty) {
         pageDirty = false;
+        tagColumns();
         loopTicker();
         ringBars();
         tagStats();
-        layoutMerits();
         tagSections();
         arrangeSidebar();
-        tagColumns();
         tagStatusIcons();
         watchDrawer();
+        tagLoadout();
+        layoutMerits();
       }
       if (chatDirty) {
         chatDirty = false;
         layoutChat();
+      }
+      if (badgesDirty) {
+        badgesDirty = false;
+        tagChatBadges();
       }
     });
   }).observe(document.body, { childList: true, subtree: true, characterData: true });
@@ -601,12 +750,13 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
 
   stampPage();
   tagPanels();
+  tagColumns();
   loopTicker();
   ringBars();
   tagStats();
-  layoutMerits();
-  tagColumns();
   tagStatusIcons();
+  tagLoadout();
+  layoutMerits();
   setLogo();
   new MutationObserver(setLogo).observe(document.body, { attributes: true, attributeFilter: ["data-layout", "data-country", "data-celebration", "data-traveling", "data-dark-mode-logo"] });
 });

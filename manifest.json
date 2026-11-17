@@ -5,13 +5,14 @@
   "description": "Restyle Torn's interface: colors, font, sidebar layout and a hand-editable stylesheet. Cosmetic only.",
   "version": "0.2.0",
   "permissions": [
-    "storage"
+    "storage",
+    "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
     "https://www.torn.com/*"
   ],
   "background": {
-    "service_worker": "dev-reload.js"
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {

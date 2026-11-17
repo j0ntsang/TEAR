@@ -13,9 +13,7 @@
 
 @keyframes ticker-blink {
   50% {
-    background:
-      radial-gradient(circle at 0.75rem 50%, transparent 3px, transparent 3.5px),
-      var(--tear-live);
+    opacity: 0;
   }
 }
 
@@ -55,6 +53,7 @@ body {
   --tear-muted: color-mix(in srgb, var(--tear-text) 65%, transparent);
 
   --tear-accent: var(--tear-link);
+  --tear-badge-bg: #d92d20; /* white text passes AA */
   --tear-nav-hover: color-mix(in srgb, var(--tear-link) 8%, transparent);
   --tear-nav-active: color-mix(in srgb, var(--tear-link) 12%, transparent);
   --tear-gold: #e8b64c;
@@ -63,8 +62,11 @@ body {
   --tear-info-button: #3d5a73;
   --tear-settings-button: #6e3a9c;
 
-  --tear-strip: #f5f5f5;
-  --tear-strip-text: #000;
+  /* Page, top bar and ticker each a step apart, so the bars read as bars. Defaults match lib/model.js. */
+  --tear-bg: #dcdfe3;
+  --tear-topbar: #f2f2f2;
+  --tear-strip: #f2f2f2;
+  --tear-strip-text: #1f1f1f;
 
   --tear-space-1: 4px;
   --tear-space-2: 8px;
@@ -88,6 +90,10 @@ body {
 }
 
 body.dark-mode {
+  --tear-bg: #1a1a1a;
+  --tear-topbar: #333333;
+  --tear-strip: #2a2a2a;
+  --tear-strip-text: #ddd;
   --tear-panel-bg: #2a2a2a;
   --tear-text: #ddd;
   --tear-link: #93c5fd;
@@ -218,8 +224,22 @@ body.dark-mode .crime-root {
 
 
 
+/* The ticker sits in the content column, the same grid as the page below it, as a bar of its own
+   rather than a full-width strip; the sidebar column stays empty (the logo hangs into it). */
 .header-wrapper-bottom {
-  background: var(--tear-strip);
+  padding-top: var(--tear-space-3);
+  background: transparent;
+}
+
+&:not([data-tear-mobile]) body.body .header-wrapper-bottom > .container {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) var(--page-gap) minmax(0, 1fr);
+}
+
+&:not([data-tear-mobile]) body.body .header-wrapper-bottom .header-bottom-text {
+  grid-column: 3;
+  min-width: 0;
+  padding-left: 0;
 }
 
 .news-ticker-slider-wrapper [class*="shadow-box"] {
@@ -229,9 +249,15 @@ body.dark-mode .crime-root {
 .news-ticker-slider-wrapper {
   --ticker-tab: 4.5rem;
   position: relative;
+  display: flex;
+  align-items: center;
+  height: 1.75rem;
   overflow: hidden;
   padding-left: var(--ticker-tab);
-  box-shadow: inset 0 -2px 0 var(--tear-live);
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-strip);
+  box-shadow: inset 0 1px 0 var(--tear-overlay), 0 1px 3px var(--tear-shadow);
 }
 
 .news-ticker-slider-wrapper::before {
@@ -249,17 +275,31 @@ body.dark-mode .crime-root {
   font-size: 0.6875rem;
   line-height: 1;
   letter-spacing: 0.12em;
-  background:
-    radial-gradient(circle at 0.75rem 50%, var(--tear-live-dot) 3px, transparent 3.5px),
-    var(--tear-live);
+  background: var(--tear-live);
   clip-path: polygon(0 0, 100% 0, calc(100% - 0.625rem) 100%, 0 100%);
+}
+
+/* Its own element so the blink is opacity only: animating the tab's gradient repainted it every frame. */
+.news-ticker-slider-wrapper::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 3.5px);
+  left: calc(0.75rem - 3.5px);
+  z-index: 3;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tear-live-dot);
+  pointer-events: none;
   animation: ticker-blink 1.6s ease-in-out infinite;
 }
 
 /* Mask the static slide, not the moving strip inside it. */
 .news-ticker-slider-wrapper .news-ticker-slide {
-  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
-  mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent);
+  flex: 1;
+  min-width: 0;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 1rem, #000 calc(100% - 2rem), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 1rem, #000 calc(100% - 2rem), transparent);
 }
 
 .news-ticker-slider-wrapper .news-ticker-exit {
@@ -302,10 +342,12 @@ body.dark-mode .crime-root {
   font-weight: normal;
 }
 
+/* Centred between headlines: as much space after one headline's end as before the next one's start. */
 .news-ticker-slider-wrapper .scroll-wrap[data-tear-looped] > svg {
-  width: 1rem;
-  height: 1rem;
-  margin: 0 1em;
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  margin: 0 1.125rem;
   fill: var(--tear-live);
 }
 
@@ -384,7 +426,6 @@ body.dark-mode .crime-root {
   padding: 0;
   background: none;
   text-decoration: none;
-  transition: --tear-pct 0.6s ease;
 }
 
 [class^="userInformation___"] [data-tear-ring]::before {
@@ -635,14 +676,14 @@ body.dark-mode .crime-root {
   outline-offset: -2px;
 }
 
-#sidebarroot:has([class^="sidebar___"][class*=" mobile___"]) {
+&[data-tear-mobile] body.body #sidebarroot {
   align-self: stretch;
   width: auto;
   padding: var(--tear-space-2) 0 0;
   box-sizing: border-box;
 }
 
-#sidebarroot:has([class^="sidebar___"][class*=" mobile___"]) > div,
+&[data-tear-mobile] body.body #sidebarroot > div,
 [class^="sidebar___"][class*=" mobile___"] {
   width: 100%;
   height: auto;
@@ -691,6 +732,11 @@ body.dark-mode .crime-root {
   isolation: isolate; /* keeps the centre disc (::after, z -1) inside the orb */
   box-shadow: 0 0 14px color-mix(in srgb, var(--ring-color) 35%, transparent);
   text-decoration: none;
+}
+
+/* main.js arms a ring a frame after its first value paints, so a bar React re-creates shows its
+   value instead of sweeping up from empty. */
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [data-tear-ring][data-tear-ring-armed] {
   transition: --tear-pct 0.6s ease;
 }
 
@@ -837,12 +883,12 @@ body.dark-mode .crime-root {
   visibility: visible;
 }
 
-&:has([class^="sidebar___"][class*=" mobile___"]) .header {
+&[data-tear-mobile] .header {
   --logo-h: 2.25rem;
   --logo-w: calc(var(--logo-h) * 80 / 32);
 }
 
-&:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+&[data-tear-mobile] .header .logo {
   z-index: 2;
   width: var(--logo-w);
   height: var(--logo-h);
@@ -851,31 +897,53 @@ body.dark-mode .crime-root {
 }
 
 @media (min-width: 785px) {
-  &:has([class^="sidebar___"][class*=" mobile___"]) .header {
+  &[data-tear-mobile] .header {
     --logo-w: calc(var(--logo-h) * 151 / 66);
   }
 
-  &:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+  &[data-tear-mobile] body .header .logo {
     background-size: 200% 100%;
     background-repeat: no-repeat;
     background-position: 100% 50%;
   }
 }
 
-&:has([class^="sidebar___"][class*=" mobile___"]) .header .logo > a {
+&[data-tear-mobile] .header .logo > a {
   width: 100%;
   height: 100%;
 }
 
-&:has([class^="sidebar___"][class*=" mobile___"]) .header .logo > h1 {
+&[data-tear-mobile] .header .logo > h1 {
   margin-top: var(--logo-h);
 }
 
-&:has([class^="sidebar___"][class*=" mobile___"]) #header-wrapper-top {
+&[data-tear-mobile] #header-wrapper-top {
   position: relative;
 }
 
-&:has([class^="sidebar___"][class*=" mobile___"]) #fly-out-menu-button {
+/* Torn's sidebar notification count sits in a grid row under the icon, pushing it up; as a dot
+   on the icon's corner the icon centres. The number stays in the DOM for screen readers. */
+#fly-out-menu-button [class^="notificationsAmount___"] {
+  position: absolute;
+  top: calc(50% - 0.8125rem);
+  left: calc(50% + 0.375rem);
+  width: 0.5625rem;
+  height: 0.5625rem;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--tear-badge-bg);
+  box-shadow: 0 0 0 2px var(--tear-popup-bg);
+  color: transparent;
+  font-size: 0;
+  pointer-events: none;
+}
+
+#fly-out-menu-button [class^="notificationsAmount___"]:empty {
+  display: none;
+}
+
+&[data-tear-mobile] #fly-out-menu-button {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -898,15 +966,15 @@ body.dark-mode .crime-root {
   box-shadow: 4px 8px 20px var(--tear-shadow);
 }
 
-&:has([class^="sidebar___"][class*=" mobile___"]) .header-bottom-text {
+&[data-tear-mobile] .header-bottom-text {
   padding-left: 0;
 }
 
-&:has([class^="sidebar___"][class*=" mobile___"]) #header-swiper-container {
+&[data-tear-mobile] #header-swiper-container {
   width: 100%;
 }
 
-&:has([class^="sidebar___"][class*=" mobile___"]) .header-wrapper-bottom::after {
+&[data-tear-mobile] .header-wrapper-bottom::after {
   display: none;
 }
 
@@ -1079,9 +1147,10 @@ body.dark-mode .crime-root {
   line-height: 1;
 }
 
-body:not(.dark-mode) #header-wrapper-top {
-  background: linear-gradient(var(--tear-surface), var(--tear-surface-dim));
+#header-wrapper-top {
+  background: var(--tear-topbar);
   border-bottom: 1px solid var(--tear-line);
+  box-shadow: 0 1px 3px var(--tear-shadow);
 }
 
 body:not(.dark-mode) #header-wrapper-top .menu-item-href {
@@ -1924,9 +1993,12 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
 
 body:not(.dark-mode) [class^="flyOutPanel___"],
 body:not(.dark-mode) .settings-menu {
-  border-color: var(--tear-line);
   background: var(--tear-surface);
   color: var(--tear-text);
+}
+
+body:not(.dark-mode) [class^="flyOutPanel___"] {
+  border-color: var(--tear-line);
 }
 
 body:not(.dark-mode) [class^="flyOutPanel___"] a,
@@ -1959,23 +2031,6 @@ body:not(.dark-mode) .settings-menu * {
   text-shadow: none;
 }
 
-body:not(.dark-mode) .settings-menu {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-body:not(.dark-mode) li.avatar.active > button::before {
-  height: calc(100% + 1px);
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='45' height='32' viewBox='0 0 45 32'%3E%3Cdefs%3E%3ClinearGradient id='f' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0' stop-color='%23f2f2f2'/%3E%3Cstop offset='1' stop-color='%23f2f2f2' stop-opacity='0'/%3E%3C/linearGradient%3E%3ClinearGradient id='l' x1='0' y1='1' x2='0' y2='0'%3E%3Cstop offset='0' stop-color='%23d4d4d4'/%3E%3Cstop offset='1' stop-color='%23d4d4d4' stop-opacity='0'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M45,0H11V22A10,10,0,0,1,1,32H45Z' fill='url(%23f)'/%3E%3Cpath d='M11,23V0H10V22A10,10,0,0,1,0,32H5.34A10,10,0,0,0,11,23Z' fill='url(%23l)'/%3E%3Crect x='44' width='1' height='32' fill='url(%23l)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
-}
-
-body:not(.dark-mode) li.avatar.active > button {
-  position: relative;
-  z-index: 2;
-}
-
-body:not(.dark-mode) li.avatar.active .settings-menu {
-  z-index: 1;
-}
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] a {
   background: transparent;
@@ -2133,10 +2188,6 @@ body:not(.dark-mode) .settings-menu .server-link {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-body:not(.dark-mode) #header-wrapper-top {
-  border-bottom-color: var(--tear-divider);
 }
 
 [class^="flyOutPanel___"] [class^="accountLinksWrap___"] {
@@ -2361,10 +2412,16 @@ body:not(.dark-mode) [class^="flyOutPanel___"] [class^="listAmount___"] {
 
 body {
   --tear-popup-bg: var(--tear-surface);
+  /* Top bar popouts, after Torn's clock and log: a solid border one step off the fill, a tight shadow. */
+  --tear-popout-border: var(--tear-surface-sunk);
+  --tear-popout-radius: 5px;
+  --tear-popout-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 body.dark-mode {
   --tear-popup-bg: rgb(51, 51, 51);
+  --tear-popout-border: rgb(68, 68, 68);
+  --tear-popout-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 [class^="sidebar___"] > [class^="footerMenu___"] {
@@ -2406,7 +2463,7 @@ body.body.without-sidebar {
     "footer footer  footer  footer  footer";
 }
 
-body.body:has([class^="sidebar___"][class*=" mobile___"]) {
+&[data-tear-mobile] body.body {
   grid-template-rows: auto auto 1fr auto;
   grid-template-areas:
     "header header  header  header  header"
@@ -2463,7 +2520,7 @@ body.body .header .container {
   margin-inline: auto;
 }
 
-body.body:not(:has([class^="sidebar___"][class*=" mobile___"])) #header-wrapper-top > .container {
+&:not([data-tear-mobile]) body.body #header-wrapper-top > .container {
   display: grid;
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr) auto;
   grid-template-areas: "logo menu tools";
@@ -2615,11 +2672,12 @@ body.body #header-wrapper-top > .container > .header-navigation {
   text-shadow: 0 1px 2px #000, 0 0 2px #000, 0 0 4px #000;
 }
 
-&[data-tear-page="profiles"] .profile-image-wrapper .img-wrap {
+/* :not(.header *): the top bar's avatar sits in a .profile-image-wrapper too. */
+&[data-tear-page="profiles"] .profile-image-wrapper:not(.header *) .img-wrap {
   background: var(--tear-surface-sunk);
 }
 
-&[data-tear-page="profiles"] .profile-image-wrapper img {
+&[data-tear-page="profiles"] .profile-image-wrapper:not(.header *) img {
   aspect-ratio: 4 / 5;
   max-height: clamp(16rem, 45vh, 26rem);
   object-fit: contain;
@@ -2755,7 +2813,7 @@ body.body #header-wrapper-top > .container > .header-navigation {
   background-position: 100% 0;
 }
 
-& body:not(:has([class^="sidebar___"][class*=" mobile___"])) #header-wrapper-top > .container > .logo {
+&:not([data-tear-mobile]) body #header-wrapper-top > .container > .logo {
   position: absolute;
   top: 0;
   z-index: 2;
@@ -2771,14 +2829,14 @@ body.body #header-wrapper-top > .container > .header-navigation {
 }
 
 /* --logo-w/--logo-h come from the mobile header: fixed sizes here break the menu button's offset. */
-& body:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+&[data-tear-mobile] body .header .logo {
   width: var(--logo-w);
   height: var(--logo-h);
   background-image: var(--tear-asset-logo-tablet, var(--tear-logo-tablet));
 }
 
 @media (max-width: 784px) {
-  & body:has([class^="sidebar___"][class*=" mobile___"]) .header .logo {
+  &[data-tear-mobile] body .header .logo {
     background-image: var(--tear-asset-logo-mobile, var(--tear-logo-mobile));
   }
 }
@@ -2897,8 +2955,104 @@ body.body #header-wrapper-top > .container > .header-navigation {
   height: 1.375rem;
 }
 
-#chatRoot > div > div:last-child button svg :is(path, circle, rect, polygon) {
+/* Every chat icon takes the button's colour: Torn mixes gradients, inline fills, strokes and filters. */
+:is(#chatRoot, #tear-chat-tabs) button svg {
+  filter: none;
+}
+
+:is(#chatRoot, #tear-chat-tabs) button svg :is(path, circle, ellipse, rect, polygon, polyline, line, use):not([fill="none"]) {
   fill: currentColor;
+}
+
+:is(#chatRoot, #tear-chat-tabs) button svg [stroke]:not([stroke="none"]) {
+  stroke: currentColor;
+}
+
+#chatRoot > div > div:last-child,
+#chatRoot > div > div:last-child button {
+  overflow: visible;
+}
+
+#chatRoot > div > div:last-child button {
+  position: relative;
+}
+
+#chatRoot > div > div:last-child button [data-tear-badge] {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  z-index: 1;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  padding: 0 0.3125rem;
+  border-radius: 999px;
+  background: var(--tear-badge-bg);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--tear-surface);
+  pointer-events: none;
+}
+
+#chatRoot > div > div:last-child button [data-tear-badge] > * {
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+}
+
+#chatRoot > div > div:last-child button[data-tear-badge-pop] {
+  animation: tear-badge-glow 1.2s var(--tear-ease-out);
+}
+
+#chatRoot > div > div:last-child button[data-tear-badge-pop] [data-tear-badge] {
+  animation: tear-badge-bounce 650ms var(--tear-ease-out);
+}
+
+/* Unread counts on the sidebar's messages / events / awards links: the same badge as the chat bar,
+   pinned to the icon's corner instead of stacked under it (which also made that link taller). */
+[class^="accountLinksWrap___"] a [class^="amount___"] {
+  position: absolute;
+  top: -0.5rem; /* straddles the strip's top edge, like the chat bar badges */
+  left: calc(50% + 6px);
+  z-index: 1;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  padding: 0 0.3125rem;
+  border-radius: 999px;
+  background: var(--tear-badge-bg);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--tear-surface);
+  pointer-events: none;
+}
+
+@keyframes tear-badge-bounce {
+  0% { scale: 1; translate: 0 0; }
+  25% { scale: 1.35; translate: 0 -5px; }
+  50% { scale: 0.92; translate: 0 0; }
+  70% { scale: 1.1; translate: 0 -2px; }
+  100% { scale: 1; translate: 0 0; }
+}
+
+@keyframes tear-badge-glow {
+  0%, 100% { box-shadow: inset 0 1px 0 var(--tear-overlay), 0 -2px 6px var(--tear-shadow); }
+  20% {
+    background: color-mix(in srgb, var(--tear-badge-bg) 18%, var(--tear-surface));
+    box-shadow: inset 0 1px 0 var(--tear-overlay), 0 0 0 2px color-mix(in srgb, var(--tear-badge-bg) 60%, transparent), 0 -2px 12px color-mix(in srgb, var(--tear-badge-bg) 45%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #chatRoot > div > div:last-child button[data-tear-badge-pop] [data-tear-badge] {
+    animation: none;
+  }
 }
 
 body.body > #header-root {
@@ -2906,17 +3060,159 @@ body.body > #header-root {
   z-index: 999996;
 }
 
-:is(.header .avatar.active .settings-menu, .react-dropdown-default.dropdown-opened .dropdownList, .header-menu.active .menu-items) {
-  padding: var(--tear-space-1) 0;
-  border: 1px solid var(--tear-line);
-  border-radius: var(--tear-radius);
+:is(.header .avatar .settings-menu, .react-dropdown-default .dropdownList, .header .tc-clock-tooltip, .header .recentHistory) {
+  border: 1px solid var(--tear-popout-border);
+  border-radius: var(--tear-popout-radius);
   background: var(--tear-popup-bg);
   color: var(--tear-text);
-  box-shadow: 0 8px 24px var(--tear-shadow);
+  box-shadow: var(--tear-popout-shadow);
 }
 
-.header .avatar.active .settings-menu {
-  top: calc(100% + var(--tear-space-1));
+:is(.header .avatar .settings-menu, .react-dropdown-default .dropdownList) {
+  padding: var(--tear-space-1) 0;
+}
+
+.header .tc-clock-tooltip {
+  padding: var(--tear-space-1) var(--tear-space-3);
+  font-size: var(--tear-fs-label, 0.75rem);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* The clock sits under everything else in the top bar (other popouts are 100, open buttons 102):
+   its popout, then its tab. li: outranks the shared tab rule. */
+.header .tc-clock-tooltip {
+  z-index: 97;
+}
+
+.header-navigation .toolbar > li.tc-clock.active > button {
+  z-index: 98;
+}
+
+/* Torn's width, with the list scrolling inside instead of running down the page. */
+.header .recentHistory {
+  display: flex;
+  flex-direction: column;
+  width: min(420px, calc(100vw - 16px));
+  max-height: min(70vh, 560px);
+  overflow: hidden;
+}
+
+.header .recentHistory [class^="logScrollArea___"] {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tear-line) transparent;
+}
+
+.header .recentHistory [class^="logTable___"] {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Sized to Torn's short marks ("11m", "3h", "2d"); the full timestamp is screen-reader text. */
+.header .recentHistory [class^="logTable___"] col:first-child {
+  width: 3rem;
+}
+
+/* Torn draws the mark from this attribute in its own CSS, which TEAR switches off. */
+.header .recentHistory [data-time-mark]::before {
+  content: attr(data-time-mark);
+}
+
+.header .recentHistory [class^="logTable___"] td {
+  padding: var(--tear-space-2) var(--tear-space-3);
+  vertical-align: top;
+  line-height: 1.35;
+}
+
+.header .recentHistory [class^="logTable___"] td:first-child {
+  padding-right: 0;
+  white-space: nowrap;
+  color: var(--tear-muted);
+  font-size: var(--tear-fs-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.header .recentHistory [class^="logTable___"] tr + tr td {
+  border-top: 1px solid var(--tear-divider);
+}
+
+.header .recentHistory [class^="logTable___"] .icon-wrapper {
+  display: inline-flex;
+  margin-right: var(--tear-space-1);
+  vertical-align: -0.15em;
+}
+
+.header .recentHistory .recent-history-footer {
+  border-top: 1px solid var(--tear-popout-border);
+}
+
+.header .recentHistory .recent-history-footer a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tear-space-2);
+  padding: var(--tear-space-2) var(--tear-space-3);
+  color: var(--tear-link);
+}
+
+.header .recentHistory .recent-history-footer svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* An open top bar button becomes a tab that runs into its popout, drawn in CSS from the popout's
+   own colours: the popout sits flush under the button, right edges aligned, its top-right corner
+   square. ::before is the tab body, ::after the curved foot that flares into the popout's border. */
+:is(.header .avatar .settings-menu, .header .tc-clock-tooltip, .header .recent-history-content) {
+  top: 100%;
+}
+
+:is(.header .avatar .settings-menu, .header .tc-clock-tooltip, .header .recentHistory) {
+  border-top-right-radius: 0;
+}
+
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open) > button {
+  --tab-r: 10px; /* the foot's curve */
+  position: relative;
+  z-index: 102; /* over its popout, whose top border the tab covers */
+}
+
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open) > button::before,
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open) > button::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Fades in from the top, solid over the lower part. 1px past the button: over the popout's top
+   border, and the shadow bleeding above it. Side borders fade the same way; the right one runs on
+   into the popout's right border. */
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open) > button::before {
+  inset: 0 0 -1px;
+  border: solid transparent;
+  border-width: 0 1px;
+  border-image: linear-gradient(transparent, var(--tear-popout-border) 65%) 1;
+  background: linear-gradient(transparent, var(--tear-popup-bg) 65%) padding-box;
+}
+
+/* A quarter circle centred on its top-left corner: transparent inside, a 1px arc, then the fill. The
+   arc starts on the button's left border and ends on the popout's top border. */
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open) > button::after {
+  right: calc(100% - 1px);
+  bottom: -1px;
+  width: var(--tab-r);
+  height: var(--tab-r);
+  background: radial-gradient(
+    circle at 0 0,
+    transparent calc(var(--tab-r) - 1.5px),
+    var(--tear-popout-border) calc(var(--tab-r) - 1px) var(--tab-r),
+    var(--tear-popup-bg) calc(var(--tab-r) + 0.5px)
+  );
 }
 
 .settings-menu li > :is(a, label, .info-container) {
@@ -2955,7 +3251,7 @@ body.body > #header-root {
   cursor: default;
 }
 
-.react-dropdown-default.dropdown-opened .dropdownList {
+.react-dropdown-default .dropdownList {
   min-width: 11rem;
   top: calc(100% + var(--tear-space-1));
   z-index: 100;
@@ -3303,13 +3599,20 @@ body:has(#tear-chat-tabs) #chatRoot [class*="item___"] [class*="visible___"]:has
   border-top-right-radius: 0;
 }
 
+/* Anchored, not measured: the tabs follow the window through resizes and its rise animation in
+   the same frame, with no script. main.js marks the active window. */
+#chatRoot [data-tear-chat-anchor] {
+  anchor-name: --tear-chat-window;
+}
+
 #tear-chat-tabs {
   position: fixed;
-  left: var(--tear-tabs-left);
-  bottom: var(--tear-tabs-bottom);
+  position-anchor: --tear-chat-window;
+  left: anchor(left);
+  bottom: anchor(top);
   z-index: 999991;
   display: flex;
-  width: var(--tear-tabs-width);
+  width: anchor-size(width);
   overflow-x: auto;
   scrollbar-width: none;
   border: 1px solid var(--tear-line);
@@ -3605,11 +3908,6 @@ body {
 
 #chatRoot [data-tear-chat-active] [class*="visible___"]:has(> [class*="content___"]),
 #chatRoot [class*="item___"]:not([data-tear-chat-hidden]) [class*="visible___"]:has(> [class*="content___"]) {
-  transform-origin: bottom right;
-  animation: tear-rise var(--tear-motion-in) var(--tear-ease-out);
-}
-
-#tear-chat-tabs {
   transform-origin: bottom right;
   animation: tear-rise var(--tear-motion-in) var(--tear-ease-out);
 }
@@ -4046,17 +4344,21 @@ html.tear-enabled {
     place-items: center;
   }
 
+  /* Fills the button as a circle: cropped, centred, whatever the upload's shape. */
   .header .avatar .mini-avatar-image {
     display: block;
-    width: 1.5rem;
-    height: 1.5rem;
+    width: 1.875rem;
+    height: 1.875rem;
+    border-radius: 50%;
     object-fit: cover;
+    object-position: center;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--tear-line); /* the ring, outside the photo */
   }
 
+  /* Torn's ring SVG draws its circle inset in its viewBox, so it lands inside the bigger photo. */
   .header .avatar .circle-wrapper {
-    position: absolute;
-    inset: -3px;
-    pointer-events: none;
+    display: none;
   }
 
   .header .avatar .circle-wrapper svg {
@@ -4081,8 +4383,8 @@ html.tear-enabled {
     display: none;
   }
 
-  .react-dropdown-default.dropdown-opened .dropdownList {
-    display: flex;
+  /* Positioned while closed too: the close transition keeps them displayed, and in flow they'd shift the header. */
+  .react-dropdown-default .dropdownList {
     flex-direction: column;
     position: absolute;
     top: 100%;
@@ -4091,13 +4393,20 @@ html.tear-enabled {
     min-width: 100%;
   }
 
-  .header .avatar.active .settings-menu {
-    display: block;
+  .react-dropdown-default.dropdown-opened .dropdownList {
+    display: flex;
+  }
+
+  .header .avatar .settings-menu {
     position: absolute;
     top: 100%;
     right: 0;
     z-index: 100;
     min-width: 13.75rem;
+  }
+
+  .header .avatar.active .settings-menu {
+    display: block;
   }
 
   .header .settings-menu li > :is(a, label) {
@@ -4133,7 +4442,7 @@ html.tear-enabled {
     display: none;
   }
 
-  body:has([class^="sidebar___"][class*=" mobile___"]) {
+  &[data-tear-mobile] body {
     & .header-menu-icon,
     & .search-mobile-button {
       display: grid;
@@ -4141,10 +4450,6 @@ html.tear-enabled {
 
     & .header-menu .menu-items {
       display: none;
-    }
-
-    & .header-menu.active .menu-items {
-      display: flex;
       flex-direction: column;
       align-items: stretch;
       position: absolute;
@@ -4152,6 +4457,16 @@ html.tear-enabled {
       left: 0;
       z-index: 100;
       min-width: 12rem;
+      padding: var(--tear-space-1) 0;
+      border: 1px solid var(--tear-popout-border);
+      border-radius: var(--tear-popout-radius);
+      background: var(--tear-popup-bg);
+      color: var(--tear-text);
+      box-shadow: var(--tear-popout-shadow);
+    }
+
+    & .header-menu.active .menu-items {
+      display: flex;
     }
 
     & .header .find .input-wrapper.search {
@@ -4208,6 +4523,2138 @@ html.tear-enabled {
   #chatRoot > div > div:last-child button svg {
     max-width: 24px;
     max-height: 24px;
+  }
+}
+}
+
+/* Defaults for Torn's shared widgets and the pages built from them, from Torn's own layout rules.
+   The same layer as above: TEAR's unlayered rules and the user's stylesheet still win. */
+
+@layer tear-structure {
+html.tear-enabled {
+  /* Torn's responsive helpers: hidden on desktop (785px+), tablet (387–784px) or mobile. */
+  @media (min-width: 785px) {
+    & .d-hide { display: none; }
+  }
+
+  @media (min-width: 387px) and (max-width: 784px) {
+    & .t-hide { display: none; }
+  }
+
+  @media (max-width: 386px) {
+    & .m-hide { display: none; }
+  }
+
+  /* jQuery UI's live region for tooltip text: read, never shown. */
+  & .ui-helper-hidden-accessible {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Tooltips: jQuery UI's, from title attributes across the legacy pages. Torn's CSS made them
+     absolute; without it jQuery falls back to relative and they land at the end of the page. */
+  & .ui-tooltip {
+    position: absolute;
+    z-index: 99999;
+    max-width: 22.5rem;
+    border: 1px solid var(--tear-popout-border);
+    border-radius: var(--tear-popout-radius);
+    background: var(--tear-popup-bg);
+    color: var(--tear-text);
+    box-shadow: 0 4px 14px var(--tear-shadow);
+    font-size: var(--tear-fs-label);
+    line-height: 1.35;
+    text-align: left;
+    overflow-wrap: break-word;
+  }
+
+  & .ui-tooltip .ui-tooltip-content {
+    min-width: 1rem;
+    padding: var(--tear-space-2);
+  }
+
+  & .ui-tooltip.text-a-center .ui-tooltip-content {
+    text-align: center;
+  }
+
+  & .ui-tooltip :is(b, strong) {
+    color: var(--tear-text-strong);
+    font-weight: 700;
+  }
+
+  /* A square turned 45°, bordered on its two outer sides so the outline runs on round the point. */
+  & .ui-tooltip .tooltip-arrow {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    translate: -50% 0;
+    rotate: 45deg;
+    border: 0 solid var(--tear-popout-border);
+    border-width: 0 1px 1px 0;
+    background: var(--tear-popup-bg);
+    pointer-events: none;
+  }
+
+  & .ui-tooltip .tooltip-arrow.top {
+    top: -5px;
+    bottom: auto;
+    border-width: 1px 0 0 1px;
+  }
+
+  & .ui-tooltip .tooltip-arrow.middle {
+    top: 50%;
+    bottom: auto;
+    translate: 0 -50%;
+  }
+
+  & .ui-tooltip .tooltip-arrow.middle.left {
+    left: -5px;
+    border-width: 0 0 1px 1px;
+  }
+
+  & .ui-tooltip .tooltip-arrow.middle.right {
+    right: -5px;
+    left: auto;
+    border-width: 1px 1px 0 0;
+  }
+
+  /* Tooltips on Torn's React pages: Floating UI portals them to <body> and positions them inline;
+     the card and its arrow were Torn's CSS. The arrow is a point on the edge (Floating UI sets its
+     offset along it), with a square turned 45° drawn on it. */
+  & [data-floating-ui-portal] [role="tooltip"] {
+    z-index: 99999;
+    width: max-content;
+    max-width: 22.5rem;
+    padding: var(--tear-space-2);
+    border: 1px solid var(--tear-popout-border);
+    border-radius: var(--tear-popout-radius);
+    background: var(--tear-popup-bg);
+    color: var(--tear-text);
+    box-shadow: 0 4px 14px var(--tear-shadow);
+    font-size: var(--tear-fs-label);
+    line-height: 1.35;
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] p {
+    margin: 0;
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="tooltipName___"] {
+    color: var(--tear-text-strong);
+    font-weight: 700;
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="tooltipType___"] {
+    color: var(--tear-muted);
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"] {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"][class*=" top___"] { top: 100%; }
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"][class*=" bottom___"] { bottom: 100%; }
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"][class*=" left___"] { left: 100%; }
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"][class*=" right___"] { right: 100%; }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrowIcon___"] {
+    position: absolute;
+    top: -4.5px;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    rotate: 45deg;
+    border: 0 solid var(--tear-popout-border);
+    background: var(--tear-popup-bg);
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class*=" top___"] [class^="arrowIcon___"] { border-width: 0 1px 1px 0; }
+  & [data-floating-ui-portal] [role="tooltip"] [class*=" bottom___"] [class^="arrowIcon___"] { top: -3.5px; border-width: 1px 0 0 1px; }
+  & [data-floating-ui-portal] [role="tooltip"] [class*=" left___"] [class^="arrowIcon___"] { top: -4px; left: -4.5px; border-width: 1px 1px 0 0; }
+  & [data-floating-ui-portal] [role="tooltip"] [class*=" right___"] [class^="arrowIcon___"] { top: -4px; left: -3.5px; border-width: 0 0 1px 1px; }
+
+  /* Torn's app header: the title bar of its React pages (attack log, events, missions…). */
+  & [class^="appHeaderWrapper___"] {
+    width: 100%;
+    margin-bottom: var(--tear-space-3);
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="topSection___"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.25rem;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="titleContainer___"] {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="titleContainer___"] [class^="title___"] {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1.375rem;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="freeSpace___"] {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="linksContainer___"] {
+    position: relative;
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    min-width: 2.5rem;
+    margin-left: var(--tear-space-4);
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="visibleRow___"] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--tear-space-4);
+    min-width: 0;
+  }
+
+  /* Torn measures this off-screen copy to decide which links fit. */
+  & [class^="appHeaderWrapper___"] [class^="ghostRow___"] {
+    position: absolute;
+    top: 0;
+    left: -9999px;
+    display: flex;
+    align-items: center;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="linkContainer___"] {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-1);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="linkContainer___"]:is(:hover, :focus-visible) {
+    color: var(--tear-text-strong);
+    text-decoration: none;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="iconWrapper___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="linkTitle___"] {
+    display: block;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 784px) {
+    & [class^="appHeaderWrapper___"] [class^="linkTitle___"] {
+      display: none;
+    }
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] {
+    position: relative;
+    display: grid;
+    justify-items: end;
+    margin-left: var(--tear-space-3);
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="activator___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="activator___"]:hover {
+    color: var(--tear-text-strong);
+  }
+
+  /* Points right while closed, down while open. */
+  & [class^="appHeaderWrapper___"] [class^="activatorIcon___"] {
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-right-width: 0;
+    border-left-color: currentColor;
+  }
+
+  & [class^="appHeaderWrapper___"] [class*=" active___"] [class^="activatorIcon___"],
+  & [class^="appHeaderWrapper___"] [class^="activator___"][class*=" active___"] [class^="activatorIcon___"] {
+    border-width: 5px 5px 0;
+    border-color: currentColor transparent transparent;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] > [class^="list___"] {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 100;
+    min-width: 12rem;
+    max-height: 15.625rem;
+    margin: 0;
+    padding: var(--tear-space-1) 0;
+    overflow-y: auto;
+    border: 1px solid var(--tear-popout-border);
+    border-radius: var(--tear-popout-radius);
+    background: var(--tear-popup-bg);
+    box-shadow: 0 4px 14px var(--tear-shadow);
+    list-style: none;
+    visibility: hidden;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] > [class^="list___"][class*=" opened___"] {
+    visibility: visible;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] > [class^="list___"] [class^="linkContainer___"] {
+    padding: var(--tear-space-1) var(--tear-space-3);
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] > [class^="list___"] [class^="linkContainer___"]:hover {
+    background: var(--tear-nav-hover);
+  }
+
+  /* Torn's shared React pieces, on the pages mapped so far. */
+  & :is(#attack-log-root, [class^="appHeaderWrapper___"]) [class^="divider___"] {
+    position: relative;
+    display: flex;
+    flex: none;
+    background: var(--tear-divider);
+  }
+
+  & :is(#attack-log-root, [class^="appHeaderWrapper___"]) [class^="divider___"][class*=" horizontal___"] {
+    width: 100%;
+    height: 1px;
+  }
+
+  & :is(#attack-log-root, [class^="appHeaderWrapper___"]) [class^="divider___"][class*=" vertical___"] {
+    align-self: stretch;
+    width: 1px;
+  }
+
+  /* Torn's screen-reader-only text in its React components. */
+  & [class*="srOnly___"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  & #attack-log-root button[class^="button___"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #attack-log-root button[class^="button___"][class*=" iconOnly___"] {
+    width: 2.125rem;
+    height: 2.125rem;
+  }
+
+  & #attack-log-root button[class^="button___"]:is(:hover, :focus-visible) {
+    background: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  /* Attack log: the log beside its people column, stacked on narrow screens. */
+  & #attack-log-root [class^="columns___"] {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--tear-space-3);
+  }
+
+  & #attack-log-root :is([class^="logColumn___"], [class^="peopleColumn___"]) {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background: var(--tear-panel-bg);
+  }
+
+  & #attack-log-root [class^="logColumn___"] {
+    flex: 1 1 auto;
+  }
+
+  & #attack-log-root [class^="peopleColumn___"] {
+    flex: none;
+    width: 13.75rem;
+  }
+
+  @media (max-width: 784px) {
+    & #attack-log-root [class^="columns___"] {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    & #attack-log-root [class^="peopleColumn___"] {
+      width: auto;
+    }
+  }
+
+  & #attack-log-root [class^="containerHeader___"] {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-2);
+    min-height: 2.125rem;
+    padding: 0 var(--tear-space-3);
+    background: var(--tear-surface-dim);
+    color: var(--tear-text-strong);
+  }
+
+  & #attack-log-root [class^="headerTitle___"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  & #attack-log-root [class^="logToggles___"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    margin: 0 calc(-1 * var(--tear-space-3)) 0 auto;
+  }
+
+  & #attack-log-root [class^="containerBody___"] {
+    display: flex;
+  }
+
+  & #attack-log-root [class^="containerBody___"][hidden] {
+    display: none;
+  }
+
+  & #attack-log-root :is([class^="logContent___"], [class^="logWrap___"]) {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  & #attack-log-root [class^="logWrap___"] > ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & #attack-log-root li[class^="row___"] {
+    display: flex;
+    font-size: var(--tear-fs-label);
+    line-height: 1rem;
+  }
+
+  & #attack-log-root li[class^="row___"] + li[class^="row___"] {
+    border-top: 1px solid var(--tear-divider);
+  }
+
+  & #attack-log-root [class^="col1___"],
+  & #attack-log-root [class^="col2___"] {
+    display: flex;
+    align-items: center;
+    padding-block: 0.5625rem;
+  }
+
+  & #attack-log-root [class^="col1___"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-inline: var(--tear-space-3) var(--tear-space-2);
+  }
+
+  /* The timestamp, with the row's result colour as a bar on its right edge. */
+  & #attack-log-root [class^="col2___"] {
+    position: relative;
+    flex: none;
+    padding-inline: var(--tear-space-2) 1.125rem;
+    border-left: 1px solid var(--tear-divider);
+    color: var(--tear-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  & #attack-log-root [class^="col2___"]::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: var(--attack-log-bar-width, 8px);
+    background: var(--tear-log-bar, transparent);
+  }
+
+  & #attack-log-root [class*="tightWithPrev___"] :is([class^="col1___"], [class^="col2___"]) {
+    padding-top: 0.3125rem;
+  }
+
+  & #attack-log-root [class*="tightWithNext___"] :is([class^="col1___"], [class^="col2___"]) {
+    padding-bottom: 0.3125rem;
+  }
+
+  /* Torn's result colours, keyed by the row's color-N class. */
+  & #attack-log-root li[class*=" color-1___"] { --tear-log-bar: rgb(130 201 30 / 0.2); }
+  & #attack-log-root li[class*=" color-2___"] { --tear-log-bar: rgb(250 82 82 / 0.2); }
+  & #attack-log-root li[class*=" color-3___"] { --tear-log-bar: rgb(178 133 0 / 0.2); }
+  & #attack-log-root li[class*=" color-4___"] { --tear-log-bar: rgb(0 91 91 / 0.2); }
+  & #attack-log-root li[class*=" color-5___"] { --tear-log-bar: rgb(0 51 102 / 0.2); }
+  & #attack-log-root li[class*=" color-6___"] { --tear-log-bar: rgb(70 0 140 / 0.2); }
+  & #attack-log-root li[class*=" color-7___"] { --tear-log-bar: rgb(102 0 102 / 0.2); }
+  & #attack-log-root li[class*=" color-8___"] { --tear-log-bar: rgb(0 0 0 / 0.2); }
+  & #attack-log-root li[class*=" color-9___"] { --tear-log-bar: rgb(242 140 140 / 0.2); }
+  & #attack-log-root li[class*=" color-10___"] { --tear-log-bar: rgb(225 201 25 / 0.2); }
+  & #attack-log-root li[class*=" color-11___"] { --tear-log-bar: rgb(160 207 23 / 0.2); }
+  & #attack-log-root li[class*=" color-12___"] { --tear-log-bar: rgb(24 217 217 / 0.2); }
+  & #attack-log-root li[class*=" color-13___"] { --tear-log-bar: rgb(111 175 238 / 0.2); }
+  & #attack-log-root li[class*=" color-14___"] { --tear-log-bar: rgb(176 114 239 / 0.2); }
+  & #attack-log-root li[class*=" color-15___"] { --tear-log-bar: rgb(240 128 240 / 0.2); }
+  & #attack-log-root li[class*=" color-16___"] { --tear-log-bar: rgb(97 97 97 / 0.2); }
+  & #attack-log-root li[class*=" color-17___"] { --tear-log-bar: rgb(64 0 0 / 0.2); }
+  & #attack-log-root li[class*=" color-18___"] { --tear-log-bar: rgb(64 48 0 / 0.2); }
+  & #attack-log-root li[class*=" color-19___"] { --tear-log-bar: rgb(32 64 0 / 0.2); }
+  & #attack-log-root li[class*=" color-20___"] { --tear-log-bar: rgb(0 48 64 / 0.2); }
+  & #attack-log-root li[class*=" color-21___"] { --tear-log-bar: rgb(0 0 64 / 0.2); }
+  & #attack-log-root li[class*=" color-22___"] { --tear-log-bar: rgb(64 0 64 / 0.2); }
+
+  & #attack-log-root [class^="iconWrap___"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    height: 1rem;
+    margin-left: calc(-1 * var(--tear-space-2));
+  }
+
+  & #attack-log-root [class^="message___"] {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  & #attack-log-root :is([class^="message___"] a, [class^="logWrap___"] :is(.red, .green)) {
+    font-weight: 700;
+  }
+
+  & #attack-log-root [class^="cards___"] {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  & #attack-log-root [class^="cardList___"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tear-space-2);
+    margin: 0;
+    padding: var(--tear-space-2);
+    list-style: none;
+  }
+
+  & #attack-log-root [class^="card___"] {
+    padding: var(--tear-space-2) var(--tear-space-3);
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius-sm);
+    background: var(--tear-surface);
+  }
+
+  & #attack-log-root [class^="cardTop___"] {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-2);
+    min-width: 0;
+  }
+
+  & #attack-log-root [class^="factionSpacer___"] {
+    flex: none;
+    width: 1.5625rem;
+  }
+
+  & #attack-log-root [class^="plainName___"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--tear-text-strong);
+    font-weight: 600;
+  }
+
+  & #attack-log-root [class^="cardStats___"] {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-3);
+    margin-top: var(--tear-space-2);
+    color: var(--tear-muted);
+    font-size: var(--tear-fs-label);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Stat icons: stable image paths, painted by Torn's bundle with no position to recognise them by. */
+  & #attack-log-root :is([class^="statHits___"], [class^="statDamage___"]) {
+    padding-left: 1.25rem;
+    background: 0 center / auto 0.9375rem no-repeat;
+    white-space: nowrap;
+  }
+
+  & #attack-log-root [class^="statHits___"] {
+    background-image: url("https://www.torn.com/images/v2/attack/attack_number_of_hits.svg");
+  }
+
+  & #attack-log-root [class^="statDamage___"] {
+    background-image: url("https://www.torn.com/images/v2/attack/attack_damage.svg");
+  }
+
+  /* Torn's user line (faction tag, honor bar) in lists and cards: one row, 19px tall. */
+  & [class*="userInfoBox___"] {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-1);
+    min-width: 0;
+  }
+
+  & [class*="userInfoBox___"] :is([class*="factionWrap___"], [class*="honorWrap___"]) {
+    display: flex;
+    flex: none;
+    align-items: center;
+    height: 19px;
+  }
+
+  & [class*="userInfoBox___"] [class^="linkWrap___"] {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  & [class*="userInfoBox___"] [class*="factionImage___"] {
+    display: block;
+    width: auto;
+    max-height: 19px;
+  }
+
+  /* The honor bar with the name over it as real text, as on profiles: Torn's letter sprite is off. */
+  & [class*="userInfoBox___"] .honor-text-wrap {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 19px;
+  }
+
+  & [class*="userInfoBox___"] .honor-text-wrap > * {
+    grid-area: 1 / 1;
+  }
+
+  & [class*="userInfoBox___"] .honor-text-wrap > img {
+    display: block;
+    width: auto;
+    height: 19px;
+    max-width: none;
+    image-rendering: pixelated;
+  }
+
+  & [class*="userInfoBox___"] .honor-text-wrap .honor-text-svg {
+    display: none;
+  }
+
+  & [class*="userInfoBox___"] .honor-text-wrap .honor-text:not(.honor-text-svg) {
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px #000, 0 0 2px #000;
+  }
+
+  /* Data grids (sortable headings over a list). */
+  & [class^="dataGrid___"] {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    text-align: left;
+  }
+
+  & [class^="dataGrid___"] [class^="dataGridRow___"] {
+    display: flex;
+    width: 100%;
+  }
+
+  & [class^="dataGrid___"] [class^="dataGridHeading___"] {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    min-width: 0;
+    height: 2.125rem;
+    padding: 0 var(--tear-space-2);
+    overflow: hidden;
+    color: var(--tear-text-strong);
+    font-size: var(--tear-fs-label);
+    font-weight: 600;
+  }
+
+  & [class^="dataGrid___"] [class^="dataGridHeading___"] + [class^="dataGridHeading___"] {
+    border-left: 1px solid var(--tear-divider);
+  }
+
+  & [class^="dataGrid___"] [class*="sortableHeading___"] {
+    padding: 0;
+    overflow: visible;
+  }
+
+  & [class^="dataGrid___"] [class^="sortableButton___"] {
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 var(--tear-space-2);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  & [class^="dataGrid___"] [class^="sortableButton___"]:hover:not(:disabled) {
+    color: var(--tear-link);
+  }
+
+  & [class^="dataGrid___"] [class^="sortIcon___"] {
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    display: var(--datagrid-sort-icon-display, block);
+    width: 0;
+    height: 0;
+    translate: -50% 0;
+    border: 4px solid transparent;
+  }
+
+  & [class^="dataGrid___"] [class^="sortIcon___"][class*=" desc___"] {
+    border-bottom-width: 0;
+    border-top-color: currentColor;
+  }
+
+  & [class^="dataGrid___"] [class^="sortIcon___"][class*=" asc___"] {
+    border-top-width: 0;
+    border-bottom-color: currentColor;
+  }
+
+  /* Events: a list of messages, each with its time and Copy / Send / Save; unseen ones edged in
+     the accent. Torn's shared list item, so other notification lists pick it up too. */
+  & [class^="eventsListWrapper___"] {
+    position: relative;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background: var(--tear-panel-bg);
+  }
+
+  & [class^="eventsListWrapper___"] > header[class^="header___"] {
+    display: flex;
+    align-items: center;
+    height: 2.125rem;
+    padding-left: var(--tear-space-3);
+    border-bottom: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius) var(--tear-radius) 0 0;
+    background: var(--tear-surface-dim);
+  }
+
+  & [class^="eventsListWrapper___"] [class^="heading___"] {
+    color: var(--tear-text-strong);
+    font-size: var(--tear-fs-body);
+    font-weight: 600;
+  }
+
+  & [class^="eventsListWrapper___"] [class^="headerButtons___"] {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    margin-left: auto;
+  }
+
+  & :is([class^="eventsListWrapper___"] [class^="headerButton___"], [class^="buttonsGroup___"] button) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 100%;
+    border-left: 1px solid var(--tear-divider);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & :is([class^="eventsListWrapper___"] [class^="headerButton___"], [class^="buttonsGroup___"] button):is(:hover, :focus-visible) {
+    background: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  & [class^="eventsListWrapper___"] [class^="headerButton___"][aria-checked="true"],
+  & [class^="buttonsGroup___"] [class*=" active___"] button {
+    color: var(--tear-gold);
+  }
+
+  & [class^="eventsList___"] {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & [class^="listItemWrapper___"] {
+    position: relative;
+  }
+
+  & [class^="listItemWrapper___"] + [class^="listItemWrapper___"] {
+    border-top: 1px solid var(--tear-divider);
+  }
+
+  & [class^="listItemWrapper___"][class*=" unseen___"] {
+    background: var(--tear-nav-hover);
+    box-shadow: inset 3px 0 0 var(--tear-accent);
+  }
+
+  & [class^="listItemWrapper___"] > [class^="listItem___"] {
+    display: flex;
+  }
+
+  & [class^="listItem___"] [class^="contentGroup___"] {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  & [class^="listItem___"] [class^="message___"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0.5625rem var(--tear-space-3) var(--tear-space-2);
+    line-height: 1rem;
+    overflow-wrap: anywhere;
+  }
+
+  & [class^="listItem___"] [class^="dateTime___"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 4rem;
+    padding-inline: var(--tear-space-1);
+    border-left: 1px solid var(--tear-divider);
+    color: var(--tear-muted);
+    font-size: var(--tear-fs-caption);
+    line-height: 13px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  & [class^="buttonsGroup___"] {
+    display: flex;
+    flex: none;
+  }
+
+  & [class^="buttonsGroup___"] > div {
+    display: flex;
+  }
+
+  & [class^="buttonsGroup___"] [class^="text___"] {
+    display: none;
+  }
+
+  @media (max-width: 784px) {
+    & [class^="listItemWrapper___"] > [class^="listItem___"] {
+      flex-direction: column;
+    }
+
+    & [class^="buttonsGroup___"] {
+      border-top: 1px solid var(--tear-divider);
+    }
+
+    & [class^="buttonsGroup___"] > div {
+      flex: 1 1 0;
+    }
+
+    & [class^="buttonsGroup___"] button {
+      flex: 1 1 0;
+      gap: var(--tear-space-1);
+      height: 2.125rem;
+    }
+
+    & [class^="buttonsGroup___"] > div:first-child button {
+      border-left: 0;
+    }
+
+    & [class^="buttonsGroup___"] [class^="text___"] {
+      display: block;
+      font-size: var(--tear-fs-label);
+      font-weight: 700;
+    }
+  }
+
+  /* Items › loadouts: the model crop, the selected item, and the equipped grid, in one row. */
+  /* Not overflow: hidden, which would clip the full-size model: the header rounds its own corners. */
+  & #loadoutsRoot [class^="main___"] {
+    width: 100%;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background: var(--tear-panel-bg);
+  }
+
+  & #loadoutsRoot [class^="main___"] > header[class^="header___"] {
+    display: flex;
+    align-items: center;
+    height: 2.125rem;
+    border-bottom: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius) var(--tear-radius) 0 0;
+    background: var(--tear-surface-dim);
+  }
+
+  & #loadoutsRoot [class^="main___"] > header[class^="header___"] [class^="title___"] {
+    margin: 0 0 0 var(--tear-space-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--tear-text-strong);
+    font-weight: 600;
+  }
+
+  & #loadoutsRoot [class^="icons___"] {
+    display: flex;
+    margin-left: auto;
+  }
+
+  & #loadoutsRoot [data-tear-loadout-view] + [class^="icons___"] {
+    margin-left: 0;
+  }
+
+  /* main.js's view switcher, before Torn's buttons; it pushes them right. */
+  & #loadoutsRoot [data-tear-loadout-view] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    margin-left: auto;
+    border-left: 1px solid var(--tear-line);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot [data-tear-loadout-view]:is(:hover, :focus-visible) {
+    background-color: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  & #loadoutsRoot [data-tear-loadout-view][aria-pressed="true"] {
+    background-color: var(--tear-nav-active);
+    color: var(--tear-accent);
+  }
+
+  & #loadoutsRoot [class^="icons___"] > button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    border-left: 1px solid var(--tear-line);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot [class^="icons___"] > button[class*=" setsIcon___"] {
+    width: auto;
+    min-width: calc(2.125rem + 2 * var(--tear-space-2));
+    padding-inline: var(--tear-space-2);
+    background-origin: content-box;
+    background-clip: content-box;
+  }
+
+  & #loadoutsRoot [class^="icons___"] > button:hover {
+    background-color: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  & #loadoutsRoot [class^="currentSlot___"] {
+    display: flex;
+    min-height: 8.25rem;
+  }
+
+  /* Loadouts list (Torn's Loadouts button): the saved sets as cards, as many to a row as fit. */
+  & #loadoutsRoot [class^="main___"]:has([class^="slots___"]) [data-tear-loadout-view] {
+    display: none;
+  }
+
+  & #loadoutsRoot [class^="main___"]:has([class^="slots___"]) [data-tear-loadout-view] + [class^="icons___"] {
+    margin-left: auto;
+  }
+
+  & #loadoutsRoot ul[class^="slots___"] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--tear-space-3);
+    margin: 0;
+    padding: var(--tear-space-3);
+    list-style: none;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background-color: var(--tear-surface);
+  }
+
+  & #loadoutsRoot li[class^="slot___"][class*=" current___"] {
+    border-color: var(--tear-accent);
+    box-shadow: 0 0 0 1px var(--tear-accent);
+  }
+
+  & #loadoutsRoot li[class^="slot___"] > header[class^="header___"] {
+    display: flex;
+    align-items: center;
+    height: 2.125rem;
+    border-bottom: 1px solid var(--tear-line);
+    background-color: var(--tear-surface-dim);
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="titleContainer___"] {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    align-self: stretch;
+    min-width: 0;
+    padding-left: var(--tear-space-3);
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="titleContainer___"] [class^="title___"] {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--tear-text-strong);
+    font-weight: 600;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="titleContainer___"]:hover [class^="title___"] {
+    color: var(--tear-link);
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="editButton___"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    align-self: stretch;
+    margin-left: auto;
+    padding-inline: var(--tear-space-2);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="buttons___"] {
+    display: flex;
+    flex: none;
+    align-self: stretch;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="buttons___"] > button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    border-left: 1px solid var(--tear-line);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] :is([class^="editButton___"], [class^="buttons___"] > button):is(:hover, :focus-visible) {
+    background-color: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  & #loadoutsRoot li[class^="slot___"] svg[class*=" disabled___"] {
+    opacity: 0.3;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class*=" disabled___"] {
+    cursor: default;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] > section[class^="body___"] {
+    flex: 1 1 auto;
+    padding: var(--tear-space-3);
+  }
+
+  & #loadoutsRoot ul[class^="slotItems___"] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr));
+    gap: var(--tear-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & #loadoutsRoot li[class^="slotItem___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.75rem;
+    border: 1px solid var(--tear-divider);
+    border-radius: 4px;
+    background-color: var(--tear-panel-bg);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot li[class^="slotItem___"] img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    max-height: 1.375rem;
+  }
+
+  & #loadoutsRoot li[class^="slotItem___"] [class^="glowBox___"] {
+    padding: 2px;
+  }
+
+  & #loadoutsRoot [class^="extraCount___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--tear-muted);
+    font-size: var(--tear-fs-label);
+    font-weight: 700;
+    cursor: default;
+  }
+
+  & #loadoutsRoot [class^="cell___"] {
+    position: relative;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  & #loadoutsRoot [class^="cell___"]:not(:last-child) {
+    border-right: 1px solid var(--tear-line);
+  }
+
+  & #loadoutsRoot [class*=" modelContainer___"] {
+    width: 174px;
+  }
+
+  /* A 150 × 112 window onto the 423px model, which Torn centres and lifts to show head and torso. */
+  & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] {
+    position: relative;
+    z-index: 10;
+    width: 150px;
+    height: 112px;
+  }
+
+  & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] > [class^="model___"] {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 2px solid var(--tear-surface);
+    box-shadow: 0 0 2px var(--tear-shadow), inset 0 0 2px var(--tear-shadow);
+    cursor: pointer;
+  }
+
+  /* Clicking the crop opens the whole character: a 244 × 388 card centred over it (Torn's size). */
+  & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] > [class*=" isFullSize___"] {
+    inset: -6px auto auto 50%;
+    width: 244px;
+    height: 388px;
+    translate: -50% 0;
+    border-radius: var(--tear-radius);
+    box-shadow: 0 8px 28px var(--tear-shadow), 0 0 0 1px var(--tear-line);
+  }
+
+  & #loadoutsRoot [class*=" isFullSize___"] [class^="modelWrap___"][class*=" userModel___"] {
+    top: -19px;
+  }
+
+  & #loadoutsRoot [class^="modelWrap___"] {
+    position: relative;
+    left: 50%;
+    box-sizing: border-box;
+    width: 423px;
+    height: 423px;
+    overflow: hidden;
+    translate: -50% 0;
+  }
+
+  & #loadoutsRoot [class^="modelWrap___"][class*=" userModel___"] {
+    position: absolute;
+    top: -25px;
+  }
+
+  /* The model stands on Torn's backdrop (torn-css.js skips background images); the surface shows
+     until it loads. */
+  & #loadoutsRoot [class^="modelWrap___"] {
+    background: var(--tear-surface) 50% 5px no-repeat;
+    background-image: image-set(
+      url("https://www.torn.com/images/v2/user_model/background/bg-light.webp") 1x,
+      url("https://www.torn.com/images/v2/user_model/background/bg-light@2x.webp") 2x,
+      url("https://www.torn.com/images/v2/user_model/background/bg-light@3x.webp") 3x
+    );
+  }
+
+  & body.dark-mode #loadoutsRoot [class^="modelWrap___"] {
+    background-image: image-set(
+      url("https://www.torn.com/images/v2/user_model/background/bg-dark.webp") 1x,
+      url("https://www.torn.com/images/v2/user_model/background/bg-dark@2x.webp") 2x,
+      url("https://www.torn.com/images/v2/user_model/background/bg-dark@3x.webp") 3x
+    );
+  }
+
+  & #loadoutsRoot [class^="modelLayers___"] {
+    position: absolute;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 240px;
+    height: inherit;
+    margin: auto;
+  }
+
+  & #loadoutsRoot [class^="modelLayers___"] > [class^="model___"] {
+    position: absolute;
+    z-index: 2;
+    width: inherit;
+    height: 386px;
+  }
+
+  & #loadoutsRoot [class^="armoursWrap___"] {
+    position: absolute;
+    width: inherit;
+    height: 386px;
+    pointer-events: none;
+  }
+
+  & #loadoutsRoot [class^="armoursWrap___"] :is([class^="armour___"], [class^="mask___"], [class^="hairMask___"], [class^="background___"]) {
+    position: absolute;
+    z-index: 3;
+  }
+
+  & #loadoutsRoot [class^="armoursWrap___"] [class^="background___"] {
+    z-index: 0;
+  }
+
+  & #loadoutsRoot [class^="modelLayers___"] img {
+    position: relative;
+    display: block;
+    width: 240px;
+    max-width: none;
+    height: auto;
+  }
+
+  & #loadoutsRoot [class^="rightPanel___"] {
+    display: flex;
+    flex: 1 1 0;
+    align-items: stretch;
+    min-width: 0;
+  }
+
+  & #loadoutsRoot [class*=" itemReviewContainer___"] {
+    width: 182px;
+  }
+
+  & #loadoutsRoot [class^="itemReview___"] {
+    position: relative;
+    box-sizing: border-box;
+    width: 159px;
+    height: 112px;
+  }
+
+  & #loadoutsRoot [class^="itemReview___"] > [class^="type___"] {
+    position: absolute;
+    top: 0;
+    left: calc(50% - 32px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 16px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  & #loadoutsRoot :is([class^="arrowLeft___"], [class^="arrowRight___"]) {
+    position: absolute;
+    top: calc(50% - 15px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot [class^="arrowLeft___"] { left: 2px; }
+  & #loadoutsRoot [class^="arrowRight___"] { right: 2px; }
+  & #loadoutsRoot [class^="arrowRight___"] svg { scale: -1; }
+
+  & #loadoutsRoot [class^="itemReview___"] > img {
+    position: absolute;
+    top: calc(50% - 25px);
+    left: calc(50% - 50px);
+    width: 100px;
+    height: 50px;
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot :is([class*=" bonusWeapon0___"], [class*=" bonusWeapon1___"], [class^="upgrade0___"], [class^="upgrade1___"]) {
+    position: absolute;
+    top: 3px;
+  }
+
+  & #loadoutsRoot [class*=" bonusWeapon0___"] { right: 27px; }
+  & #loadoutsRoot [class*=" bonusWeapon1___"] { right: 10px; }
+  & #loadoutsRoot [class^="upgrade0___"] { left: 10px; }
+  & #loadoutsRoot [class^="upgrade1___"] { left: 27px; }
+
+  & #loadoutsRoot [class^="upgrade0___"],
+  & #loadoutsRoot [class^="upgrade1___"] {
+    width: 11px;
+    height: 11px;
+  }
+
+  & #loadoutsRoot [class^="itemAbility___"] {
+    position: absolute;
+    bottom: 2px;
+    display: flex;
+    align-items: flex-end;
+    font-size: 0.6875rem;
+  }
+
+  & #loadoutsRoot [class^="itemAbility___"][class*=" damage___"] { left: 4px; }
+  & #loadoutsRoot [class^="itemAbility___"][class*=" accuracy___"] { left: 112px; }
+
+  & #loadoutsRoot [class^="defencePanel___"] {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 155px;
+    height: 1.25rem;
+    font-size: 0.6875rem;
+  }
+
+  & #loadoutsRoot [class^="defencePanel___"] > * {
+    position: absolute;
+    top: 5px;
+  }
+
+  & #loadoutsRoot [class^="defencePanel___"] [class^="armor___"] {
+    display: flex;
+    align-items: flex-end;
+    left: 18px;
+  }
+
+  & #loadoutsRoot [class^="defencePanel___"] [class*="bonusDefence0___"] { left: 102px; }
+  & #loadoutsRoot [class^="defencePanel___"] [class*="bonusDefence1___"] { left: 120px; }
+
+  & #loadoutsRoot [class^="accuracyBonusIcon___"] {
+    display: block;
+    width: 11px;
+    height: 11px;
+    margin-right: 1px;
+    background-repeat: no-repeat;
+  }
+
+  & #loadoutsRoot [class^="ammo___"] {
+    position: absolute;
+    bottom: 0;
+    left: calc(50% - 31px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 62px;
+    height: 16px;
+    font-size: 0.6875rem;
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot [class*=" itemsContainer___"] {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: var(--tear-space-3);
+  }
+
+  & #loadoutsRoot [class^="items___"] {
+    width: 100%;
+  }
+
+  /* Tiles that fill the width, as many to a row as fit. */
+  & #loadoutsRoot [class^="equippedItems___"] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+    gap: var(--tear-space-2);
+  }
+
+  & #loadoutsRoot [class^="itemWrapper___"] {
+    display: flex;
+    width: 100%;
+    height: 2.5rem;
+  }
+
+  & #loadoutsRoot [class^="item___"] {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius-sm);
+    background-color: var(--tear-surface);
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+  }
+
+  & #loadoutsRoot [class^="item___"]:is(:hover, :focus-visible) {
+    border-color: color-mix(in srgb, var(--tear-accent) 50%, var(--tear-line));
+    background-color: var(--tear-surface-hover);
+  }
+
+  & #loadoutsRoot [class^="itemWrapper___"][class*=" active___"] [class^="item___"] {
+    border-color: var(--tear-accent);
+    box-shadow: 0 0 0 1px var(--tear-accent);
+  }
+
+  & #loadoutsRoot [class^="glowBox___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  & #loadoutsRoot [class^="glowBox___"] img {
+    display: block;
+    width: 60px;
+    height: 30px;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="currentSlot___"] {
+    gap: var(--tear-space-4);
+    padding: var(--tear-space-4);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="cell___"]:not(:last-child) {
+    border-right: 0;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" modelContainer___"] {
+    width: auto;
+    align-items: flex-start;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" modelContainer___"] > [class^="model___"] {
+    width: 244px;
+    height: 388px;
+  }
+
+  /* Always the whole character, whichever state Torn's open/close click left it in. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" modelContainer___"] > [class^="model___"] > [class^="model___"] {
+    inset: 0;
+    width: auto;
+    height: auto;
+    translate: none;
+    border-radius: var(--tear-radius);
+    box-shadow: 0 0 0 1px var(--tear-line);
+    cursor: default;
+    pointer-events: none;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="modelWrap___"][class*=" userModel___"] {
+    top: -19px;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="rightPanel___"] {
+    flex-direction: column;
+    gap: var(--tear-space-3);
+  }
+
+  /* The items take the rows they need; the cover flow above stretches into the rest. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" itemReviewContainer___"] {
+    width: auto;
+    flex: 1 1 auto;
+    align-items: stretch;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" itemsContainer___"] {
+    flex: none;
+    align-items: flex-start;
+    padding: 0;
+  }
+
+  /* The selected item as a card: its controls gathered round the centred image, not the corners. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] {
+    width: 100%;
+    height: 10rem;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background-color: var(--tear-surface);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] > [class^="type___"] {
+    top: var(--tear-space-3);
+    left: 50%;
+    width: auto;
+    translate: -50% 0;
+    color: var(--tear-muted);
+    font-size: var(--tear-fs-caption);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="arrowLeft___"] { left: calc(50% - 150px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="arrowRight___"] { right: calc(50% - 150px); }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] :is([class*=" bonusWeapon0___"], [class*=" bonusWeapon1___"], [class^="upgrade0___"], [class^="upgrade1___"]) {
+    top: var(--tear-space-3);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="upgrade0___"] { left: calc(50% - 128px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="upgrade1___"] { left: calc(50% - 111px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" bonusWeapon0___"] { right: calc(50% - 111px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" bonusWeapon1___"] { right: calc(50% - 128px); }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemAbility___"] {
+    bottom: var(--tear-space-3);
+    left: calc(50% - 128px);
+    font-size: var(--tear-fs-label);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="defencePanel___"] {
+    bottom: var(--tear-space-3);
+    left: calc(50% - 128px);
+    width: 256px;
+    font-size: var(--tear-fs-label);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="defencePanel___"] [class^="armor___"] { left: 0; }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="defencePanel___"] [class*="bonusDefence0___"] { right: 17px; left: auto; }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="defencePanel___"] [class*="bonusDefence1___"] { right: 0; left: auto; }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemAbility___"][class*=" damage___"] { left: calc(50% - 128px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemAbility___"][class*=" accuracy___"] { right: calc(50% - 128px); left: auto; }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="ammo___"] {
+    bottom: var(--tear-space-3);
+    font-size: var(--tear-fs-label);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="equippedItems___"] {
+    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemWrapper___"] {
+    height: 3.25rem;
+  }
+
+  @media (max-width: 784px) {
+    & #loadoutsRoot [class^="currentSlot___"] {
+      height: auto;
+    }
+
+    & #loadoutsRoot [class^="rightPanel___"] {
+      flex-direction: column;
+      width: 193px;
+    }
+
+    & #loadoutsRoot [class^="rightPanel___"] [class^="cell___"] {
+      border-right: 0;
+    }
+
+    & #loadoutsRoot [class*=" modelContainer___"],
+    & #loadoutsRoot [class*=" itemReviewContainer___"],
+    & #loadoutsRoot [class*=" itemsContainer___"] {
+      width: 193px;
+    }
+
+    & #loadoutsRoot [class*=" itemReviewContainer___"] {
+      height: 100px;
+    }
+
+    & #loadoutsRoot [class*=" itemsContainer___"] {
+      height: auto;
+      padding-block: var(--tear-space-2);
+    }
+
+    & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] {
+      width: 158px;
+      height: 213px;
+    }
+
+    & #loadoutsRoot [class^="modelWrap___"][class*=" userModel___"] {
+      top: -105px;
+      scale: 0.568;
+    }
+
+    & #loadoutsRoot [class*=" isFullSize___"] [class^="modelWrap___"][class*=" userModel___"] {
+      top: -18px;
+      scale: 1;
+    }
+
+    & #loadoutsRoot [class^="equippedItems___"] {
+      grid-template-columns: repeat(4, 38px);
+      gap: 3px 2px;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="currentSlot___"] {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] :is([class^="rightPanel___"], [class*=" itemReviewContainer___"], [class*=" itemsContainer___"]) {
+      width: 100%;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="modelWrap___"][class*=" userModel___"] {
+      top: -18px;
+      scale: 1;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="equippedItems___"] {
+      grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+      gap: var(--tear-space-2);
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemWrapper___"] {
+      width: 100%;
+      height: 2.5rem;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="glowBox___"] img {
+      width: 60px;
+      height: 30px;
+    }
+
+    & #loadoutsRoot [class^="itemWrapper___"],
+    & #loadoutsRoot [class^="glowBox___"] img {
+      width: 38px;
+      height: 19px;
+    }
+  }
+
+  /* Loadouts, game-UI pass: slots are recessed wells (the sidebar readouts' LCD vocabulary), the
+     selection glows, stats read as lit LCD values. Same selectors as above, so these win. */
+  & #loadoutsRoot {
+    --slot-well: inset 0 1px 3px var(--tear-lcd-bezel), 0 1px 0 var(--tear-groove-light);
+    --slot-glow: 0 0 0 1px var(--tear-accent), 0 0 12px color-mix(in srgb, var(--tear-accent) 45%, transparent);
+  }
+
+  & #loadoutsRoot [class^="main___"] > header[class^="header___"] [class^="title___"],
+  & #loadoutsRoot li[class^="slot___"] [class^="titleContainer___"] [class^="title___"] {
+    font-size: var(--tear-fs-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  & #loadoutsRoot :is([class^="item___"], li[class^="slotItem___"]) {
+    border-color: transparent;
+    background-color: var(--tear-lcd-bg);
+    box-shadow: var(--slot-well);
+  }
+
+  & #loadoutsRoot :is([class^="item___"], li[class^="slotItem___"]):is(:hover, :focus-visible) {
+    border-color: color-mix(in srgb, var(--tear-accent) 55%, transparent);
+    background-color: var(--tear-lcd-bg);
+    box-shadow: var(--slot-well), 0 0 8px color-mix(in srgb, var(--tear-accent) 25%, transparent);
+  }
+
+  & #loadoutsRoot [class^="itemWrapper___"][class*=" active___"] [class^="item___"] {
+    border-color: var(--tear-accent);
+    box-shadow: var(--slot-well), var(--slot-glow);
+  }
+
+  /* The character in a framed bay, darkened towards its edges. */
+  & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] > [class^="model___"] {
+    border-color: var(--tear-surface-sunk);
+    box-shadow: inset 0 0 24px rgb(0 0 0 / 0.18), 0 1px 0 var(--tear-groove-light);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" modelContainer___"] > [class^="model___"] > [class^="model___"] {
+    border: 1px solid var(--tear-line);
+    box-shadow: inset 0 0 40px rgb(0 0 0 / 0.22), 0 1px 0 var(--tear-groove-light);
+  }
+
+  /* The selected item under a spotlight in a recessed inspector. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] {
+    border-color: transparent;
+    background:
+      radial-gradient(ellipse 55% 70% at 50% 50%, color-mix(in srgb, var(--tear-accent) 14%, transparent), transparent 70%),
+      var(--tear-lcd-bg);
+    box-shadow: var(--slot-well);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] > [class^="type___"] {
+    color: var(--tear-accent);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+  }
+
+  & #loadoutsRoot :is([class^="itemAbility___"], [class^="defencePanel___"] [class^="armor___"]) {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--stat-ink, var(--tear-text));
+    text-shadow: var(--tear-lcd-glow) color-mix(in srgb, var(--stat-ink, transparent) 60%, transparent);
+  }
+
+  & #loadoutsRoot [class^="itemAbility___"][class*=" damage___"] { --stat-ink: color-mix(in srgb, #e5534b, var(--tear-lcd-mix)); }
+  & #loadoutsRoot [class^="itemAbility___"][class*=" accuracy___"] { --stat-ink: color-mix(in srgb, #4ea1e8, var(--tear-lcd-mix)); }
+  & #loadoutsRoot [class^="defencePanel___"] [class^="armor___"] { --stat-ink: color-mix(in srgb, var(--tear-gold), var(--tear-lcd-mix)); }
+
+  & #loadoutsRoot [class^="ammo___"] {
+    color: var(--tear-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Cover flow (main.js, expanded view): the selected item flat and large at the centre, its
+     neighbours turned away in perspective, shrinking and dimming, with a floor reflection. Each item
+     sits by its distance from the selection, so selecting another slides the whole strip. */
+  & #loadoutsRoot [data-tear-coverflow] {
+    display: none;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] {
+    height: auto;
+    min-height: 13rem;
+    overflow: hidden;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] {
+    position: absolute;
+    inset: 0;
+    display: block;
+    container-type: inline-size;
+    perspective: 900px;
+    pointer-events: none;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] > img {
+    position: absolute;
+    /* The first step clears the centre item; the side items then close up, all spread with the
+       card's width. */
+    --first: clamp(150px, 32cqw, 240px);
+    --step: clamp(80px, 16cqw, 120px);
+    top: calc(50% - 75px);
+    left: calc(50% - 130px);
+    z-index: calc(10 - var(--dist));
+    width: 260px;
+    height: 130px;
+    max-width: none;
+    opacity: clamp(0, 3 - var(--dist), 1);
+    transform:
+      translateX(calc(var(--side) * (min(var(--dist), 1) * var(--first) + max(var(--dist) - 1, 0) * var(--step))))
+      rotateY(calc(var(--side) * -30deg))
+      scale(calc(1 - min(var(--dist), 1) * 0.45));
+    filter: brightness(calc(1 - min(var(--dist), 1) * 0.3));
+    -webkit-box-reflect: below 2px linear-gradient(transparent 62%, rgb(255 255 255 / 0.2));
+    pointer-events: auto;
+    cursor: pointer;
+    transition:
+      transform 0.4s var(--tear-ease-out),
+      opacity 0.4s var(--tear-ease-out),
+      filter 0.4s var(--tear-ease-out);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] > img[data-dist="0"] {
+    filter: drop-shadow(0 8px 14px rgb(0 0 0 / 0.3));
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] > img:not([data-dist="0"], [data-dist="1"], [data-dist="2"]) {
+    pointer-events: none;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] > img:not([data-dist="0"]):hover {
+    filter: brightness(0.95);
+  }
+
+  /* Torn's own image hides behind the flow's centre, which forwards its clicks. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"]:has([data-tear-coverflow] > img) > img {
+    visibility: hidden;
+  }
+
+  /* Controls and stats above the strip; the arrows at the card's edges. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] > :not([data-tear-coverflow], img) {
+    z-index: 20;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="arrowLeft___"] { left: var(--tear-space-2); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="arrowRight___"] { right: var(--tear-space-2); }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] :is([class^="arrowLeft___"], [class^="arrowRight___"]) {
+    top: calc(50% - 24px);
+    width: 2rem;
+    height: 3rem;
+    border-radius: var(--tear-radius-sm);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] :is([class^="arrowLeft___"], [class^="arrowRight___"]):hover {
+    background-color: var(--tear-overlay);
+  }
+
+  /* Saved sets as save slots: the current one lit. */
+  & #loadoutsRoot li[class^="slot___"] {
+    border-color: var(--tear-line);
+    background-color: var(--tear-surface);
+    box-shadow: 0 1px 0 var(--tear-groove-light);
+  }
+
+  & #loadoutsRoot li[class^="slot___"][class*=" current___"] {
+    border-color: var(--tear-accent);
+    box-shadow: var(--slot-glow);
+  }
+
+  & #loadoutsRoot li[class^="slot___"][class*=" current___"] > header[class^="header___"] {
+    background-color: color-mix(in srgb, var(--tear-accent) 14%, var(--tear-surface-dim));
+  }
+
+  /* Items › your items: category tabs over a list (or a grid of thumbnails). */
+  & .items-wrap > .title-black > form {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    float: none;
+  }
+
+  & .items-wrap .ac-items .ui-autocomplete-input {
+    width: 8rem;
+    height: 1.5rem;
+    padding: 0 var(--tear-space-2);
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius-sm);
+    background: var(--tear-surface);
+    color: var(--tear-text);
+    font: inherit;
+  }
+
+  & .items-wrap #categoriesList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--tear-line);
+    background: var(--tear-surface-dim);
+    list-style: none;
+  }
+
+  & .items-wrap #categoriesList::before,
+  & .items-wrap #categoriesList::after {
+    content: none;
+  }
+
+  & .items-wrap #categoriesList > li {
+    position: relative;
+    float: none;
+  }
+
+  & .items-wrap #categoriesList > li + li {
+    border-left: 1px solid var(--tear-divider);
+  }
+
+  & .items-wrap #categoriesList > li:is(.t-show, .m-show, .clear) {
+    display: none;
+  }
+
+  /* The sprite is cut in 28px cells, so the link keeps that width and centres in its column. */
+  & .items-wrap #categoriesList > li > a {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 28px;
+    height: 33px;
+    margin-inline: auto;
+  }
+
+  & .items-wrap #categoriesList > li:hover {
+    background: var(--tear-nav-hover);
+  }
+
+  & .items-wrap #categoriesList > li.ui-tabs-active {
+    background: var(--tear-panel-bg);
+    box-shadow: inset 0 -2px 0 var(--tear-accent);
+  }
+
+  & .items-wrap #categoriesList > li.ui-state-disabled a {
+    cursor: default;
+  }
+
+  & .items-wrap ul.items-cont {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & .items-wrap ul.items-cont > li.clear,
+  & .items-wrap ul.items-cont > li > .clear,
+  & .items-wrap .view-item-info {
+    display: none;
+  }
+
+  & .items-wrap:not(.thumbnails) ul.items-cont > li {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: 31px;
+    line-height: 30px;
+  }
+
+  & .items-wrap:not(.thumbnails) ul.items-cont > li + li {
+    border-top: 1px solid var(--tear-divider);
+  }
+
+  & .items-wrap:not(.thumbnails) ul.items-cont > li:hover {
+    background: var(--tear-overlay);
+  }
+
+  & .items-wrap ul.items-cont > li.bg-green {
+    background: color-mix(in srgb, var(--tear-money) 12%, transparent);
+  }
+
+  & .items-wrap:not(.thumbnails) .thumbnail-wrap {
+    display: none;
+  }
+
+  /* A zero basis: at its content width the name pushed the actions onto a second line. */
+  & .items-wrap:not(.thumbnails) .title-wrap {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  & .items-wrap:not(.thumbnails) .title-wrap .title {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+    height: 30px;
+    float: none;
+    cursor: pointer;
+  }
+
+  & .items-wrap .image-wrap {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 30px;
+    border-right: 1px solid var(--tear-divider);
+  }
+
+  & .items-wrap .image-wrap img {
+    display: block;
+    width: 60px;
+    height: 30px;
+  }
+
+  & .items-wrap .name-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tear-space-1);
+    min-width: 0;
+    padding-left: var(--tear-space-3);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  & .items-wrap .name-wrap .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--tear-text-strong);
+  }
+
+  & .items-wrap .name-wrap .qty {
+    color: var(--tear-muted);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Its bonuses and actions sit in the row; an action form Torn opens wraps to a line of its own. */
+  & .items-wrap:not(.thumbnails) .cont-wrap {
+    display: contents;
+  }
+
+  & .items-wrap .cont-wrap :is(.actions, .bonuses) {
+    display: flex;
+    flex: none;
+    float: none;
+  }
+
+  /* Each row carries an empty form with a spinner in it; Torn shows it inline when an action runs. */
+  & .items-wrap .cont-wrap > .action-wrap {
+    display: none;
+    flex-basis: 100%;
+    padding: var(--tear-space-3);
+    border-top: 1px solid var(--tear-divider);
+    background: var(--tear-surface-dim);
+    line-height: 1.45;
+    cursor: default;
+  }
+
+  & .items-wrap .cont-wrap .type {
+    width: 93px;
+    padding-left: var(--tear-space-3);
+  }
+
+  & .items-wrap :is(.actions-wrap, .bonuses-wrap) {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & .items-wrap :is(.actions-wrap, .bonuses-wrap) > li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 31px;
+    float: none;
+    border-left: 1px solid var(--tear-divider);
+  }
+
+  & .items-wrap .bonuses-wrap > li {
+    gap: 2px;
+    padding-inline: var(--tear-space-1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  & .items-wrap :is(.actions-wrap, .bonuses-wrap) > li.clear {
+    display: none;
+  }
+
+  & .items-wrap .actions-wrap .icon-h {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  & .items-wrap .actions-wrap .disabled > a {
+    display: none;
+  }
+
+  /* The label is for screen readers: the icon is the button. */
+  & .items-wrap .actions-wrap .opt-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* An item's info and its action forms open as a full-width row under it. */
+  & .items-wrap ul.items-cont > li:is(.show-item-info, .action-wrap, .thumbnail-actions) {
+    display: block;
+    flex-basis: 100%;
+    width: 100%;
+    padding: var(--tear-space-3);
+    background: var(--tear-surface-dim);
+    line-height: 1.45;
+    cursor: default;
+  }
+
+  & .items-wrap.thumbnails ul.items-cont {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  & .items-wrap.thumbnails :is(.title-wrap, .cont-wrap .bonuses, .cont-wrap .actions, .cont-wrap .type) {
+    display: none;
+  }
+
+  & .items-wrap.thumbnails ul.items-cont > li {
+    display: block;
+  }
+
+  & .items-wrap.thumbnails .thumbnail-wrap {
+    display: block;
+    padding: 9px 10px;
+  }
+
+  & .items-wrap.thumbnails .thumbnail {
+    position: relative;
+    width: 60px;
+    height: 30px;
+    cursor: pointer;
+  }
+
+  & .items-wrap.thumbnails .thumbnail :is(.item-plate, img) {
+    display: block;
+    width: 60px;
+    height: 30px;
+  }
+
+  & .items-wrap.thumbnails .thumbnail .item-amount {
+    position: absolute;
+    right: 0;
+    bottom: -4px;
+    color: var(--tear-text-strong);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 11px;
+  }
+
+  & .items-wrap.thumbnails .thumbnail .hover {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    display: none;
+    width: 64px;
+    height: 34px;
+    background: var(--tear-popup-bg);
+  }
+
+  & .items-wrap.thumbnails .thumbnail-wrap:is(:hover, .wai-hover) .hover {
+    display: flex;
+  }
+
+  & .items-wrap.thumbnails .thumbnail .hover :is(.item-info, .item-options) {
+    width: 32px;
+    height: 34px;
   }
 }
 }

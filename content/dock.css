@@ -14,7 +14,7 @@ html:not(.tear-enabled) :is([data-tear-grip], [data-tear-clone]) {
   right: var(--tear-dock-right, auto);
   bottom: 0;
   display: flex;
-  gap: 4px;
+  gap: 2px; /* Torn's chat bar gap */
 }
 
 /* A spacer, not padding: it adds to the room Torn leaves for its chat bar. */
@@ -36,7 +36,21 @@ body.body::after {
   background-image: linear-gradient(var(--button), color-mix(in srgb, var(--button), #000 55%));
   color: #fff;
   cursor: pointer;
-  box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.25), 0 -2px 4px rgba(0, 0, 0, 0.5);
+  /* The chat bar buttons' shadow, so the two rows read as one. Fallbacks: TEAR off. */
+  box-shadow: inset 0 1px 0 var(--tear-overlay, rgba(255, 255, 255, 0.05)), 0 -2px 6px var(--tear-shadow, rgba(0, 0, 0, 0.5));
+}
+
+/* Icons match the chat bar's: TEAR's text colour, with the cloned Torn gear's gradient overridden. */
+html.tear-enabled body.dark-mode #tear-dock > button {
+  color: var(--tear-text);
+}
+
+#tear-dock > button svg {
+  filter: none;
+}
+
+#tear-dock > button svg :is(path, circle, ellipse, rect, polygon, polyline, line, use):not([fill="none"]) {
+  fill: currentColor;
 }
 
 #tear-dock > [data-tear-info] {
@@ -46,6 +60,30 @@ body.body::after {
 #tear-dock > button:hover,
 #tear-dock > button[aria-expanded="true"] {
   filter: brightness(1.2);
+}
+
+/* The panels open above their buttons. Anchored, they follow the dock through resizes with no
+   script, and position-area keeps them on screen. Here, not in the shadow styles: the host is
+   in the page, and outer rules beat its :host { all: initial }. */
+#tear-dock > [data-tear-info] {
+  anchor-name: --tear-info-button;
+}
+
+#tear-dock > [data-tear-settings] {
+  anchor-name: --tear-settings-button;
+}
+
+#tear-info-host {
+  position-anchor: --tear-info-button;
+  position-area: top;
+  margin: 0 8px 6px;
+}
+
+/* Right edges aligned; the left margin only applies when the panel would run off screen. */
+#tear-settings-host {
+  position-anchor: --tear-settings-button;
+  position-area: top span-left;
+  margin: 0 0 6px 8px;
 }
 
 #tear-dock > button:focus-visible {

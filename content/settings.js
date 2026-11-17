@@ -169,61 +169,96 @@
     }
   }
 
-  const setVar = (name, value) => {
-    if (root.style.getPropertyValue(name) !== value) root.style.setProperty(name, value);
+  // On the dock, not <html>: a custom property set on the root restyles the whole page.
+  const setDockVar = (name, value) => {
+    if (dock.style.getPropertyValue(name) !== value) dock.style.setProperty(name, value);
   };
 
+  // Called from a ResizeObserver, after layout: the reads below cost nothing extra, and the
+  // dock moves in the same frame as the bar.
   function placeDock() {
-    if (!dock.isConnected) document.body.append(dock);
-    useTornGear();
-    const first = [...(document.querySelector("#chatRoot > div > div:last-child")?.children ?? [])].find((c) => c.offsetWidth > 2);
+    const first = watchedButtons.find((c) => c.offsetWidth > 2);
     if (first) {
-      setVar("--tear-dock-right", `${Math.max(8, innerWidth - first.getBoundingClientRect().left + 2)}px`);
-      setVar("--tear-dock-left", "auto");
+      // clientWidth, not innerWidth: fixed positions don't count the scrollbar.
+      const gap = parseFloat(getComputedStyle(first.parentElement).columnGap) || 0;
+      setDockVar("--tear-dock-right", `${Math.max(8, root.clientWidth - first.getBoundingClientRect().left + gap)}px`);
+      setDockVar("--tear-dock-left", "auto");
     } else {
-      setVar("--tear-dock-right", "auto");
-      setVar("--tear-dock-left", "8px");
+      setDockVar("--tear-dock-right", "auto");
+      setDockVar("--tear-dock-left", "8px");
     }
   }
 
-  // Torn's sidebar footer is desktop-only; this shows the same at every width. Torn City Time is UTC.
+  // The dock sits just left of Torn's chat bar. The bar spans the viewport, so its size changes
+  // on a resize; a button's size changes when it shows or hides; <html> covers the scrollbar.
+  const CHAT_BAR = "#chatRoot > div > div:last-child";
+  let watchedBar = null;
+  let watchedButtons = [];
+  const dockAnchors = new ResizeObserver(placeDock);
+  function watchChatBar() {
+    const bar = document.querySelector(CHAT_BAR);
+    const buttons = bar ? [...bar.children] : [];
+    if (bar === watchedBar && buttons.length === watchedButtons.length && buttons.every((b, i) => b === watchedButtons[i])) return;
+    dockAnchors.disconnect();
+    watchedBar = bar;
+    watchedButtons = buttons;
+    // Observing fires once straight away, which places the dock.
+    for (const el of [root, bar, ...buttons]) if (el) dockAnchors.observe(el);
+  }
+
+  function setUpDock() {
+    if (!dock.isConnected) document.body.append(dock);
+    useTornGear();
+    watchChatBar();
+  }
+
+  // Torn's sidebar footer is desktop-only; this shows the same at every width. Torn City is UTC.
 
   const infoHost = document.createElement("div");
   infoHost.id = "tear-info-host";
   const infoShadow = infoHost.attachShadow({ mode: "open" });
   infoShadow.adoptedStyleSheets = [TEAR.panelStyles];
   infoShadow.innerHTML = `
-    <section class="panel info" role="dialog" aria-label="Torn City info" tabindex="-1" hidden>
-      <p class="label">Torn City time</p>
-      <p class="clock"><time id="tct"></time></p>
-      <p class="date" id="tct-date"></p>
-      <p class="server">Server <span id="server">–</span></p>
+    <section class="panel info" role="dialog" aria-label="Torn City time and server" tabindex="-1" hidden>
+      <header>
+        <span>Torn City</span>
+        <a class="server" id="server" href="/usersonline.php" title="Server">–</a>
+      </header>
+      <div class="now">
+        <time class="clock" id="tct"><span id="tct-h"></span><span class="tick">:</span><span id="tct-m"></span></time>
+        <span class="date"><b id="tct-day"></b><span id="tct-month"></span></span>
+      </div>
     </section>`;
   const infoPanel = infoShadow.querySelector(".panel");
   const pad = (n) => String(n).padStart(2, "0");
   const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const setText = (id, text) => {
+    const el = infoShadow.getElementById(id);
+    if (el.textContent !== text) el.textContent = text;
+    return el;
+  };
 
   function renderInfo() {
     const now = new Date();
-    const tct = infoShadow.getElementById("tct");
-    tct.textContent = `${pad(now.getUTCHours())}:${pad(now.getUTCMinutes())}:${pad(now.getUTCSeconds())}`;
-    tct.dateTime = now.toISOString();
-    infoShadow.getElementById("tct-date").textContent =
-      `${DAYS[now.getUTCDay()]} ${pad(now.getUTCDate())}/${pad(now.getUTCMonth() + 1)}/${String(now.getUTCFullYear()).slice(2)}`;
+    infoShadow.getElementById("tct").dateTime = now.toISOString();
+    setText("tct-h", pad(now.getUTCHours()));
+    setText("tct-m", pad(now.getUTCMinutes()));
+    setText("tct-day", `${DAYS[now.getUTCDay()]} ${now.getUTCDate()}`);
+    setText("tct-month", `${MONTHS[now.getUTCMonth()]} ${now.getUTCFullYear()}`);
     const footer = document.querySelector(FOOTER)?.textContent.match(/Server:\s*(\S+)/)?.[1];
-    const menu = document.querySelector(".settings-menu .server-link")?.textContent.trim();
-    infoShadow.getElementById("server").textContent = footer || menu || "–";
+    const menuLink = document.querySelector(".settings-menu .server-link");
+    const server = setText("server", footer || menuLink?.textContent.trim() || "–");
+    if (menuLink?.href && server.href !== menuLink.href) server.href = menuLink.href;
   }
 
+  // Placed over the Info button by dock.css (anchor positioning), so it follows a resize on its own.
   let infoTimer = 0;
   const infoOpen = () => !infoPanel.hidden;
   function setInfo(open) {
     if (open === infoOpen()) return;
     if (open) {
       if (!infoHost.isConnected) document.body.append(infoHost);
-      const anchor = infoButton.getBoundingClientRect();
-      infoHost.style.setProperty("--right", `${Math.max(8, innerWidth - anchor.right)}px`);
-      infoHost.style.setProperty("--bottom", `${Math.max(8, innerHeight - anchor.top + 6)}px`);
       infoHost.dataset.mode = document.body.classList.contains("dark-mode") ? "dark" : "light";
       renderInfo();
       infoTimer = setInterval(renderInfo, 1000);
@@ -258,15 +293,15 @@
     }
   });
 
+  // Only finds the bar and its buttons: no layout is read here.
   let frame = 0;
   new MutationObserver(() => {
     frame ||= requestAnimationFrame(() => {
       frame = 0;
-      placeDock();
+      setUpDock();
     });
   }).observe(document.body, { childList: true, subtree: true });
-  addEventListener("resize", placeDock);
-  placeDock();
+  setUpDock();
 
   const host = document.createElement("div");
   host.id = "tear-settings-host";
@@ -276,12 +311,12 @@
     <section class="panel" role="dialog" aria-label="TEAR settings" hidden>
       <header>
         <h2>TEAR</h2>
+        <button type="button" class="power" id="power" title="Switches Torn's own stylesheets off so only TEAR's apply. Reloads Torn tabs. This browser only."></button>
         <button type="button" class="close" aria-label="Close">×</button>
       </header>
       <div class="tabs" role="tablist" aria-label="Settings">
         <button type="button" role="tab" id="tab-colors" aria-controls="pane-colors">Colors</button>
         <button type="button" role="tab" id="tab-type" aria-controls="pane-type">Typography</button>
-        <button type="button" role="tab" id="tab-dev" aria-controls="pane-dev">Dev</button>
       </div>
       <div class="pane" role="tabpanel" id="pane-colors" aria-labelledby="tab-colors">
         <label class="field mode">
@@ -300,14 +335,6 @@
         </label>
         <p class="sample" id="sample">The quick brown fox — 1,234,567</p>
       </div>
-      <div class="pane" role="tabpanel" id="pane-dev" aria-labelledby="tab-dev">
-        <label class="check">
-          <input type="checkbox" id="css-off">
-          <span>Disable Torn's CSS
-            <small>Switches off every stylesheet Torn loads, so only TEAR's styles apply. Torn's layout goes with it. This browser only.</small>
-          </span>
-        </label>
-      </div>
       <footer>
         <button type="button" class="reset" id="reset">Reset to default</button>
       </footer>
@@ -321,7 +348,12 @@
   fontSelect.append(...FONTS.map(({ label, value }) => new Option(label, value)));
 
   let activeTab = "tab-colors";
-  const cssOff = $("#css-off");
+  // TEAR is on while Torn's stylesheets are off; switching reloads every Torn tab.
+  const power = $("#power");
+  power.addEventListener("click", () => {
+    power.disabled = true;
+    setTornCssOff(!tornCssOff);
+  });
   let editMode = currentMode();
 
   const rows = new Map();
@@ -374,16 +406,15 @@
       if (range && shadow.activeElement !== range) range.value = String(parseInt(value.slice(7) || "ff", 16));
       row.classList.toggle("is-changed", isChanged(token, editMode));
     }
+    power.textContent = tornCssOff ? "Disable TEAR" : "Enable TEAR";
+    power.setAttribute("aria-pressed", String(tornCssOff));
     fontSelect.value = theme.fontFamily;
     $("#sample").style.fontFamily = theme.fontFamily || "inherit";
-
-    cssOff.checked = tornCssOff;
 
     const resetButton = $("#reset");
     const view = {
       "tab-colors": [COLOR_TOKENS.some((t) => isChanged(t, editMode)), `Reset ${editMode} colors to default`],
       "tab-type": [theme.fontFamily !== DEFAULT_THEME.fontFamily, "Reset font to default"],
-      "tab-dev": [tornCssOff, "Reset dev options"],
     }[activeTab];
     resetButton.hidden = !view[0];
     resetButton.textContent = view[1];
@@ -409,25 +440,16 @@
     render();
   });
   fontSelect.addEventListener("change", () => update({ ...theme, fontFamily: fontSelect.value }));
-  cssOff.addEventListener("change", () => setTornCssOff(cssOff.checked));
   $("#reset").addEventListener("click", () => {
     if (activeTab === "tab-colors") update({ ...theme, colors: { ...theme.colors, [editMode]: {} } });
     else if (activeTab === "tab-type") update({ ...theme, fontFamily: DEFAULT_THEME.fontFamily });
-    else setTornCssOff(false);
   });
-
-  function position() {
-    const anchor = settingsButton.getBoundingClientRect();
-    host.style.setProperty("--bottom", `${Math.max(8, innerHeight - anchor.top + 6)}px`);
-    host.style.setProperty("--right", `${Math.max(8, innerWidth - anchor.right)}px`);
-  }
 
   function open() {
     if (!host.isConnected) document.body.append(host);
     editMode = currentMode();
     panel.hidden = false;
     settingsButton.setAttribute("aria-expanded", "true");
-    position();
     render();
     shadow.getElementById(activeTab).focus();
   }
@@ -448,5 +470,4 @@
   addEventListener("pointerdown", (event) => {
     if (!panel.hidden && !event.composedPath().some((el) => el === host || el === settingsButton)) close();
   });
-  addEventListener("resize", () => panel.hidden || position());
 })();

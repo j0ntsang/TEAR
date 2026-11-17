@@ -13,7 +13,7 @@ It's cosmetic only. TEAR never submits or automates anything in the game. Its sc
 
 1. Open `chrome://extensions` and turn on **Developer mode** (top right).
 2. Click **Load unpacked** and choose this folder.
-3. Open or refresh torn.com. The info and settings buttons sit in the bottom right, left of the chat buttons. Turn TEAR on with settings → Dev → Disable Torn's CSS.
+3. Open or refresh torn.com. The info and settings buttons sit in the bottom right, left of the chat buttons. Turn TEAR on with the Enable TEAR button at the top of the settings panel.
 
 There's no build step: Chrome runs these files as they are.
 
@@ -39,6 +39,7 @@ CSS can't read the URL, text or numbers, so `content/main.js` stamps hooks the s
 | `data-tear-ring`, `--tear-pct` | sidebar bars | `energy`, `62.0` (fill %, from the `62 / 100` text) |
 | `data-tear-timer`, `--tear-timer` | sidebar bars | time left as a % of the regen tick |
 | `data-tear-full` | sidebar bars | bar at its maximum |
+| `data-tear-ring-armed` | sidebar bars | set a frame after the first fill paints; `--tear-pct` only transitions once armed |
 | `data-tear-stat` | stat rows | `money`, `level`, `points`, `merits` |
 | `--tear-len` | values | character count, for shrink-to-fit text |
 | `data-tear-state`, `data-tear-more` | Areas/Lists headings | `full`, `top`, `collapsed`; hidden-row count |
@@ -51,7 +52,9 @@ CSS can't read the URL, text or numbers, so `content/main.js` stamps hooks the s
 | `--tear-icon` | status icons | sprite cell |
 | `data-tear-logo`, `--tear-logo-*` | `html` | the logo for the player's state |
 | `data-tear-drawer-open` | `html` | the mobile navigation drawer is open |
+| `data-tear-mobile` | `html` | Torn renders its mobile sidebar (the stacked layout); set by `torn-css.js` |
 | `data-tear-chat-active`, `data-tear-chat-hidden` | chat items | the tabbed chat window |
+| `data-tear-chat-anchor` | active chat window | the chat tabs' CSS anchor |
 
 ## Making changes
 
@@ -70,7 +73,7 @@ Unit tests for `lib/model.js` use vitest (`lib/__tests__/`).
 | `sync` | `theme` | `{ fontFamily, colors: { light, dark } }`: only the colors changed from default |
 | `local` | `tornDefaults` | per mode, the colors Torn's own variables resolved to (shown as defaults) |
 | `local` | `sidebarOrder` | desktop sidebar section order |
-| `local` | `tornCssOff` | Dev tab: Torn's stylesheets switched off in this browser |
+| `local` | `tornCssOff` | Enable/Disable TEAR button: Torn's stylesheets switched off in this browser |
 | `local` | `sectionStates` | Areas/Lists heading → `full`, `top` or `collapsed` |
 | `local` | `tornAssets` | Torn image assets by name → URL (`--tear-asset-*`), saved once per page, capped at 3000 |
 | `session` (`sessionStorage`) | `tearActiveChat` | the active chat tab's title |
@@ -79,12 +82,13 @@ Unit tests for `lib/model.js` use vitest (`lib/__tests__/`).
 
 ```
 manifest.json
+background.js        service worker: keeps Torn's stylesheets from downloading while TEAR is on
 dev-reload.js        hot reload for unpacked installs
 lib/model.js         color tokens, theme defaults, validation, storage, slug/page helpers
 content/assets.css   Torn's image assets as --tear-asset-* variables
 content/content.css  the stylesheet (under html.tear-enabled)
 content/dock.css     always on: the dock buttons, their size tokens, the room under the page
-content/torn-css.js  Dev tab: disables Torn's stylesheets (document_start) and brings back its sprite and icon rules
+content/torn-css.js  Enable TEAR: disables Torn's stylesheets (document_start) and brings back its sprite and icon rules, from cached copies
 content/main.js      stamps the hooks above; sidebar dragging; chat tabs (only when TEAR is enabled)
 content/settings.js  dock, info popup and settings panel; applies the theme
 content/panel-styles.js the settings and info panels' styles, adopted by their shadow roots (no web-accessible files)
