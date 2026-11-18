@@ -1,0 +1,942 @@
+/* Loadouts: Items › loadouts, cover flow. Applies while the Features tab has it on: torn-css.js sets .tear-f-loadouts on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+/* Layout Torn's CSS provided. A layer, so TEAR's own unlayered rules always win; tear-pages sits
+   above tear-structure (assets.css), so this page wins over the shared widgets and panels. */
+
+@layer tear-pages {
+html.tear-enabled:where(.tear-f-loadouts) {
+  /* Items › loadouts: the model crop, the selected item, and the equipped grid, in one row. */
+  /* Not overflow: hidden, which would clip the full-size model: the header rounds its own corners. */
+  & #loadoutsRoot [class^="main___"] {
+    width: 100%;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background: var(--tear-panel-bg);
+  }
+
+  & #loadoutsRoot [class^="main___"] > header[class^="header___"] {
+    display: flex;
+    align-items: center;
+    height: 2.125rem;
+    border-bottom: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius) var(--tear-radius) 0 0;
+    background: var(--tear-surface-dim);
+  }
+
+  & #loadoutsRoot [class^="main___"] > header[class^="header___"] [class^="title___"] {
+    margin: 0 0 0 var(--tear-space-3);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--tear-text-strong);
+    font-weight: 600;
+  }
+
+  & #loadoutsRoot [class^="icons___"] {
+    display: flex;
+    margin-left: auto;
+  }
+
+  & #loadoutsRoot [data-tear-loadout-view] + [class^="icons___"] {
+    margin-left: 0;
+  }
+
+  /* main.js's view switcher, before Torn's buttons; it pushes them right. */
+  & #loadoutsRoot [data-tear-loadout-view] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    margin-left: auto;
+    border-left: 1px solid var(--tear-line);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot [data-tear-loadout-view]:is(:hover, :focus-visible) {
+    background-color: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  & #loadoutsRoot [data-tear-loadout-view][aria-pressed="true"] {
+    background-color: var(--tear-nav-active);
+    color: var(--tear-accent);
+  }
+
+  & #loadoutsRoot [class^="icons___"] > button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    height: 2.125rem;
+    border-left: 1px solid var(--tear-line);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot [class^="icons___"] > button[class*=" setsIcon___"] {
+    width: auto;
+    min-width: calc(2.125rem + 2 * var(--tear-space-2));
+    padding-inline: var(--tear-space-2);
+    background-origin: content-box;
+    background-clip: content-box;
+  }
+
+  & #loadoutsRoot [class^="icons___"] > button:hover {
+    background-color: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  & #loadoutsRoot [class^="currentSlot___"] {
+    display: flex;
+    min-height: 8.25rem;
+  }
+
+  /* Loadouts list (Torn's Loadouts button): the saved sets as cards, as many to a row as fit. */
+  & #loadoutsRoot [class^="main___"]:has([class^="slots___"]) [data-tear-loadout-view] {
+    display: none;
+  }
+
+  & #loadoutsRoot [class^="main___"]:has([class^="slots___"]) [data-tear-loadout-view] + [class^="icons___"] {
+    margin-left: auto;
+  }
+
+  & #loadoutsRoot ul[class^="slots___"] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+    gap: var(--tear-space-3);
+    margin: 0;
+    padding: var(--tear-space-3);
+    list-style: none;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background-color: var(--tear-surface);
+  }
+
+  & #loadoutsRoot li[class^="slot___"][class*=" current___"] {
+    border-color: var(--tear-accent);
+    box-shadow: 0 0 0 1px var(--tear-accent);
+  }
+
+  & #loadoutsRoot li[class^="slot___"] > header[class^="header___"] {
+    display: flex;
+    align-items: center;
+    height: 2.125rem;
+    border-bottom: 1px solid var(--tear-line);
+    background-color: var(--tear-surface-dim);
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="titleContainer___"] {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    align-self: stretch;
+    min-width: 0;
+    padding-left: var(--tear-space-3);
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="titleContainer___"] [class^="title___"] {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--tear-text-strong);
+    font-weight: 600;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="titleContainer___"]:hover [class^="title___"] {
+    color: var(--tear-link);
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="editButton___"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    align-self: stretch;
+    margin-left: auto;
+    padding-inline: var(--tear-space-2);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="buttons___"] {
+    display: flex;
+    flex: none;
+    align-self: stretch;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class^="buttons___"] > button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    border-left: 1px solid var(--tear-line);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] :is([class^="editButton___"], [class^="buttons___"] > button):is(:hover, :focus-visible) {
+    background-color: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  & #loadoutsRoot li[class^="slot___"] svg[class*=" disabled___"] {
+    opacity: 0.3;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] [class*=" disabled___"] {
+    cursor: default;
+  }
+
+  & #loadoutsRoot li[class^="slot___"] > section[class^="body___"] {
+    flex: 1 1 auto;
+    padding: var(--tear-space-3);
+  }
+
+  & #loadoutsRoot ul[class^="slotItems___"] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr));
+    gap: var(--tear-space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & #loadoutsRoot li[class^="slotItem___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 1.75rem;
+    border: 1px solid var(--tear-divider);
+    border-radius: 4px;
+    background-color: var(--tear-panel-bg);
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot li[class^="slotItem___"] img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    max-height: 1.375rem;
+  }
+
+  & #loadoutsRoot li[class^="slotItem___"] [class^="glowBox___"] {
+    padding: 2px;
+  }
+
+  & #loadoutsRoot [class^="extraCount___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--tear-muted);
+    font-size: var(--tear-fs-label);
+    font-weight: 700;
+    cursor: default;
+  }
+
+  & #loadoutsRoot [class^="cell___"] {
+    position: relative;
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+  }
+
+  & #loadoutsRoot [class^="cell___"]:not(:last-child) {
+    border-right: 1px solid var(--tear-line);
+  }
+
+  & #loadoutsRoot [class*=" modelContainer___"] {
+    width: 174px;
+  }
+
+  /* A 150 × 112 window onto the 423px model, which Torn centres and lifts to show head and torso. */
+  & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] {
+    position: relative;
+    z-index: 10;
+    width: 150px;
+    height: 112px;
+  }
+
+  & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] > [class^="model___"] {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+    border: 2px solid var(--tear-surface);
+    box-shadow: 0 0 2px var(--tear-shadow), inset 0 0 2px var(--tear-shadow);
+    cursor: pointer;
+  }
+
+  /* Clicking the crop opens the whole character: a 244 × 388 card centred over it (Torn's size). */
+  & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] > [class*=" isFullSize___"] {
+    inset: -6px auto auto 50%;
+    width: 244px;
+    height: 388px;
+    translate: -50% 0;
+    border-radius: var(--tear-radius);
+    box-shadow: 0 8px 28px var(--tear-shadow), 0 0 0 1px var(--tear-line);
+  }
+
+  & #loadoutsRoot [class*=" isFullSize___"] [class^="modelWrap___"][class*=" userModel___"] {
+    top: -19px;
+  }
+
+  & #loadoutsRoot [class^="modelWrap___"] {
+    position: relative;
+    left: 50%;
+    box-sizing: border-box;
+    width: 423px;
+    height: 423px;
+    overflow: hidden;
+    translate: -50% 0;
+  }
+
+  & #loadoutsRoot [class^="modelWrap___"][class*=" userModel___"] {
+    position: absolute;
+    top: -25px;
+  }
+
+  /* The model stands on Torn's backdrop (torn-css.js skips background images); the surface shows
+     until it loads. */
+  & #loadoutsRoot [class^="modelWrap___"] {
+    background: var(--tear-surface) 50% 5px no-repeat;
+    background-image: image-set(
+      url("https://www.torn.com/images/v2/user_model/background/bg-light.webp") 1x,
+      url("https://www.torn.com/images/v2/user_model/background/bg-light@2x.webp") 2x,
+      url("https://www.torn.com/images/v2/user_model/background/bg-light@3x.webp") 3x
+    );
+  }
+
+  & body.dark-mode #loadoutsRoot [class^="modelWrap___"] {
+    background-image: image-set(
+      url("https://www.torn.com/images/v2/user_model/background/bg-dark.webp") 1x,
+      url("https://www.torn.com/images/v2/user_model/background/bg-dark@2x.webp") 2x,
+      url("https://www.torn.com/images/v2/user_model/background/bg-dark@3x.webp") 3x
+    );
+  }
+
+  & #loadoutsRoot [class^="modelLayers___"] {
+    position: absolute;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 240px;
+    height: inherit;
+    margin: auto;
+  }
+
+  & #loadoutsRoot [class^="modelLayers___"] > [class^="model___"] {
+    position: absolute;
+    z-index: 2;
+    width: inherit;
+    height: 386px;
+  }
+
+  & #loadoutsRoot [class^="armoursWrap___"] {
+    position: absolute;
+    width: inherit;
+    height: 386px;
+    pointer-events: none;
+  }
+
+  & #loadoutsRoot [class^="armoursWrap___"] :is([class^="armour___"], [class^="mask___"], [class^="hairMask___"], [class^="background___"]) {
+    position: absolute;
+    z-index: 3;
+  }
+
+  & #loadoutsRoot [class^="armoursWrap___"] [class^="background___"] {
+    z-index: 0;
+  }
+
+  & #loadoutsRoot [class^="modelLayers___"] img {
+    position: relative;
+    display: block;
+    width: 240px;
+    max-width: none;
+    height: auto;
+  }
+
+  & #loadoutsRoot [class^="rightPanel___"] {
+    display: flex;
+    flex: 1 1 0;
+    align-items: stretch;
+    min-width: 0;
+  }
+
+  & #loadoutsRoot [class*=" itemReviewContainer___"] {
+    width: 182px;
+  }
+
+  & #loadoutsRoot [class^="itemReview___"] {
+    position: relative;
+    box-sizing: border-box;
+    width: 159px;
+    height: 112px;
+  }
+
+  & #loadoutsRoot [class^="itemReview___"] > [class^="type___"] {
+    position: absolute;
+    top: 0;
+    left: calc(50% - 32px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 16px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  & #loadoutsRoot :is([class^="arrowLeft___"], [class^="arrowRight___"]) {
+    position: absolute;
+    top: calc(50% - 15px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot [class^="arrowLeft___"] { left: 2px; }
+  & #loadoutsRoot [class^="arrowRight___"] { right: 2px; }
+  & #loadoutsRoot [class^="arrowRight___"] svg { scale: -1; }
+
+  & #loadoutsRoot [class^="itemReview___"] > img {
+    position: absolute;
+    top: calc(50% - 25px);
+    left: calc(50% - 50px);
+    width: 100px;
+    height: 50px;
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot :is([class*=" bonusWeapon0___"], [class*=" bonusWeapon1___"], [class^="upgrade0___"], [class^="upgrade1___"]) {
+    position: absolute;
+    top: 3px;
+  }
+
+  & #loadoutsRoot [class*=" bonusWeapon0___"] { right: 27px; }
+  & #loadoutsRoot [class*=" bonusWeapon1___"] { right: 10px; }
+  & #loadoutsRoot [class^="upgrade0___"] { left: 10px; }
+  & #loadoutsRoot [class^="upgrade1___"] { left: 27px; }
+
+  & #loadoutsRoot [class^="upgrade0___"],
+  & #loadoutsRoot [class^="upgrade1___"] {
+    width: 11px;
+    height: 11px;
+  }
+
+  & #loadoutsRoot [class^="itemAbility___"] {
+    position: absolute;
+    bottom: 2px;
+    display: flex;
+    align-items: flex-end;
+    font-size: 0.6875rem;
+  }
+
+  & #loadoutsRoot [class^="itemAbility___"][class*=" damage___"] { left: 4px; }
+  & #loadoutsRoot [class^="itemAbility___"][class*=" accuracy___"] { left: 112px; }
+
+  & #loadoutsRoot [class^="defencePanel___"] {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 155px;
+    height: 1.25rem;
+    font-size: 0.6875rem;
+  }
+
+  & #loadoutsRoot [class^="defencePanel___"] > * {
+    position: absolute;
+    top: 5px;
+  }
+
+  & #loadoutsRoot [class^="defencePanel___"] [class^="armor___"] {
+    display: flex;
+    align-items: flex-end;
+    left: 18px;
+  }
+
+  & #loadoutsRoot [class^="defencePanel___"] :is([class^="bonusDefence0___"], [class*=" bonusDefence0___"]) { left: 102px; }
+  & #loadoutsRoot [class^="defencePanel___"] :is([class^="bonusDefence1___"], [class*=" bonusDefence1___"]) { left: 120px; }
+
+  & #loadoutsRoot [class^="accuracyBonusIcon___"] {
+    display: block;
+    width: 11px;
+    height: 11px;
+    margin-right: 1px;
+    background-repeat: no-repeat;
+  }
+
+  & #loadoutsRoot [class^="ammo___"] {
+    position: absolute;
+    bottom: 0;
+    left: calc(50% - 31px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 62px;
+    height: 16px;
+    font-size: 0.6875rem;
+    cursor: pointer;
+  }
+
+  & #loadoutsRoot [class*=" itemsContainer___"] {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: var(--tear-space-3);
+  }
+
+  & #loadoutsRoot [class^="items___"] {
+    width: 100%;
+  }
+
+  /* Tiles that fill the width, as many to a row as fit. */
+  & #loadoutsRoot [class^="equippedItems___"] {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+    gap: var(--tear-space-2);
+  }
+
+  & #loadoutsRoot [class^="itemWrapper___"] {
+    display: flex;
+    width: 100%;
+    height: 2.5rem;
+  }
+
+  & #loadoutsRoot [class^="item___"] {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius-sm);
+    background-color: var(--tear-surface);
+    cursor: pointer;
+    transition: border-color 0.15s, background-color 0.15s;
+  }
+
+  & #loadoutsRoot [class^="item___"]:is(:hover, :focus-visible) {
+    border-color: color-mix(in srgb, var(--tear-accent) 50%, var(--tear-line));
+    background-color: var(--tear-surface-hover);
+  }
+
+  & #loadoutsRoot [class^="itemWrapper___"][class*=" active___"] [class^="item___"] {
+    border-color: var(--tear-accent);
+    box-shadow: 0 0 0 1px var(--tear-accent);
+  }
+
+  & #loadoutsRoot [class^="glowBox___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  & #loadoutsRoot [class^="glowBox___"] img {
+    display: block;
+    width: 60px;
+    height: 30px;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="currentSlot___"] {
+    gap: var(--tear-space-4);
+    padding: var(--tear-space-4);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="cell___"]:not(:last-child) {
+    border-right: 0;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" modelContainer___"] {
+    width: auto;
+    align-items: flex-start;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" modelContainer___"] > [class^="model___"] {
+    width: 244px;
+    height: 388px;
+  }
+
+  /* Always the whole character, whichever state Torn's open/close click left it in. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" modelContainer___"] > [class^="model___"] > [class^="model___"] {
+    inset: 0;
+    width: auto;
+    height: auto;
+    translate: none;
+    border-radius: var(--tear-radius);
+    box-shadow: 0 0 0 1px var(--tear-line);
+    cursor: default;
+    pointer-events: none;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="modelWrap___"][class*=" userModel___"] {
+    top: -19px;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="rightPanel___"] {
+    flex-direction: column;
+    gap: var(--tear-space-3);
+  }
+
+  /* The items take the rows they need; the cover flow above stretches into the rest. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" itemReviewContainer___"] {
+    width: auto;
+    flex: 1 1 auto;
+    align-items: stretch;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" itemsContainer___"] {
+    flex: none;
+    align-items: flex-start;
+    padding: 0;
+  }
+
+  /* The selected item as a card: its controls gathered round the centred image, not the corners. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] {
+    width: 100%;
+    height: 10rem;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background-color: var(--tear-surface);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] > [class^="type___"] {
+    top: var(--tear-space-3);
+    left: 50%;
+    width: auto;
+    translate: -50% 0;
+    color: var(--tear-muted);
+    font-size: var(--tear-fs-caption);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="arrowLeft___"] { left: calc(50% - 150px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="arrowRight___"] { right: calc(50% - 150px); }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] :is([class*=" bonusWeapon0___"], [class*=" bonusWeapon1___"], [class^="upgrade0___"], [class^="upgrade1___"]) {
+    top: var(--tear-space-3);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="upgrade0___"] { left: calc(50% - 128px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="upgrade1___"] { left: calc(50% - 111px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" bonusWeapon0___"] { right: calc(50% - 111px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" bonusWeapon1___"] { right: calc(50% - 128px); }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemAbility___"] {
+    bottom: var(--tear-space-3);
+    left: calc(50% - 128px);
+    font-size: var(--tear-fs-label);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="defencePanel___"] {
+    bottom: var(--tear-space-3);
+    left: calc(50% - 128px);
+    width: 256px;
+    font-size: var(--tear-fs-label);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="defencePanel___"] [class^="armor___"] { left: 0; }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="defencePanel___"] :is([class^="bonusDefence0___"], [class*=" bonusDefence0___"]) { right: 17px; left: auto; }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="defencePanel___"] :is([class^="bonusDefence1___"], [class*=" bonusDefence1___"]) { right: 0; left: auto; }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemAbility___"][class*=" damage___"] { left: calc(50% - 128px); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemAbility___"][class*=" accuracy___"] { right: calc(50% - 128px); left: auto; }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="ammo___"] {
+    bottom: var(--tear-space-3);
+    font-size: var(--tear-fs-label);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="equippedItems___"] {
+    grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemWrapper___"] {
+    height: 3.25rem;
+  }
+
+  @media (max-width: 784px) {
+    & #loadoutsRoot [class^="currentSlot___"] {
+      height: auto;
+    }
+
+    & #loadoutsRoot [class^="rightPanel___"] {
+      flex-direction: column;
+      width: 193px;
+    }
+
+    & #loadoutsRoot [class^="rightPanel___"] [class^="cell___"] {
+      border-right: 0;
+    }
+
+    & #loadoutsRoot [class*=" modelContainer___"],
+    & #loadoutsRoot [class*=" itemReviewContainer___"],
+    & #loadoutsRoot [class*=" itemsContainer___"] {
+      width: 193px;
+    }
+
+    & #loadoutsRoot [class*=" itemReviewContainer___"] {
+      height: 100px;
+    }
+
+    & #loadoutsRoot [class*=" itemsContainer___"] {
+      height: auto;
+      padding-block: var(--tear-space-2);
+    }
+
+    & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] {
+      width: 158px;
+      height: 213px;
+    }
+
+    & #loadoutsRoot [class^="modelWrap___"][class*=" userModel___"] {
+      top: -105px;
+      scale: 0.568;
+    }
+
+    & #loadoutsRoot [class*=" isFullSize___"] [class^="modelWrap___"][class*=" userModel___"] {
+      top: -18px;
+      scale: 1;
+    }
+
+    & #loadoutsRoot [class^="equippedItems___"] {
+      grid-template-columns: repeat(4, 38px);
+      gap: 3px 2px;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="currentSlot___"] {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] :is([class^="rightPanel___"], [class*=" itemReviewContainer___"], [class*=" itemsContainer___"]) {
+      width: 100%;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="modelWrap___"][class*=" userModel___"] {
+      top: -18px;
+      scale: 1;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="equippedItems___"] {
+      grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
+      gap: var(--tear-space-2);
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemWrapper___"] {
+      width: 100%;
+      height: 2.5rem;
+    }
+
+    & #loadoutsRoot[data-tear-loadout="expanded"] [class^="glowBox___"] img {
+      width: 60px;
+      height: 30px;
+    }
+
+    & #loadoutsRoot [class^="itemWrapper___"],
+    & #loadoutsRoot [class^="glowBox___"] img {
+      width: 38px;
+      height: 19px;
+    }
+  }
+
+  /* Loadouts, game-UI pass: slots are recessed wells (the sidebar readouts' LCD vocabulary), the
+     selection glows, stats read as lit LCD values. Same selectors as above, so these win. */
+  & #loadoutsRoot {
+    --slot-well: inset 0 1px 3px var(--tear-lcd-bezel), 0 1px 0 var(--tear-groove-light);
+    --slot-glow: 0 0 0 1px var(--tear-accent), 0 0 12px color-mix(in srgb, var(--tear-accent) 45%, transparent);
+  }
+
+  & #loadoutsRoot [class^="main___"] > header[class^="header___"] [class^="title___"],
+  & #loadoutsRoot li[class^="slot___"] [class^="titleContainer___"] [class^="title___"] {
+    font-size: var(--tear-fs-label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  & #loadoutsRoot :is([class^="item___"], li[class^="slotItem___"]) {
+    border-color: transparent;
+    background-color: var(--tear-lcd-bg);
+    box-shadow: var(--slot-well);
+  }
+
+  & #loadoutsRoot :is([class^="item___"], li[class^="slotItem___"]):is(:hover, :focus-visible) {
+    border-color: color-mix(in srgb, var(--tear-accent) 55%, transparent);
+    background-color: var(--tear-lcd-bg);
+    box-shadow: var(--slot-well), 0 0 8px color-mix(in srgb, var(--tear-accent) 25%, transparent);
+  }
+
+  & #loadoutsRoot [class^="itemWrapper___"][class*=" active___"] [class^="item___"] {
+    border-color: var(--tear-accent);
+    box-shadow: var(--slot-well), var(--slot-glow);
+  }
+
+  /* The character in a framed bay, darkened towards its edges. */
+  & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] > [class^="model___"] {
+    border-color: var(--tear-surface-sunk);
+    box-shadow: inset 0 0 24px rgb(0 0 0 / 0.18), 0 1px 0 var(--tear-groove-light);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class*=" modelContainer___"] > [class^="model___"] > [class^="model___"] {
+    border: 1px solid var(--tear-line);
+    box-shadow: inset 0 0 40px rgb(0 0 0 / 0.22), 0 1px 0 var(--tear-groove-light);
+  }
+
+  /* The selected item under a spotlight in a recessed inspector. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] {
+    border-color: transparent;
+    background:
+      radial-gradient(ellipse 55% 70% at 50% 50%, color-mix(in srgb, var(--tear-accent) 14%, transparent), transparent 70%),
+      var(--tear-lcd-bg);
+    box-shadow: var(--slot-well);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] > [class^="type___"] {
+    color: var(--tear-accent);
+    font-weight: 700;
+    letter-spacing: 0.18em;
+  }
+
+  & #loadoutsRoot :is([class^="itemAbility___"], [class^="defencePanel___"] [class^="armor___"]) {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--stat-ink, var(--tear-text));
+    text-shadow: var(--tear-lcd-glow) color-mix(in srgb, var(--stat-ink, transparent) 60%, transparent);
+  }
+
+  & #loadoutsRoot [class^="itemAbility___"][class*=" damage___"] { --stat-ink: color-mix(in srgb, #e5534b, var(--tear-lcd-mix)); }
+  & #loadoutsRoot [class^="itemAbility___"][class*=" accuracy___"] { --stat-ink: color-mix(in srgb, #4ea1e8, var(--tear-lcd-mix)); }
+  & #loadoutsRoot [class^="defencePanel___"] [class^="armor___"] { --stat-ink: color-mix(in srgb, var(--tear-gold), var(--tear-lcd-mix)); }
+
+  & #loadoutsRoot [class^="ammo___"] {
+    color: var(--tear-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Cover flow (main.js, expanded view): the selected item flat and large at the centre, its
+     neighbours turned away in perspective, shrinking and dimming, with a floor reflection. Each item
+     sits by its distance from the selection, so selecting another slides the whole strip. */
+  & #loadoutsRoot [data-tear-coverflow] {
+    display: none;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] {
+    height: auto;
+    min-height: 13rem;
+    overflow: hidden;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] {
+    position: absolute;
+    inset: 0;
+    display: block;
+    container-type: inline-size;
+    perspective: 900px;
+    pointer-events: none;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] > img {
+    position: absolute;
+    /* The first step clears the centre item; the side items then close up, all spread with the
+       card's width. */
+    --first: clamp(150px, 32cqw, 240px);
+    --step: clamp(80px, 16cqw, 120px);
+    top: calc(50% - 75px);
+    left: calc(50% - 130px);
+    z-index: calc(10 - var(--dist));
+    width: 260px;
+    height: 130px;
+    max-width: none;
+    opacity: clamp(0, 3 - var(--dist), 1);
+    transform:
+      translateX(calc(var(--side) * (min(var(--dist), 1) * var(--first) + max(var(--dist) - 1, 0) * var(--step))))
+      rotateY(calc(var(--side) * -30deg))
+      scale(calc(1 - min(var(--dist), 1) * 0.45));
+    filter: brightness(calc(1 - min(var(--dist), 1) * 0.3));
+    -webkit-box-reflect: below 2px linear-gradient(transparent 62%, rgb(255 255 255 / 0.2));
+    pointer-events: auto;
+    cursor: pointer;
+    transition:
+      transform 0.4s var(--tear-ease-out),
+      opacity 0.4s var(--tear-ease-out),
+      filter 0.4s var(--tear-ease-out);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] > img[data-dist="0"] {
+    filter: drop-shadow(0 8px 14px rgb(0 0 0 / 0.3));
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] > img:not([data-dist="0"], [data-dist="1"], [data-dist="2"]) {
+    pointer-events: none;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [data-tear-coverflow] > img:not([data-dist="0"]):hover {
+    filter: brightness(0.95);
+  }
+
+  /* Torn's own image hides behind the flow's centre, which forwards its clicks. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"]:has([data-tear-coverflow] > img) > img {
+    visibility: hidden;
+  }
+
+  /* Controls and stats above the strip; the arrows at the card's edges. */
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] > :not([data-tear-coverflow], img) {
+    z-index: 20;
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="arrowLeft___"] { left: var(--tear-space-2); }
+  & #loadoutsRoot[data-tear-loadout="expanded"] [class^="arrowRight___"] { right: var(--tear-space-2); }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] :is([class^="arrowLeft___"], [class^="arrowRight___"]) {
+    top: calc(50% - 24px);
+    width: 2rem;
+    height: 3rem;
+    border-radius: var(--tear-radius-sm);
+  }
+
+  & #loadoutsRoot[data-tear-loadout="expanded"] :is([class^="arrowLeft___"], [class^="arrowRight___"]):hover {
+    background-color: var(--tear-overlay);
+  }
+
+  /* Saved sets as save slots: the current one lit. */
+  & #loadoutsRoot li[class^="slot___"] {
+    border-color: var(--tear-line);
+    background-color: var(--tear-surface);
+    box-shadow: 0 1px 0 var(--tear-groove-light);
+  }
+
+  & #loadoutsRoot li[class^="slot___"][class*=" current___"] {
+    border-color: var(--tear-accent);
+    box-shadow: var(--slot-glow);
+  }
+
+  & #loadoutsRoot li[class^="slot___"][class*=" current___"] > header[class^="header___"] {
+    background-color: color-mix(in srgb, var(--tear-accent) 14%, var(--tear-surface-dim));
+  }
+}
+}

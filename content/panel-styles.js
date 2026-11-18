@@ -13,7 +13,7 @@ TEAR.panelStyles.replaceSync(`
   all: initial;
   /* Placed over its dock button by dock.css: anchor names are matched in the page's scope. */
   position: fixed;
-  z-index: 2147483000;
+  z-index: 2147483645;
   color-scheme: light;
 }
 
@@ -35,8 +35,9 @@ TEAR.panelStyles.replaceSync(`
 .panel {
   display: flex;
   flex-direction: column;
-  width: 300px;
-  max-height: min(70vh, 560px);
+  /* From the Settings tab's sliders, set on the host; never past the window. */
+  width: min(var(--panel-w, 340px), calc(100vw - 16px));
+  height: min(var(--panel-h, 560px), calc(100vh - 64px));
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--bg);
@@ -93,12 +94,120 @@ h2 {
   letter-spacing: 0.08em;
 }
 
+/* Sections: each context is a boxed block with a title band, so groups never run together. */
+.group {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.group + .group,
+#features > .group + .group,
+#features {
+  margin-top: 12px;
+}
+
+.group > :not(.group-head) {
+  margin-inline: 10px;
+}
+
+.group > :last-child {
+  margin-bottom: 10px;
+}
+
+.group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 30px;
+  margin-bottom: 6px;
+  padding: 4px 6px 4px 10px;
+  border-bottom: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg));
+}
+
 h3 {
-  margin: 12px 0 4px;
+  margin: 0;
+  color: var(--fg);
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* A sub-group inside a section (colour groups): a quieter heading with a rule under it. */
+h4 {
+  margin: 14px 10px 4px;
+  padding-bottom: 3px;
+  border-bottom: 1px dashed var(--line);
   color: var(--muted);
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.group-reset {
+  padding: 2px 8px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 11px;
+}
+
+.group-reset:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.slider {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) 3.5rem;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+
+.slider input {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.slider output {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.hint {
+  margin-block: 4px 8px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.group.danger .group-head {
+  border-left-color: #c62828;
+  background: color-mix(in srgb, #c62828 10%, var(--bg));
+}
+
+.reset-all {
+  width: calc(100% - 20px);
+  padding: 7px 10px;
+  border: 1px solid #c62828;
+  border-radius: 4px;
+  background: transparent;
+  color: #e53935;
+  font-weight: bold;
+}
+
+.reset-all:hover,
+.reset-all.armed {
+  background: #c62828;
+  color: #fff;
 }
 
 button,
@@ -206,7 +315,7 @@ button {
   min-height: 0;
   overflow-y: auto;
   padding: 10px 12px 12px;
-  background: var(--surface);
+  background: var(--bg);
 }
 
 .field {
@@ -300,26 +409,110 @@ input[type="range"] {
   border-radius: 6px;
 }
 
-footer {
-  padding: 8px 12px;
-  border-top: 1px solid var(--line);
-}
-
-footer:has(.reset[hidden]) {
-  display: none;
-}
-
-.reset {
-  width: 100%;
-  padding: 6px 10px;
-  border: 1px solid var(--accent);
+.notice {
+  margin: 0 0 8px;
+  padding: 6px 8px;
   border-radius: 4px;
-  background: transparent;
-  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  font-size: 12px;
 }
 
-.reset:hover {
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+.bulk {
+  display: flex;
+  gap: 6px;
+}
+
+.bulk button {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg);
+  font-size: 12px;
+}
+
+.bulk button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fg) 8%, var(--bg));
+}
+
+.bulk button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.feature {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.feature + .feature {
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.feature-label {
+  font-weight: 600;
+}
+
+.feature-desc,
+.feature-note {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.feature-note {
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.switch {
+  flex: none;
+  position: relative;
+  width: 30px;
+  height: 18px;
+  margin-top: 1px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+  transition: background-color 120ms;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: translate 120ms;
+}
+
+.switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.switch[aria-checked="true"] {
+  background: var(--accent);
+}
+
+.switch[aria-checked="true"]::after {
+  translate: 12px 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switch,
+  .switch::after {
+    transition: none;
+  }
 }
 
 .panel.info {

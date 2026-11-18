@@ -1,0 +1,783 @@
+/* Shared widgets: tooltips, app headers, data grids, info messages, pagination, user lists. Applies while the Features tab has it on: torn-css.js sets .tear-f-widgets on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+/* Layout Torn's CSS provided. A layer, so TEAR's own unlayered rules always win. */
+
+@layer tear-structure {
+html.tear-enabled:where(.tear-f-widgets) {
+  /* Torn's responsive helpers: hidden on desktop (785px+), tablet (387–784px) or mobile. */
+  @media (min-width: 785px) {
+    & .d-hide { display: none; }
+  }
+
+  @media (min-width: 387px) and (max-width: 784px) {
+    & .t-hide { display: none; }
+  }
+
+  @media (max-width: 386px) {
+    & .m-hide { display: none; }
+  }
+
+  /* jQuery UI's live region for tooltip text: read, never shown. */
+  & .ui-helper-hidden-accessible {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Tooltips: jQuery UI's, from title attributes across the legacy pages. Torn's CSS made them
+     absolute; without it jQuery falls back to relative and they land at the end of the page. */
+  & .ui-tooltip {
+    position: absolute;
+    z-index: var(--tear-z-tooltip);
+    max-width: 22.5rem;
+    border: 1px solid var(--tear-popout-border);
+    border-radius: var(--tear-popout-radius);
+    background: var(--tear-popup-bg);
+    color: var(--tear-text);
+    box-shadow: 0 4px 14px var(--tear-shadow);
+    font-size: var(--tear-fs-label);
+    line-height: 1.35;
+    text-align: left;
+    overflow-wrap: break-word;
+  }
+
+  & .ui-tooltip .ui-tooltip-content {
+    min-width: 1rem;
+    padding: var(--tear-space-2);
+  }
+
+  & .ui-tooltip.text-a-center .ui-tooltip-content {
+    text-align: center;
+  }
+
+  & .ui-tooltip :is(b, strong) {
+    color: var(--tear-text-strong);
+    font-weight: 700;
+  }
+
+  /* A square turned 45°, bordered on its two outer sides so the outline runs on round the point. */
+  & .ui-tooltip .tooltip-arrow {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    translate: -50% 0;
+    rotate: 45deg;
+    border: 0 solid var(--tear-popout-border);
+    border-width: 0 1px 1px 0;
+    background: var(--tear-popup-bg);
+    pointer-events: none;
+  }
+
+  & .ui-tooltip .tooltip-arrow.top {
+    top: -5px;
+    bottom: auto;
+    border-width: 1px 0 0 1px;
+  }
+
+  & .ui-tooltip .tooltip-arrow.middle {
+    top: 50%;
+    bottom: auto;
+    translate: 0 -50%;
+  }
+
+  & .ui-tooltip .tooltip-arrow.middle.left {
+    left: -5px;
+    border-width: 0 0 1px 1px;
+  }
+
+  & .ui-tooltip .tooltip-arrow.middle.right {
+    right: -5px;
+    left: auto;
+    border-width: 1px 1px 0 0;
+  }
+
+  /* Tooltips on Torn's React pages: Floating UI portals them to <body> and positions them inline;
+     the card and its arrow were Torn's CSS. The arrow is a point on the edge (Floating UI sets its
+     offset along it), with a square turned 45° drawn on it. */
+  & [data-floating-ui-portal] [role="tooltip"] {
+    z-index: var(--tear-z-tooltip);
+    width: max-content;
+    max-width: 22.5rem;
+    padding: var(--tear-space-2);
+    border: 1px solid var(--tear-popout-border);
+    border-radius: var(--tear-popout-radius);
+    background: var(--tear-popup-bg);
+    color: var(--tear-text);
+    box-shadow: 0 4px 14px var(--tear-shadow);
+    font-size: var(--tear-fs-label);
+    line-height: 1.35;
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] p {
+    margin: 0;
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="tooltipName___"] {
+    color: var(--tear-text-strong);
+    font-weight: 700;
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="tooltipType___"] {
+    color: var(--tear-muted);
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"] {
+    position: absolute;
+    width: 0;
+    height: 0;
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"][class*=" top___"] { top: 100%; }
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"][class*=" bottom___"] { bottom: 100%; }
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"][class*=" left___"] { left: 100%; }
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrow___"][class*=" right___"] { right: 100%; }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class^="arrowIcon___"] {
+    position: absolute;
+    top: -4.5px;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    rotate: 45deg;
+    border: 0 solid var(--tear-popout-border);
+    background: var(--tear-popup-bg);
+  }
+
+  & [data-floating-ui-portal] [role="tooltip"] [class*=" top___"] [class^="arrowIcon___"] { border-width: 0 1px 1px 0; }
+  & [data-floating-ui-portal] [role="tooltip"] [class*=" bottom___"] [class^="arrowIcon___"] { top: -3.5px; border-width: 1px 0 0 1px; }
+  & [data-floating-ui-portal] [role="tooltip"] [class*=" left___"] [class^="arrowIcon___"] { top: -4px; left: -4.5px; border-width: 1px 1px 0 0; }
+  & [data-floating-ui-portal] [role="tooltip"] [class*=" right___"] [class^="arrowIcon___"] { top: -4px; left: -3.5px; border-width: 0 0 1px 1px; }
+
+  /* Torn's app header: the title bar of its React pages (attack log, events, missions…). */
+  & [class^="appHeaderWrapper___"] {
+    width: 100%;
+    margin-bottom: var(--tear-space-3);
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="topSection___"] {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.25rem;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="titleContainer___"] {
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="titleContainer___"] [class^="title___"] {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1.375rem;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="freeSpace___"] {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="linksContainer___"] {
+    position: relative;
+    display: flex;
+    flex: 0 1 auto;
+    align-items: center;
+    min-width: 2.5rem;
+    margin-left: var(--tear-space-4);
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="visibleRow___"] {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--tear-space-4);
+    min-width: 0;
+  }
+
+  /* Torn measures this off-screen copy to decide which links fit. */
+  & [class^="appHeaderWrapper___"] [class^="ghostRow___"] {
+    position: absolute;
+    top: 0;
+    left: -9999px;
+    display: flex;
+    align-items: center;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="linkContainer___"] {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-1);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="linkContainer___"]:is(:hover, :focus-visible) {
+    color: var(--tear-text-strong);
+    text-decoration: none;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="iconWrapper___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="linkTitle___"] {
+    display: block;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 784px) {
+    & [class^="appHeaderWrapper___"] [class^="linkTitle___"] {
+      display: none;
+    }
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] {
+    position: relative;
+    display: grid;
+    justify-items: end;
+    margin-left: var(--tear-space-3);
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="activator___"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="activator___"]:hover {
+    color: var(--tear-text-strong);
+  }
+
+  /* Points right while closed, down while open. */
+  & [class^="appHeaderWrapper___"] [class^="activatorIcon___"] {
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-right-width: 0;
+    border-left-color: currentColor;
+  }
+
+  & [class^="appHeaderWrapper___"] [class*=" active___"] [class^="activatorIcon___"],
+  & [class^="appHeaderWrapper___"] [class^="activator___"][class*=" active___"] [class^="activatorIcon___"] {
+    border-width: 5px 5px 0;
+    border-color: currentColor transparent transparent;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] > [class^="list___"] {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: var(--tear-z-popout);
+    min-width: 12rem;
+    max-height: 15.625rem;
+    margin: 0;
+    padding: var(--tear-space-1) 0;
+    overflow-y: auto;
+    border: 1px solid var(--tear-popout-border);
+    border-radius: var(--tear-popout-radius);
+    background: var(--tear-popup-bg);
+    box-shadow: 0 4px 14px var(--tear-shadow);
+    list-style: none;
+    visibility: hidden;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] > [class^="list___"][class*=" opened___"] {
+    visibility: visible;
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] > [class^="list___"] [class^="linkContainer___"] {
+    padding: var(--tear-space-1) var(--tear-space-3);
+  }
+
+  & [class^="appHeaderWrapper___"] [class^="dropdown___"] > [class^="list___"] [class^="linkContainer___"]:hover {
+    background: var(--tear-nav-hover);
+  }
+
+  /* Torn's shared React pieces, on the pages mapped so far. */
+  & :is(#attack-log-root, [class^="appHeaderWrapper___"]) [class^="divider___"] {
+    position: relative;
+    display: flex;
+    flex: none;
+    background: var(--tear-divider);
+  }
+
+  & :is(#attack-log-root, [class^="appHeaderWrapper___"]) [class^="divider___"][class*=" horizontal___"] {
+    width: 100%;
+    height: 1px;
+  }
+
+  & :is(#attack-log-root, [class^="appHeaderWrapper___"]) [class^="divider___"][class*=" vertical___"] {
+    align-self: stretch;
+    width: 1px;
+  }
+
+  /* Torn's screen-reader-only text in its React components. */
+  & :is([class^="srOnly___"], [class*=" srOnly___"]) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Torn's user line (faction tag, honor bar) in lists and cards: one row, 19px tall. */
+  & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-1);
+    min-width: 0;
+  }
+
+  & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) :is([class^="factionWrap___"], [class*=" factionWrap___"], [class^="honorWrap___"], [class*=" honorWrap___"]) {
+    display: flex;
+    flex: none;
+    align-items: center;
+    height: 19px;
+  }
+
+  & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) [class^="linkWrap___"] {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) :is([class^="factionImage___"], [class*=" factionImage___"]) {
+    display: block;
+    width: auto;
+    max-height: 19px;
+  }
+
+  /* The honor bar with the name over it as real text, as on profiles: Torn's letter sprite is off. */
+  & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) .honor-text-wrap {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 19px;
+  }
+
+  & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) .honor-text-wrap > * {
+    grid-area: 1 / 1;
+  }
+
+  & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) .honor-text-wrap > img {
+    display: block;
+    width: auto;
+    height: 19px;
+    max-width: none;
+    image-rendering: pixelated;
+  }
+
+  & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) .honor-text-wrap .honor-text-svg {
+    display: none;
+  }
+
+  & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) .honor-text-wrap .honor-text:not(.honor-text-svg) {
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 2px #000, 0 0 2px #000;
+  }
+
+  /* Data grids (sortable headings over a list). */
+  & [class^="dataGrid___"] {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    text-align: left;
+  }
+
+  & [class^="dataGrid___"] [class^="dataGridRow___"] {
+    display: flex;
+    width: 100%;
+  }
+
+  & [class^="dataGrid___"] [class^="dataGridHeading___"] {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    min-width: 0;
+    height: 2.125rem;
+    padding: 0 var(--tear-space-2);
+    overflow: hidden;
+    color: var(--tear-text-strong);
+    font-size: var(--tear-fs-label);
+    font-weight: 600;
+  }
+
+  & [class^="dataGrid___"] [class^="dataGridHeading___"] + [class^="dataGridHeading___"] {
+    border-left: 1px solid var(--tear-divider);
+  }
+
+  & [class^="dataGrid___"] :is([class^="sortableHeading___"], [class*=" sortableHeading___"]) {
+    padding: 0;
+    overflow: visible;
+  }
+
+  & [class^="dataGrid___"] [class^="sortableButton___"] {
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 0 var(--tear-space-2);
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  & [class^="dataGrid___"] [class^="sortableButton___"]:hover:not(:disabled) {
+    color: var(--tear-link);
+  }
+
+  & [class^="dataGrid___"] [class^="sortIcon___"] {
+    position: absolute;
+    bottom: 3px;
+    left: 50%;
+    display: var(--datagrid-sort-icon-display, block);
+    width: 0;
+    height: 0;
+    translate: -50% 0;
+    border: 4px solid transparent;
+  }
+
+  & [class^="dataGrid___"] [class^="sortIcon___"][class*=" desc___"] {
+    border-bottom-width: 0;
+    border-top-color: currentColor;
+  }
+
+  & [class^="dataGrid___"] [class^="sortIcon___"][class*=" asc___"] {
+    border-top-width: 0;
+    border-bottom-color: currentColor;
+  }
+
+  & .info-msg-cont {
+    --msg-color: var(--tear-link);
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--msg-color) 35%, var(--tear-line));
+    border-left: 4px solid var(--msg-color);
+    border-radius: var(--tear-radius);
+    background: color-mix(in srgb, var(--msg-color) 8%, var(--tear-surface));
+  }
+
+  & .info-msg-cont.red { --msg-color: var(--tear-live); }
+  & .info-msg-cont.green { --msg-color: var(--tear-money); }
+  & .info-msg-cont.yellow { --msg-color: var(--tear-gold); }
+
+  & .info-msg-cont .info-msg {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--tear-space-3);
+    padding: var(--tear-space-3);
+  }
+
+  & .info-msg-cont .info-icon {
+    flex: none;
+    align-self: center;
+  }
+
+  & .info-msg-cont :is(.delimiter, .msg) {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  & .pagination-wrap .pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--tear-space-1);
+  }
+
+  & .pagination > :is(.pagination-l, .pagination-r),
+  & .pagination .page-number > :is(.left-end, .right-end) {
+    display: none;
+  }
+
+  & .pagination > a {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.75rem;
+    height: 1.75rem;
+    padding: 0 var(--tear-space-1);
+    box-sizing: border-box;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius-sm);
+    background: var(--tear-surface);
+    color: var(--tear-link);
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    line-height: calc(1.75rem - 2px); /* Torn sets some to inline-block inline, which loses the grid centring */
+    text-align: center;
+    text-decoration: none;
+  }
+
+  & .pagination > a:is(:hover, :focus-visible):not(.active, .disable) {
+    border-color: color-mix(in srgb, var(--tear-accent) 50%, transparent);
+    background: var(--tear-nav-hover);
+  }
+
+  & .pagination > a.active {
+    border-color: transparent;
+    background: var(--tear-link);
+    color: var(--tear-surface);
+  }
+
+  & .pagination > a.disable {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  & .pagination > .points {
+    padding: 0 var(--tear-space-1);
+    color: var(--tear-muted);
+  }
+
+  & .pagination :is(.pagination-left, .pagination-right) {
+    width: 0.375rem;
+    height: 0.375rem;
+    border: solid currentColor;
+    border-width: 0 0 2px 2px;
+  }
+
+  & .pagination .pagination-left { rotate: 45deg; translate: 1px 0; }
+  & .pagination .pagination-right { rotate: -135deg; translate: -1px 0; }
+
+  & .userlist-wrapper:has(> .users-list) {
+    container: userlist / inline-size;
+    display: grid;
+    grid-template-columns: auto auto auto auto auto minmax(0, 1fr);
+    column-gap: var(--tear-space-3);
+    overflow: hidden;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background: var(--tear-surface);
+  }
+
+  & .userlist-wrapper > .users-list {
+    display: contents;
+  }
+
+  & .userlist-wrapper > .users-list-title,
+  & .userlist-wrapper > .users-list > li {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: center;
+    margin: 0;
+    padding: 0 var(--tear-space-3);
+  }
+
+  & .userlist-wrapper > .users-list-title {
+    min-height: 2.25rem;
+    border-bottom: 1px solid var(--tear-line);
+    border-radius: 0;
+    background: var(--tear-surface-dim);
+    color: var(--tear-text-strong);
+    font-weight: bold;
+  }
+
+  & .userlist-wrapper > .users-list-title > .title { grid-column: 1 / 4; }
+  & .userlist-wrapper > .users-list-title > .time { grid-column: 4; }
+  & .userlist-wrapper > .users-list-title > .level { grid-column: 5; }
+  & .userlist-wrapper > .users-list-title > .reason { grid-column: 6; }
+
+  & .userlist-wrapper > .users-list-title > :not(.title) {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--tear-label);
+    font-size: var(--tear-fs-caption);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  & .userlist-wrapper > .users-list-title > .title .total {
+    margin-right: 0.25em;
+  }
+
+  & .userlist-wrapper > .users-list > li {
+    min-height: 2.25rem;
+    padding-block: 2px;
+    border-top: 1px solid var(--tear-divider);
+  }
+
+  & .userlist-wrapper > .users-list > li:first-child {
+    border-top: 0;
+  }
+
+  & .userlist-wrapper > .users-list > li.gray {
+    background: color-mix(in srgb, var(--tear-text) 3%, transparent);
+  }
+
+  & .userlist-wrapper > .users-list > li:hover {
+    background: var(--tear-nav-hover);
+  }
+
+  & .users-list > li > #iconTray {
+    grid-column: 1;
+    display: flex;
+    line-height: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & .users-list > li > .user-faction {
+    grid-column: 2;
+    display: flex;
+    align-items: center;
+    width: 25px;
+    height: 19px;
+  }
+
+  & .users-list > li > .user-faction img {
+    display: block;
+    max-height: 19px;
+  }
+
+  & .users-list > li > .user-name {
+    grid-column: 3;
+    display: flex;
+    min-width: 0;
+  }
+
+  & .users-list > li > .user-name > .user.name {
+    display: block;
+    max-width: 100%;
+  }
+
+  & .users-list > li > .info-wrap {
+    display: contents;
+  }
+
+  & .users-list > li > .info-wrap > .time {
+    grid-column: 4;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  & .users-list > li > .info-wrap > .level {
+    grid-column: 5;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  & .users-list > li > .info-wrap > .reason {
+    grid-column: 6;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* The heading names the columns, so the rows drop their labels. */
+  & .users-list > li > .info-wrap :is(.title, .reason > .bold),
+  & .users-list > li > .bottom-white {
+    display: none;
+  }
+
+  & .users-list .honor-text-wrap {
+    position: relative;
+    display: grid;
+    place-items: center;
+    max-width: 100%;
+    height: 19px;
+  }
+
+  & .users-list .honor-text-wrap > * {
+    grid-area: 1 / 1;
+  }
+
+  & .users-list .honor-text-wrap > img {
+    display: block;
+    width: auto;
+    height: 19px;
+    max-width: 100%;
+    object-fit: cover;
+    object-position: left;
+    image-rendering: pixelated;
+  }
+
+  & .users-list .honor-text-wrap .honor-text-svg {
+    display: none;
+  }
+
+  & .users-list .honor-text-wrap .honor-text:not(.honor-text-svg) {
+    max-width: 100%;
+    overflow: hidden;
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: bold;
+    line-height: 1;
+    letter-spacing: 0.1em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-shadow: 0 1px 2px #000, 0 0 2px #000;
+  }
+
+  @container userlist (max-width: 36rem) {
+    & .userlist-wrapper > .users-list-title > :not(.title) {
+      display: none;
+    }
+
+    & .userlist-wrapper > .users-list > li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--tear-space-1) var(--tear-space-2);
+      padding-block: var(--tear-space-2);
+    }
+
+    & .users-list > li > .user-name {
+      flex: 1 1 0;
+    }
+
+    & .users-list > li > .info-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      flex-basis: 100%;
+      gap: var(--tear-space-1) var(--tear-space-3);
+      color: var(--tear-muted);
+    }
+
+    & .users-list > li > .info-wrap :is(.title, .reason > .bold) {
+      display: inline;
+      color: var(--tear-label);
+    }
+
+    & .users-list > li > .info-wrap > .reason {
+      flex-basis: 100%;
+    }
+  }
+}
+}

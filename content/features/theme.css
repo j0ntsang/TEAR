@@ -1,0 +1,202 @@
+/* Theme: TEAR's variables, panel colours and motion tokens. Applies while the Features tab has it on: torn-css.js sets .tear-f-theme on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+@property --tear-pct {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+@property --tear-timer {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+html.tear-enabled:where(.tear-f-theme) {
+body {
+  /* Torn flips its theme variables on body.dark-mode, so these must live on body, not :root. */
+  --tear-surface: var(--default-bg-panel-color, #f2f2f2);
+  --tear-surface-sunk: var(--default-panel-divider-outer-side-color, #ccc);
+  --tear-text: var(--default-full-text-color, #333);
+  --tear-panel-bg: var(--tear-surface);
+  --tear-money: var(--default-green-color, #678c00);
+  --tear-text-strong: #000;
+  --tear-link: #0a58ca; /* AA on every light panel, down to #dfdfdf */
+  --tear-shadow: rgba(0, 0, 0, 0.15);
+  --tear-hole: rgba(255, 255, 255, 0.6);
+  --tear-groove-light: rgba(255, 255, 255, 0.9);
+  --tear-label: color-mix(in srgb, var(--tear-text) 85%, transparent);
+  --tear-ring-shade: #000 8%;   /* just enough for pale yellow to read on light panels */
+  --tear-lcd-bg: color-mix(in srgb, var(--tear-surface), var(--tear-surface-sunk) 30%);
+  --tear-lcd-mix: #000 30%;
+  --tear-lcd-bezel: rgba(0, 0, 0, 0.15);
+  --tear-lcd-glow: 0 0 0;
+
+  --tear-surface-dim: color-mix(in srgb, var(--tear-surface), var(--tear-surface-sunk) 50%);
+  --tear-surface-hover: color-mix(in srgb, var(--tear-surface), var(--tear-surface-sunk) 25%);
+  --tear-overlay: color-mix(in srgb, var(--tear-text) 5%, transparent);
+  --tear-line: color-mix(in srgb, var(--tear-text) 15%, transparent);
+  --tear-divider: color-mix(in srgb, var(--tear-text) 8%, transparent);
+  --tear-muted: color-mix(in srgb, var(--tear-text) 65%, transparent);
+
+  --tear-accent: var(--tear-link);
+  --tear-badge-bg: #d92d20; /* white text passes AA */
+  --tear-nav-hover: color-mix(in srgb, var(--tear-link) 8%, transparent);
+  --tear-nav-active: color-mix(in srgb, var(--tear-link) 12%, transparent);
+  --tear-gold: #e8b64c;
+  --tear-live: #c8102e;
+  --tear-live-dot: #39ff6a;
+  --tear-info-button: #3d5a73;
+  --tear-settings-button: #6e3a9c;
+
+  /* Page, top bar and ticker each a step apart, so the bars read as bars. Defaults match lib/model.js. */
+  --tear-bg: #dcdfe3;
+  --tear-topbar: #f2f2f2;
+  --tear-strip: #f2f2f2;
+  --tear-strip-text: #1f1f1f;
+
+  --tear-space-1: 4px;
+  --tear-space-2: 8px;
+  --tear-space-3: 12px;
+  --tear-space-4: 16px;
+  --tear-radius-sm: 6px;
+  --tear-radius: 8px;
+  --tear-radius-lg: 12px;
+
+  --tear-fs-caption: 0.625rem;
+  --tear-fs-label: 0.75rem;
+  --tear-fs-body: 0.875rem;
+  --tear-fs-title: 1.125rem;
+  --tear-fs-display: 1.5rem;
+
+  --tear-hud-font: Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Black", sans-serif;
+  --tear-hud-ink: #fff;
+  --tear-hud-money: #72cc72;
+  --tear-hud-stroke: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 2px 3px rgba(0, 0, 0, 0.5);
+
+  /* Per-character widths for shrink-to-fit text, measured in Torn's font. */
+  --tear-char-em: 0.52;
+  --tear-char-em-mono: 0.62;
+  --tear-timer-color: var(--tear-text);
+
+  /* Popouts (top bar menus, dropdowns, widgets), after Torn's clock and log: a solid border one
+     step off the fill, a tight shadow. */
+  --tear-popup-bg: var(--tear-surface);
+  --tear-popout-border: var(--tear-surface-sunk);
+  --tear-popout-radius: 5px;
+  --tear-popout-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+  /* Page-level stacking, lowest first. Inside one component (a top bar tab over its own popout)
+     small local values stay where they are. Above all of these: the dock (dock.css, 2147483640)
+     and the settings panel (panel-styles.js, 2147483645). */
+  --tear-z-popout: 100;
+  --tear-z-tooltip: 99999;
+  --tear-z-drag: 100000;
+  --tear-z-header: 999996;
+  --tear-z-skip-link: 1000000;
+  --tear-z-drawer: 2147483200;
+}
+
+body.dark-mode {
+  --tear-bg: #1a1a1a;
+  --tear-topbar: #333333;
+  --tear-strip: #2a2a2a;
+  --tear-strip-text: #ddd;
+  --tear-panel-bg: #2a2a2a;
+  --tear-text: #ddd;
+  --tear-link: #93c5fd;
+  --tear-money: #8fd16a;
+  --tear-text-strong: #fff;
+  --tear-shadow: rgba(0, 0, 0, 0.5);
+  --tear-hole: rgba(0, 0, 0, 0.35);
+  --tear-groove-light: rgba(255, 255, 255, 0.08);
+  --tear-label: color-mix(in srgb, var(--tear-text) 75%, transparent);
+  --tear-ring-shade: #000 0%;
+  --tear-lcd-bg: #0a0d0a;
+  --tear-lcd-mix: #fff 35%;
+  --tear-lcd-bezel: rgba(0, 0, 0, 0.45);
+  --tear-lcd-glow: 0 0 6px;
+  --tear-popup-bg: rgb(51, 51, 51);
+  --tear-popout-border: rgb(68, 68, 68);
+  --tear-popout-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+body.body {
+  background-color: var(--tear-bg, #1a1a1a);
+}
+
+a:focus-visible {
+  outline: 2px solid var(--tear-link);
+  outline-offset: 2px;
+}
+
+/* The sidebar's own parts only: header___ and the rest are generic names elsewhere on the page. */
+body.dark-mode #sidebarroot [class^="header___"] {
+  background-color: var(--tear-bg, #1a1a1a);
+  color: var(--tear-text);
+}
+
+#sidebarroot,
+#sidebarroot :is([class^="sidebar___"], [class^="userInformation___"], [class^="areas___"], [class^="accountLinksWrap___"]) {
+  background-color: transparent;
+}
+
+body.dark-mode #sidebarroot :is([class^="sidebar___"], [class^="userInformation___"], [class^="areas___"], [class^="accountLinksWrap___"]) {
+  color: var(--tear-text);
+}
+
+body.dark-mode .sortable-box .title.title-black {
+  background-color: var(--tear-bg, #1a1a1a);
+}
+
+.sortable-box .box-title {
+  color: var(--tear-text);
+}
+
+.sortable-box .cont-gray {
+  background-color: var(--tear-panel-bg);
+  color: var(--tear-text);
+}
+
+body.dark-mode .crime-root {
+  background-color: var(--tear-bg, #1a1a1a);
+}
+
+:is([class^="crimeOption___"], [class*=" crimeOption___"]),
+.crime-root .virtual-item {
+  background-color: var(--tear-panel-bg);
+  color: var(--tear-text);
+}
+
+/* Torn colours its icons in its CSS; without it they'd be black. */
+:where(svg:not([fill])) {
+  fill: currentColor;
+}
+
+body {
+  --tear-bar-h: 2.75rem;
+  --tear-motion-in: 160ms;
+  --tear-motion-out: 110ms;
+  --tear-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --tear-ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@keyframes tear-rise {
+  from {
+    opacity: 0;
+    scale: 0.97;
+    translate: 0 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+}
+}

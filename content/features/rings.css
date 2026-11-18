@@ -1,0 +1,421 @@
+/* Resource rings: energy, nerve, happy, life and chain, with regen timers. Applies while the Features tab has it on: torn-css.js sets .tear-f-rings on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+html.tear-enabled:where(.tear-f-rings) {
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [class^="progress___"],
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [data-tear-ring] [class^="tickList___"] {
+  display: none;
+}
+
+[data-tear-ring] {
+  --ring-ink: color-mix(in srgb, var(--ring-color), var(--tear-ring-shade));
+  --lcd-ink: color-mix(in srgb, var(--ring-color), var(--tear-lcd-mix));
+}
+
+[data-tear-ring="energy"] { --ring-color: #6cad2b; }
+[data-tear-ring="nerve"]  { --ring-color: #cc7032; }
+[data-tear-ring="happy"]  { --ring-color: #cccc32; }
+[data-tear-ring="life"]   { --ring-color: #708bdb; }
+[data-tear-ring="chain"]  { --ring-color: #b0b0b0; }
+[class^="userInformation___"] > [data-tear-rings] { order: 8; }
+
+[class^="userInformationMobile___"] [class^="barsMobile___"] {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 3cqi;
+  height: auto;
+  margin: 0;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] {
+  --ring-width: 11cqi; /* cqi of the orb itself from here down */
+  container-type: inline-size;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  max-width: 16cqi;
+  height: auto;
+  aspect-ratio: 1;
+  justify-self: center;
+  margin: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: none;
+  isolation: isolate; /* keeps the centre disc (::after, z -1) inside the orb */
+  box-shadow: 0 0 14px color-mix(in srgb, var(--ring-color) 35%, transparent);
+  text-decoration: none;
+}
+
+/* main.js arms a ring a frame after its first value paints, so a bar React re-creates shows its
+   value instead of sweeping up from empty. */
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [data-tear-ring][data-tear-ring-armed] {
+  transition: --tear-pct 0.6s ease;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--ring-ink) calc(var(--tear-pct) * 1%),
+    color-mix(in srgb, var(--ring-ink) 30%, transparent) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-width)), #000 calc(100% - var(--ring-width) + 0.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-width)), #000 calc(100% - var(--ring-width) + 0.5px));
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"] {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2cqi;
+  width: 76cqi;
+  height: auto;
+  margin: 0;
+  padding: 0;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="svgIconWrap___"] {
+  zoom: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barValue___"] {
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--tear-text-strong);
+  font-weight: bold;
+  line-height: 1.1;
+  /* +0.03: " / " makes these wider per character */
+  font-size: clamp(7px, calc(76cqi / (var(--tear-len, 5) * (var(--tear-char-em) + 0.03))), 18cqi);
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"],
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barDescr___"],
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barTimeLeft___"] {
+  margin: 0;
+  padding: 0;
+  color: var(--tear-muted);
+  font-size: 12cqi;
+  line-height: 1;
+}
+
+/* Must out-rank the HUD timer font-size rules above. */
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"] > [data-tear-timer],
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"] [data-tear-timer] {
+  display: block;
+  font-size: 0;
+  line-height: 0;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [data-tear-timer]::before {
+  content: "";
+  display: block;
+  width: var(--timer-size);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--ring-ink) calc(var(--tear-timer) * 1%),
+    color-mix(in srgb, var(--ring-ink) 30%, transparent) 0
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-stroke)), #000 calc(100% - var(--timer-stroke) + 0.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--timer-stroke)), #000 calc(100% - var(--timer-stroke) + 0.5px));
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] { --timer-size: 24cqi; --timer-stroke: calc(var(--timer-size) / 7); }
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"]:not(:has([data-tear-timer])) {
+  display: none;
+}
+
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
+  padding: 0.3em 0.6em;
+  border-radius: 4px;
+  background: var(--tear-lcd-bg);
+  box-shadow: inset 0 1px 3px var(--tear-lcd-bezel), 0 1px 0 var(--tear-groove-light);
+  color: var(--lcd-ink);
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-shadow: var(--tear-lcd-glow) color-mix(in srgb, var(--ring-color) 70%, transparent);
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barValue___"] {
+  font-size: clamp(7px, calc(70cqi / (var(--tear-len, 5) * var(--tear-char-em-mono))), 16cqi);
+}
+
+[data-tear-ring="energy"] [class^="barName___"]::after { content: "Energy"; }
+[data-tear-ring="nerve"]  [class^="barName___"]::after { content: "Nerve"; }
+[data-tear-ring="happy"]  [class^="barName___"]::after { content: "Happy"; }
+[data-tear-ring="life"]   [class^="barName___"]::after { content: "Life"; }
+[data-tear-ring="chain"]  [class^="barName___"]::after { content: "Chain"; }
+
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
+  border-radius: var(--tear-radius-sm);
+}
+
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: 4px 8px;
+  font-size: clamp(6px, calc((100cqi - 16px) / (var(--tear-len, 5) * (var(--tear-char-em-mono) + 0.08))), var(--tear-fs-body));
+}
+
+[class^="userInformation___"] [data-tear-rings] {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label timer"
+    "value value";
+  align-items: center;
+  column-gap: var(--tear-space-2);
+  row-gap: var(--tear-space-1);
+  width: auto;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  padding: 7px 10px 10px;
+  overflow: hidden;
+  border: 1px solid var(--tear-line);
+  border-radius: 0;
+  background:
+    linear-gradient(90deg, var(--ring-ink) calc(var(--tear-pct) * 1%), color-mix(in srgb, var(--ring-ink) 20%, transparent) 0) left bottom / 100% 3px no-repeat,
+    linear-gradient(90deg, color-mix(in srgb, var(--ring-color) 14%, transparent) calc(var(--tear-pct) * 1%), transparent 0),
+    var(--tear-surface);
+  color: inherit;
+  text-decoration: none;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] + [data-tear-ring] {
+  margin-top: -1px;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring]:not([data-tear-ring] ~ *) {
+  border-top-left-radius: var(--tear-radius-sm);
+  border-top-right-radius: var(--tear-radius-sm);
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring]:not(:has(~ [data-tear-ring])) {
+  border-bottom-left-radius: var(--tear-radius-sm);
+  border-bottom-right-radius: var(--tear-radius-sm);
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barStats___"] {
+  display: contents;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barStats___"] > p {
+  float: none;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  white-space: nowrap;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barStats___"] > [class^="barName___"] {
+  grid-area: label;
+  font-size: 0;
+  line-height: 1;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barName___"]::after {
+  color: var(--tear-label);
+  font-size: var(--tear-fs-caption);
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
+  --val-fs: clamp(10px, calc((100cqi - 24px) / (var(--tear-len, 5) * 0.6)), 1.25rem);
+  grid-area: value;
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--lcd-ink);
+  font-size: var(--val-fs);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barStats___"] [class^="barValue___"][data-tear-cur] {
+  font-size: 0;
+}
+
+[class^="userInformation___"] [data-tear-ring] [class^="barValue___"][data-tear-cur]::before {
+  content: attr(data-tear-cur);
+  font-size: var(--val-fs);
+}
+
+[class^="userInformation___"] [data-tear-ring] [class^="barValue___"][data-tear-cur]::after {
+  content: "/" attr(data-tear-max);
+  margin-left: 0.1em;
+  color: var(--tear-label);
+  font-size: calc(var(--val-fs) * 0.62);
+  font-weight: normal;
+  text-shadow: none;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barStats___"] > :is([class^="barDescr___"], [class^="barTimeLeft___"]) {
+  display: none;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barStats___"] > [data-tear-timer],
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring][data-tear-full]:not([data-tear-timer])::after {
+  grid-area: timer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--tear-label);
+  font-size: var(--tear-fs-caption);
+  font-variant-numeric: tabular-nums;
+  font-weight: normal;
+  line-height: 1;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [data-tear-timer]::before {
+  content: "";
+  width: 1.1em;
+  height: 1.1em;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+[class^="userInformation___"] [data-tear-rings] > [data-tear-ring][data-tear-full]:not([data-tear-timer])::after {
+  content: "Full";
+  color: var(--ring-ink);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Torn wraps the timer in "(" ")" text nodes; font-size 0 hides them. */
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"] {
+  display: flex;
+  justify-content: center;
+  height: auto;
+  font-size: 0;
+  line-height: 0;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"] > *,
+[class^="userInformationMobile___"] [data-tear-ring] [class^="svgIconWrap___"] {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1;
+  text-align: center;
+}
+
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [data-tear-ring] [class^="barStats___"] [class^="barValue___"]:is([class^="userInformationMobile___"] *) {
+  width: auto;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+[class^="userInformationMobile___"] [data-tear-full] [class^="barValue___"][data-tear-total] {
+  font-size: 0;
+}
+
+[class^="userInformationMobile___"] [data-tear-full] [class^="barValue___"][data-tear-total]::after {
+  content: attr(data-tear-total);
+  font-size: clamp(7px, calc(70cqi / (var(--tear-total-len, 4) * var(--tear-char-em-mono))), 20cqi);
+}
+
+/* Its ::before is positioned against the orb: nothing in between may be positioned. */
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"],
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"],
+[class^="userInformationMobile___"] [data-tear-ring] [data-tear-timer] {
+  position: static;
+  z-index: auto;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [data-tear-timer]::before {
+  --timer-stroke: 6cqi;
+  position: absolute;
+  inset: calc(var(--ring-width) + var(--ring-gap, 0px) - 1px); /* 1px under the outer ring, or a seam shows */
+  width: auto;
+  border-radius: 50%;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [class^="barValue___"] {
+  word-spacing: -0.45em;
+}
+
+[class^="userInformationMobile___"] [data-tear-ring][data-tear-timer] {
+  --ring-gap: 0px;
+}
+
+[class^="userInformationMobile___"] [class^="barsMobile___"] {
+  width: auto;
+  margin: 0 calc(-1 * var(--tear-space-3));
+  padding: calc(var(--tear-space-1) * 1.5) var(--tear-space-3) calc(var(--tear-space-3) * 1.5);
+  border-bottom: 1px solid var(--tear-line);
+}
+
+@media (max-width: 600px) {
+  [class^="userInformationMobile___"] [class^="barsMobile___"] {
+    gap: 1.5cqi;
+  }
+
+  [class^="userInformationMobile___"] [data-tear-ring] {
+    --ring-width: 12cqi;
+    max-width: none;
+  }
+
+  [class^="userInformationMobile___"] [data-tear-ring] [class^="barValue___"] {
+    display: none;
+  }
+
+  [class^="userInformationMobile___"] [data-tear-ring] [class^="svgIconWrap___"] {
+    zoom: 2.4;
+  }
+}
+
+[class^="userInformationMobile___"] [data-tear-ring] [data-tear-timer]::before {
+  background: conic-gradient(
+    color-mix(in srgb, var(--tear-timer-color) 70%, transparent) calc(var(--tear-timer) * 1%),
+    color-mix(in srgb, var(--tear-timer-color) 25%, transparent) 0
+  );
+}
+
+/* A pseudo-element: cqi on the orb's own background resolves against the HUD panel. */
+[class^="userInformationMobile___"] [data-tear-ring]::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--ring-width) - 1px); /* 1px under the ring, so no seam */
+  z-index: -1;
+  border-radius: 50%;
+  background: var(--tear-hole);
+}
+}

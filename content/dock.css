@@ -4,14 +4,14 @@ html:not(.tear-enabled) :is([data-tear-grip], [data-tear-clone]) {
 
 :root {
   --tear-dock-button: 38px;
-  --tear-chat-bar-h: calc(var(--tear-dock-button) + 5px);
 }
 
 #tear-dock {
   position: fixed;
-  z-index: 2147482999;
-  left: var(--tear-dock-left, 8px);
-  right: var(--tear-dock-right, auto);
+  /* Above everything Torn and TEAR put on the page (theme.css --tear-z-* tops out at the drawer, 2147483201): always reachable. */
+  z-index: 2147483640;
+  left: var(--tear-dock-left, auto);
+  right: var(--tear-dock-right, 8px);
   bottom: 0;
   display: flex;
   gap: 2px; /* Torn's chat bar gap */
@@ -42,7 +42,8 @@ body.body::after {
 
 /* Icons match the chat bar's: TEAR's text colour, with the cloned Torn gear's gradient overridden. */
 html.tear-enabled body.dark-mode #tear-dock > button {
-  color: var(--tear-text);
+  /* White without the Theme feature: an undefined variable would inherit the page's text colour. */
+  color: var(--tear-text, #fff);
 }
 
 #tear-dock > button svg {
@@ -83,6 +84,7 @@ html.tear-enabled body.dark-mode #tear-dock > button {
 #tear-settings-host {
   position-anchor: --tear-settings-button;
   position-area: top span-left;
+  position-try-fallbacks: flip-inline;
   margin: 0 0 6px 8px;
 }
 

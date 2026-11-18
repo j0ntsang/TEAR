@@ -1,0 +1,894 @@
+/* Top bar: menus, search, clock, recent history and their popouts. Applies while the Features tab has it on: torn-css.js sets .tear-f-header on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+html.tear-enabled:where(.tear-f-header) {
+#header-wrapper-top {
+  background: var(--tear-topbar);
+  border-bottom: 1px solid var(--tear-line);
+  box-shadow: 0 1px 3px var(--tear-shadow);
+}
+
+body:not(.dark-mode) #header-wrapper-top .menu-item-href:not(.info-menu *) {
+  color: var(--tear-link);
+  text-shadow: none;
+}
+
+body:not(.dark-mode) #header-wrapper-top .menu-item-href:not(.info-menu *):hover {
+  text-decoration: underline;
+}
+
+body:not(.dark-mode) #header-wrapper-top .top_header_button svg,
+body:not(.dark-mode) #header-wrapper-top .top_header_button svg *,
+body:not(.dark-mode) #fly-out-menu-button svg,
+body:not(.dark-mode) #fly-out-menu-button svg * {
+  fill: var(--tear-muted);
+}
+
+/* Search fields: the top bar's and the page's share one look. Torn's chat keeps its own. */
+:is(&:is(:not([data-tear-mobile]), [data-tear-search-open]) #searchForm, & input:is([type="search"], [placeholder*="search" i]):not(#searchForm input, #chatRoot input)) {
+  border: 1px solid var(--search-line);
+  border-radius: var(--search-r);
+  background-color: var(--search-bg);
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    background-color: var(--search-bg-hover);
+  }
+
+  &:is(:focus-within, :focus) {
+    border-color: var(--tear-link);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tear-link) 25%, transparent);
+  }
+}
+
+input:is([type="search"], [placeholder*="search" i]):not(#searchForm input, #chatRoot input) {
+  box-sizing: border-box;
+  height: var(--search-h);
+  padding: 0 calc(var(--search-pad) + var(--search-icon) + var(--tear-space-2)) 0 var(--search-pad);
+  background-image: var(--search-glass);
+  background-position: right var(--search-pad) center;
+  background-size: var(--search-icon);
+  background-repeat: no-repeat;
+  color: inherit;
+  font: inherit;
+  outline: 0;
+}
+
+:is(input:is([type="search"], [placeholder*="search" i]):not(#searchForm input, #chatRoot input), #searchForm input)::placeholder {
+  color: currentColor;
+  opacity: 0.5;
+}
+
+/* Each :is() part needs its own &: once & appears, nesting stops prefixing the others, and
+   they would match with TEAR off. */
+body {
+  --search-h: 2rem;
+  --search-r: calc(var(--search-h) / 2);
+  --search-pad: 0.75rem;
+  --search-icon: 1rem;
+  --search-line: color-mix(in srgb, currentColor 22%, transparent);
+  --search-bg: color-mix(in srgb, currentColor 7%, transparent);
+  --search-bg-hover: color-mix(in srgb, currentColor 10%, transparent);
+  --search-glass: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5L21 21'/%3E%3C/svg%3E");
+}
+
+/* The search form laid out in the bar: desktop, or the mobile search once opened. */
+&:is(:not([data-tear-mobile]), [data-tear-search-open]) {
+  #searchForm {
+    --search-h: 1.875rem;
+    gap: 0;
+    height: var(--search-h);
+  }
+
+  #searchForm > #search-type-wrapper {
+    order: -1;
+    align-self: stretch;
+    display: flex;
+    border-right: 1px solid var(--search-line);
+  }
+
+  #search-type-wrapper .react-dropdown-default {
+    display: flex;
+  }
+
+  #search-type-wrapper .toggler {
+    gap: 0.375rem;
+    height: 100%;
+    padding: 0 0.625rem 0 0.875rem;
+    border: 0;
+    border-radius: var(--search-r) 0 0 var(--search-r);
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--tear-fs-label);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  #search-type-wrapper .toggler:hover {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+
+  #search-type-wrapper .toggler::after {
+    content: "";
+    width: 0.5rem;
+    height: 0.5rem;
+    background: currentColor;
+    opacity: 0.6;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5l3 3 3-3' fill='none' stroke='%23000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+    transition: transform 0.15s;
+  }
+
+  #search-type-wrapper .toggler[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+  }
+
+  #search-type-wrapper .dropdownList {
+    top: calc(100% + 6px);
+    right: auto;
+    left: 0;
+  }
+
+  #searchForm .input-wrapper.search {
+    gap: 0;
+    height: 100%;
+  }
+
+  /* User search wraps the field in an autocomplete div; Wiki search doesn't. */
+  #searchForm .input-wrapper.search > :not(#header-search) {
+    flex: 1;
+    min-width: 0;
+  }
+
+  #searchForm .input-wrapper.search > :not(#header-search, input) {
+    display: flex;
+    height: 100%;
+  }
+
+  #searchForm input[class^="searchInput___"] {
+    width: clamp(8rem, 14vw, 14rem);
+    height: 100%;
+    padding: 0 0.25rem 0 0.625rem;
+    border: 0;
+    outline: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--tear-fs-label);
+  }
+
+  #searchForm #header-search {
+    min-width: 0;
+    min-height: 0;
+    width: var(--search-h);
+    height: 100%;
+    border-radius: 0 var(--search-r) var(--search-r) 0;
+  }
+
+  #searchForm #header-search:hover {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+
+  #searchForm #header-search svg {
+    width: 1rem;
+    height: 1rem;
+  }
+}
+
+&[data-tear-mobile]:not([data-tear-search-open]) #search-type-wrapper {
+  display: none;
+}
+
+&[data-tear-mobile][data-tear-search-open] .find-wrapper > .find {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: var(--tear-z-popout);
+  width: min(22rem, calc(100vw - 2 * var(--page-gutter, 0.75rem)));
+  box-sizing: border-box;
+  padding: var(--tear-space-2);
+  border: 1px solid var(--tear-popout-border);
+  border-radius: var(--tear-popout-radius);
+  border-top-right-radius: 0;
+  background: var(--tear-popup-bg);
+  color: var(--tear-text);
+  box-shadow: var(--tear-popout-shadow);
+}
+
+&[data-tear-mobile][data-tear-search-open] #searchForm {
+  --search-h: 2.5rem;
+  --search-r: var(--tear-popout-radius);
+}
+
+&[data-tear-mobile][data-tear-search-open] #searchForm .input-wrapper.search {
+  position: static;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+&[data-tear-mobile][data-tear-search-open] #searchForm .input-wrapper.search input[class^="searchInput___"] {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  font-size: 16px; /* under 16px iOS zooms the page on focus */
+}
+
+&[data-tear-mobile][data-tear-search-open] #searchForm #search-type-wrapper .toggler {
+  font-size: var(--tear-fs-body);
+}
+
+&[data-tear-mobile][data-tear-search-open] #searchForm #header-search svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) li:is(:hover, :focus-within) {
+  background: var(--tear-nav-hover);
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .setting-name {
+  color: var(--tear-text);
+}
+
+:is(.settings-menu, .info-menu > .menu-items) li > :is(a, label) {
+  padding-inline: var(--tear-space-3);
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) :is(.setting-name, .link-text) {
+  color: var(--tear-text);
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) svg,
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) svg * {
+  fill: currentColor;
+  filter: none;
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) li > :is(a, label) {
+  color: var(--tear-muted);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) li > :is(a, label):is(:hover, :focus-visible, :focus-within) {
+  background: var(--tear-nav-hover);
+  color: var(--tear-link);
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) li > :is(a, label):is(:hover, :focus-visible, :focus-within) :is(.setting-name, .link-text) {
+  color: var(--tear-link);
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) label:has(input:checked) {
+  color: var(--tear-link);
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) label:has(input:checked) .setting-name {
+  font-weight: bold;
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) input {
+  accent-color: var(--tear-link);
+}
+
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link {
+  color: var(--tear-link);
+}
+
+:is(.settings-menu, .info-menu > .menu-items) li > :is(a, label) {
+  padding-block: calc(var(--tear-space-1) * 1.5);
+}
+
+/* Torn's hover repaints the "on" dot in the panel colour; keep "on" blue. */
+:is(.settings-menu, .info-menu > .menu-items) .checkbox-css:checked + .marker-css::after {
+  background-color: var(--tear-link);
+}
+
+:is(.settings-menu, .info-menu > .menu-items) .checkbox-css:checked + .marker-css::before,
+:is(.settings-menu, .info-menu > .menu-items) .setting-container:is(:hover, :focus-within) .checkbox-css + .marker-css::before {
+  border-color: var(--tear-link);
+}
+
+/* Torn's icons have different viewBoxes on the text baseline; centring each SVG lines them up. */
+:is(.settings-menu, .info-menu > .menu-items) li > :is(a, label) {
+  display: flex;
+  align-items: center;
+}
+
+:is(.settings-menu, .info-menu > .menu-items) .icon-wrapper {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  vertical-align: middle;
+}
+
+:is(.settings-menu, .info-menu > .menu-items) .icon-wrapper svg {
+  flex: none;
+  margin: 0;
+}
+
+:is(.settings-menu, .info-menu > .menu-items) .setting-container .choice-container {
+  flex: none;
+  margin-left: auto;
+  padding-left: var(--tear-space-3);
+}
+
+:is(.settings-menu, .info-menu > .menu-items) {
+  left: auto;
+  width: 13.75rem;
+}
+
+:is(.settings-menu, .info-menu > .menu-items) :is(.setting-name, .link-text) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:is(.settings-menu, .info-menu > .menu-items) li + li {
+  border-top: 1px solid var(--tear-divider);
+}
+
+/* ── Layout: no floats ──────────────────────────────────────────────────────────────────────
+   Areas: logo | menu | tools with Torn's desktop markup; logo | drawer | tools with its mobile
+   markup (no menu there: it lives in the fly-out drawer, whose button sits beside the container).
+   The lines are the page grid's: with Page grid on, #header-wrapper-top is its subgrid; off, the
+   same lines come from the same tokens' fallbacks, so the top bar lays out on its own. */
+#header-root {
+  position: relative;
+  z-index: var(--tear-z-header);
+}
+
+.header ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.header button {
+  cursor: pointer;
+}
+
+#header-wrapper-top {
+  display: grid;
+  grid-template-columns:
+    [full-start] var(--page-gutter, 0.75rem)
+    [main-start] minmax(0, 1fr)
+    [main-end] var(--page-gutter, 0.75rem)
+    [full-end];
+}
+
+&:where(.tear-f-grid):not([data-tear-mobile]) body.body #header-wrapper-top {
+  grid-template-columns: subgrid;
+}
+
+/* The container spans the page's sidebar, gap and content tracks with the same widths, so the logo
+   lines up with the sidebar and the tools end where the content does. */
+#header-wrapper-top > .container {
+  grid-column: main-start / main-end;
+  display: grid;
+  grid-template-columns:
+    [side-start] var(--sidebar-w, 10.75rem)
+    [side-end] var(--side-gap, var(--page-gap, 0.75rem))
+    [content-start] minmax(0, 1fr)
+    [tools-start] auto
+    [content-end];
+  grid-template-rows: var(--tear-bar-h);
+  grid-template-areas: "logo . menu tools";
+  align-items: center;
+  min-width: 0;
+}
+
+/* The desktop logo is taller than the bar: it hangs into the ticker row without growing the bar. */
+#header-wrapper-top > .container > .logo {
+  grid-area: logo;
+  align-self: start;
+  position: relative;
+  z-index: 2;
+}
+
+#header-wrapper-top > .container > .logo > .logo-link {
+  position: absolute;
+  inset: 0;
+}
+
+#header-wrapper-top > .container > .header-menu {
+  grid-area: menu;
+  position: relative;
+  min-width: 0;
+}
+
+#header-wrapper-top > .container > .header-navigation {
+  grid-area: tools;
+  justify-self: end;
+}
+
+&[data-tear-mobile] #header-wrapper-top {
+  grid-template-columns:
+    [full-start] var(--page-gutter, 0.75rem)
+    [main-start logo-start] auto
+    [logo-end drawer-start] var(--tear-bar-h)
+    [drawer-end] minmax(0, 1fr)
+    [tools-start] auto
+    [tools-end main-end] var(--page-gutter, 0.75rem)
+    [full-end];
+  grid-template-rows: var(--tear-bar-h);
+  align-items: center;
+}
+
+&[data-tear-mobile] #header-wrapper-top > .container {
+  display: contents;
+}
+
+&[data-tear-mobile] #header-wrapper-top > .container > .logo {
+  grid-area: auto;
+  grid-column: logo-start / logo-end;
+  grid-row: 1;
+  align-self: center;
+}
+
+&[data-tear-mobile] #fly-out-menu-button {
+  grid-column: drawer-start / drawer-end;
+  grid-row: 1;
+  position: relative;
+  align-self: stretch;
+}
+
+&[data-tear-mobile] #header-wrapper-top > .container > .header-navigation {
+  grid-area: auto;
+  grid-column: tools-start / tools-end;
+  grid-row: 1;
+}
+
+/* Menu: a list of links; Torn opens it as a dropdown (.header-menu.active). */
+.header-menu .menu-items {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: var(--tear-z-popout);
+  min-width: 12rem;
+  padding: var(--tear-space-1) 0;
+  border: 1px solid var(--tear-popout-border);
+  border-radius: var(--tear-popout-radius);
+  background: var(--tear-popup-bg);
+  color: var(--tear-text);
+  box-shadow: var(--tear-popout-shadow);
+}
+
+.header-menu.active .menu-items {
+  display: flex;
+}
+
+.header-menu .menu-item-href {
+  display: block;
+  padding: var(--tear-space-1) var(--tear-space-3);
+  white-space: nowrap;
+}
+
+.header-menu :is(.icon-wrapper, .header-menu-arrow),
+.search-type-radio {
+  display: none;
+}
+
+/* Tools: search, clock, recent history, account, one square cell each. */
+.header-navigation .toolbar {
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: var(--tear-space-1);
+}
+
+.header-navigation .toolbar > li {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.header .top_header_button {
+  display: grid;
+  place-items: center;
+  min-width: 2.125rem;
+  min-height: 2.125rem;
+  padding: 0;
+}
+
+.header .top_header_button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.header .find .clearfix,
+#searchForm {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-1);
+}
+
+.header .find :is(.input-wrapper, .torn-react-autocomplete, .autocomplete-wrapper) {
+  position: relative;
+}
+
+.header .find .searchInput {
+  width: clamp(8rem, 14vw, 14rem);
+}
+
+.header .find .input-wrapper.search {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-1);
+}
+
+.header .find .input-wrapper.search > .searchBtn {
+  flex: none;
+}
+
+/* The search field opens from its button with Torn's mobile markup, and on the smallest screens. */
+.search-mobile-button {
+  display: none;
+}
+
+&[data-tear-mobile] .search-mobile-button {
+  display: grid;
+}
+
+&[data-tear-mobile]:not([data-tear-search-open]) .header .find .input-wrapper.search {
+  display: none;
+}
+
+.header .avatar .icon-wrapper {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+/* Fills the button as a circle: cropped, centred, whatever the upload's shape. */
+.header .avatar .mini-avatar-image {
+  display: block;
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 50%;
+  object-fit: cover;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--tear-line);
+}
+
+/* Torn's ring SVG draws its circle inset in its viewBox, so it lands inside the bigger photo. */
+.header .avatar .circle-wrapper {
+  display: none;
+}
+
+/* Popouts: closed until Torn marks them open; positioned while closed so the close transition
+   doesn't shift the bar. */
+.react-dropdown-default {
+  position: relative;
+}
+
+.react-dropdown-default .toggler {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-1);
+}
+
+.react-dropdown-default .dropdownList,
+.header .autocomplete-wrapper > .hide,
+.header :is(.settings-menu, .info-menu > .menu-items),
+.header .tc-clock-tooltip {
+  display: none;
+}
+
+.react-dropdown-default .dropdownList {
+  flex-direction: column;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: var(--tear-z-popout);
+  min-width: 100%;
+}
+
+.react-dropdown-default.dropdown-opened .dropdownList {
+  display: flex;
+}
+
+:is(.header .avatar .settings-menu, .header .info-menu > .menu-items) {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: var(--tear-z-popout);
+  min-width: 13.75rem;
+}
+
+:is(.header .avatar.active .settings-menu, .header .info-menu.active > .menu-items) {
+  display: block;
+}
+
+.header :is(.settings-menu, .info-menu > .menu-items) li > :is(a, label) {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-2);
+}
+
+.header :is(.settings-menu, .info-menu > .menu-items) .choice-container {
+  margin-left: auto;
+}
+
+.r .header :is(.settings-menu, .info-menu > .menu-items) .setting.desktop-view {
+  display: none;
+}
+
+.header .tc-clock.active .tc-clock-tooltip {
+  display: block;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: var(--tear-z-popout);
+}
+
+.header .recent-history-content {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: var(--tear-z-popout);
+}
+
+.header .recent-history-content:empty {
+  display: none;
+}
+
+:is(.header .avatar .settings-menu, .header .info-menu > .menu-items, .react-dropdown-default .dropdownList, .header .tc-clock-tooltip, .header .recentHistory) {
+  border: 1px solid var(--tear-popout-border);
+  border-radius: var(--tear-popout-radius);
+  background: var(--tear-popup-bg);
+  color: var(--tear-text);
+  box-shadow: var(--tear-popout-shadow);
+}
+
+:is(.header .avatar .settings-menu, .header .info-menu > .menu-items, .react-dropdown-default .dropdownList) {
+  padding: var(--tear-space-1) 0;
+}
+
+.header .tc-clock-tooltip {
+  padding: var(--tear-space-1) var(--tear-space-3);
+  font-size: var(--tear-fs-label, 0.75rem);
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* The clock sits under everything else in the top bar (other popouts are 100, open buttons 102):
+   its popout, then its tab. li: outranks the shared tab rule. */
+.header .tc-clock-tooltip {
+  z-index: 97;
+}
+
+.header-navigation .toolbar > li.tc-clock.active > button {
+  z-index: 98;
+}
+
+/* Torn's width, with the list scrolling inside instead of running down the page. */
+.header .recentHistory {
+  display: flex;
+  flex-direction: column;
+  width: min(420px, calc(100vw - 16px));
+  max-height: min(70vh, 560px);
+  overflow: hidden;
+}
+
+.header .recentHistory [class^="logScrollArea___"] {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--tear-line) transparent;
+}
+
+.header .recentHistory [class^="logTable___"] {
+  width: 100%;
+  table-layout: fixed;
+}
+
+/* Sized to Torn's short marks ("11m", "3h", "2d"); the full timestamp is screen-reader text. */
+.header .recentHistory [class^="logTable___"] col:first-child {
+  width: 3rem;
+}
+
+/* Torn draws the mark from this attribute in its own CSS, which TEAR switches off. */
+.header .recentHistory [data-time-mark]::before {
+  content: attr(data-time-mark);
+}
+
+.header .recentHistory [class^="logTable___"] td {
+  padding: var(--tear-space-2) var(--tear-space-3);
+  vertical-align: top;
+  line-height: 1.35;
+}
+
+.header .recentHistory [class^="logTable___"] td:first-child {
+  padding-right: 0;
+  white-space: nowrap;
+  color: var(--tear-muted);
+  font-size: var(--tear-fs-label);
+  font-variant-numeric: tabular-nums;
+}
+
+.header .recentHistory [class^="logTable___"] tr + tr td {
+  border-top: 1px solid var(--tear-divider);
+}
+
+.header .recentHistory [class^="logTable___"] .icon-wrapper {
+  display: inline-flex;
+  margin-right: var(--tear-space-1);
+  vertical-align: -0.15em;
+}
+
+.header .recentHistory .recent-history-footer {
+  border-top: 1px solid var(--tear-popout-border);
+}
+
+.header .recentHistory .recent-history-footer a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tear-space-2);
+  padding: var(--tear-space-2) var(--tear-space-3);
+  color: var(--tear-link);
+}
+
+.header .recentHistory .recent-history-footer svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* An open top bar button becomes a tab that runs into its popout, drawn in CSS from the popout's
+   own colours: the popout sits flush under the button, right edges aligned, its top-right corner
+   square. ::before is the tab body, ::after the curved foot that flares into the popout's border. */
+:is(.header .avatar .settings-menu, .header .info-menu > .menu-items, .header .tc-clock-tooltip, .header .recent-history-content) {
+  top: 100%;
+}
+
+:is(.header .avatar .settings-menu, .header .info-menu > .menu-items, .header .tc-clock-tooltip, .header .recentHistory) {
+  border-top-right-radius: 0;
+}
+
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open, .info-menu.active, .find-wrapper:has(> :is([class^="open___"], [class*=" open___"]))) > button {
+  --tab-r: 10px; /* the foot's curve */
+  position: relative;
+  z-index: calc(var(--tear-z-popout) + 2); /* over its popout, whose top border the tab covers */
+}
+
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open, .info-menu.active, .find-wrapper:has(> :is([class^="open___"], [class*=" open___"]))) > button::before,
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open, .info-menu.active, .find-wrapper:has(> :is([class^="open___"], [class*=" open___"]))) > button::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Fades in from the top, solid over the lower part. 1px past the button: over the popout's top
+   border, and the shadow bleeding above it. Side borders fade the same way; the right one runs on
+   into the popout's right border. */
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open, .info-menu.active, .find-wrapper:has(> :is([class^="open___"], [class*=" open___"]))) > button::before {
+  inset: 0 0 -1px;
+  border: solid transparent;
+  border-width: 0 1px;
+  border-image: linear-gradient(transparent, var(--tear-popout-border) 65%) 1;
+  background: linear-gradient(transparent, var(--tear-popup-bg) 65%) padding-box;
+}
+
+/* A quarter circle centred on its top-left corner: transparent inside, a 1px arc, then the fill. The
+   arc starts on the button's left border and ends on the popout's top border. */
+.header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open, .info-menu.active, .find-wrapper:has(> :is([class^="open___"], [class*=" open___"]))) > button::after {
+  right: calc(100% - 1px);
+  bottom: -1px;
+  width: var(--tab-r);
+  height: var(--tab-r);
+  background: radial-gradient(
+    circle at 0 0,
+    transparent calc(var(--tab-r) - 1.5px),
+    var(--tear-popout-border) calc(var(--tab-r) - 1px) var(--tab-r),
+    var(--tear-popup-bg) calc(var(--tab-r) + 0.5px)
+  );
+}
+
+:is(.settings-menu, .info-menu > .menu-items) li > :is(a, label, .info-container) {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-2);
+  padding: var(--tear-space-2) var(--tear-space-3);
+  color: var(--tear-text);
+  cursor: pointer;
+}
+
+:is(.settings-menu, .info-menu > .menu-items) li > :is(a, label):is(:hover, :focus-visible) {
+  background: var(--tear-nav-hover);
+  text-decoration: none;
+}
+
+:is(.settings-menu, .info-menu > .menu-items) .icon-wrapper svg,
+:is(.settings-menu, .info-menu > .menu-items) .icon-wrapper svg * {
+  fill: currentColor;
+}
+
+:is(.settings-menu, .info-menu > .menu-items) .marker-css {
+  display: none;
+}
+
+:is(.settings-menu, .info-menu > .menu-items) .checkbox-css {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: var(--tear-accent);
+}
+
+:is(.settings-menu, .info-menu > .menu-items) .server-info .info-container {
+  color: var(--tear-muted);
+  font-size: var(--tear-fs-label);
+  cursor: default;
+}
+
+.react-dropdown-default .dropdownList {
+  min-width: 11rem;
+  top: calc(100% + var(--tear-space-1));
+  z-index: var(--tear-z-popout);
+}
+
+.react-dropdown-default .dropdownList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--tear-space-3);
+  padding: var(--tear-space-2) var(--tear-space-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.react-dropdown-default .dropdownList li:is(:hover, [aria-selected="true"]) {
+  background: var(--tear-nav-hover);
+}
+
+.header-menu.active .menu-items .menu-item-href {
+  padding: var(--tear-space-2) var(--tear-space-3);
+}
+
+.header .avatar .circle-wrapper svg {
+  fill: none;
+  stroke: var(--tear-line);
+}
+
+/* Torn closes these with display: none; allow-discrete lets them animate out too. */
+:is(.header .avatar .settings-menu, .header .info-menu > .menu-items, .react-dropdown-default .dropdownList, .header-menu .menu-items) {
+  opacity: 0;
+  scale: 0.96;
+  translate: 0 -4px;
+  transition: opacity var(--tear-motion-out) var(--tear-ease-in), scale var(--tear-motion-out) var(--tear-ease-in),
+    translate var(--tear-motion-out) var(--tear-ease-in), display var(--tear-motion-out) allow-discrete;
+}
+
+:is(.header .avatar.active .settings-menu, .header .info-menu.active > .menu-items, .react-dropdown-default.dropdown-opened .dropdownList, .header-menu.active .menu-items) {
+  opacity: 1;
+  scale: 1;
+  translate: 0 0;
+  transition-duration: var(--tear-motion-in);
+  transition-timing-function: var(--tear-ease-out);
+
+  @starting-style {
+    opacity: 0;
+    scale: 0.96;
+    translate: 0 -4px;
+  }
+}
+
+:is(.header .avatar .settings-menu, .header .info-menu > .menu-items) {
+  transform-origin: top right;
+}
+
+:is(.react-dropdown-default .dropdownList, .header-menu .menu-items) {
+  transform-origin: top left;
+}
+}

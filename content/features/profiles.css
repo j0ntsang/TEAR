@@ -1,0 +1,266 @@
+/* Profiles page. Applies while the Features tab has it on: torn-css.js sets .tear-f-profiles on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+html.tear-enabled:where(.tear-f-profiles) {
+&[data-tear-page="profiles"] .user-information .cont {
+  align-items: stretch;
+  gap: var(--page-gap, 0.75rem);
+  padding: var(--page-gap, 0.75rem);
+}
+
+&[data-tear-page="profiles"] .profile-image {
+  display: flex;
+  flex-direction: column;
+  gap: var(--tear-space-2);
+}
+
+&[data-tear-page="profiles"] .profile-image-info-container {
+  position: relative;
+  width: 100%;
+  border-radius: var(--tear-radius);
+  overflow: hidden;
+}
+
+&[data-tear-page="profiles"] .profile-image-information {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--tear-space-1) var(--tear-space-2);
+  background: color-mix(in srgb, #000 55%, transparent);
+  font-size: var(--tear-fs-label);
+}
+
+&[data-tear-page="profiles"] .profile-image-information a {
+  color: #fff;
+}
+
+/* Torn's letter sprite can't be cut per letter from its CSS: the name is real text. */
+&[data-tear-page="profiles"] .profile-image .user.name,
+&[data-tear-page="profiles"] .userHonor {
+  width: 100%;
+  margin: 0;
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap {
+  container-type: inline-size;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap > * {
+  grid-area: 1 / 1;
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+  border-radius: var(--tear-radius-sm);
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap .honor-text-svg {
+  display: none;
+}
+
+&[data-tear-page="profiles"] .honor-text-wrap .honor-text:not(.honor-text-svg) {
+  color: #fff;
+  font-weight: bold;
+  font-size: clamp(0.75rem, 5.2cqi, 1.5rem);
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px #000, 0 0 2px #000, 0 0 4px #000;
+}
+
+/* :not(.header *): the top bar's avatar sits in a .profile-image-wrapper too. */
+&[data-tear-page="profiles"] .profile-image-wrapper:not(.header *) .img-wrap {
+  background: var(--tear-surface-sunk);
+}
+
+&[data-tear-page="profiles"] .profile-image-wrapper:not(.header *) img {
+  aspect-ratio: 4 / 5;
+  max-height: clamp(16rem, 45vh, 26rem);
+  object-fit: contain;
+  object-position: center;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper {
+  display: flex;
+  flex: 0 0 clamp(9rem, 32%, 13rem);
+  flex-direction: column;
+  gap: var(--tear-space-2);
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .box-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--tear-space-1);
+  padding: var(--tear-space-2) var(--tear-space-3) var(--tear-space-3);
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-surface-dim);
+  background-image: none;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .box-name {
+  color: var(--tear-label);
+  font-size: var(--tear-fs-caption);
+  font-weight: bold;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper :is(.reflection, .l-ear, .r-ear, .clear) {
+  display: none;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper :is(.block-value, .box-value) {
+  width: auto;
+  background: none;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .box-value {
+  display: flex;
+  justify-content: center;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .box-value > li {
+  display: flex;
+  float: none;
+  height: auto;
+  background: none;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .digit {
+  float: none;
+  color: var(--tear-text-strong);
+  font-size: 1.75rem;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  background: none;
+}
+
+/* Torn pads short numbers with a blank digit. */
+&[data-tear-page="profiles"] .profile-information-wrapper .digit.zero::before {
+  content: "0";
+  opacity: 0.25;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .rank .digit {
+  font-size: var(--tear-fs-title);
+  text-align: center;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper .two-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.2;
+}
+
+&[data-tear-page="profiles"] .profile-information-wrapper {
+  height: auto;
+  background: none;
+}
+
+&[data-tear-page="profiles"] .profile-status .cont {
+  padding: var(--tear-space-3);
+  border-left: 3px solid var(--tear-live);
+  border-radius: var(--tear-radius);
+}
+
+&[data-tear-page="profiles"] .profile-status .profile-container {
+  display: flex;
+  align-items: center;
+  gap: var(--tear-space-3);
+  height: auto;
+}
+
+&[data-tear-page="profiles"] .profile-status .profile-container > * {
+  position: static;
+  float: none;
+  margin: 0;
+}
+
+&[data-tear-page="profiles"] .cont > .profile-container:not(.p10) {
+  padding: var(--tear-space-3);
+}
+
+&[data-tear-page="profiles"] .basic-info > .icons {
+  float: none;
+  margin-bottom: var(--tear-space-2);
+}
+
+&[data-tear-page="profiles"] .basic-info > .icons ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tear-space-1);
+}
+
+&[data-tear-page="profiles"] .basic-info > .icons li {
+  float: none;
+}
+
+&[data-tear-page="profiles"] .buttons-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--tear-space-2);
+}
+
+&[data-tear-page="profiles"] .profile-button {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-surface-dim);
+  color: var(--tear-text);
+}
+
+&[data-tear-page="profiles"] .profile-button:is(:hover, :focus-visible) {
+  border-color: var(--tear-accent);
+  background: var(--tear-surface-hover);
+  text-decoration: none;
+}
+
+&[data-tear-page="profiles"] .profile-button svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+&[data-tear-page="profiles"] :is([class^="interactionLog___"], [class*=" interactionLog___"]) {
+  padding: var(--tear-space-2) var(--tear-space-3);
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-panel-bg);
+}
+
+&[data-tear-page="profiles"] :is([class^="interactionTable___"], [class*=" interactionTable___"]) {
+  width: 100%;
+}
+
+&[data-tear-page="profiles"] :is([class^="interactionTable___"], [class*=" interactionTable___"]) tr + tr td {
+  border-top: 1px solid var(--tear-divider);
+}
+
+&[data-tear-page="profiles"] :is([class^="interactionTable___"], [class*=" interactionTable___"]) td {
+  padding: var(--tear-space-2) var(--tear-space-1);
+  vertical-align: top;
+}
+
+&[data-tear-page="profiles"] :is([class^="logLink___"], [class*=" logLink___"]) {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--tear-space-1);
+}
+
+&[data-tear-page="profiles"] .badgesPanel .icon-placeholder,
+&[data-tear-page="profiles"] [class*="badgesPanel"] svg {
+  fill: var(--tear-line);
+}
+}

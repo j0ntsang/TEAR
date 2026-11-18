@@ -1,0 +1,207 @@
+/* Areas and Lists: sidebar navigation rows, collapse states. Applies while the Features tab has it on: torn-css.js sets .tear-f-areas on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+html.tear-enabled:where(.tear-f-areas) {
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]),
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"],
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a {
+  height: auto;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a {
+  display: flex;
+  align-items: center;
+  padding-block: var(--tear-space-2);
+  font-size: var(--tear-fs-body);
+  transition: background-color 0.15s, color 0.15s;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="svgIconWrap___"] {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.4em;
+  height: 1.5em;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="svgIconWrap___"] > * {
+  display: flex;
+  width: 1.5em;
+  height: 1.5em;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="svgIconWrap___"] svg {
+  width: 100%;
+  height: 100%;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="svgIconWrap___"] svg,
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="svgIconWrap___"] svg * {
+  fill: currentColor;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a:is(:hover, :focus-visible) {
+  background: var(--tear-nav-hover);
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a:is(:hover, :focus-visible),
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a:is(:hover, :focus-visible) * {
+  color: var(--tear-link);
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) {
+  position: relative;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) [class^="areaRow___"] {
+  background: var(--tear-nav-active);
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) a,
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) [class^="linkName___"],
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) [class^="svgIconWrap___"] {
+  color: var(--tear-link);
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"])::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 6px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(0deg, color-mix(in srgb, var(--tear-link), #fff 45%), var(--tear-link));
+}
+
+[class^="sidebar___"][class*=" desktop___"] > :is([class^="userInformation___"], [class^="accountLinksWrap___"], [class^="header___"]) {
+  border-radius: var(--tear-radius-sm);
+}
+
+[class^="areas___"] {
+  overflow: hidden;
+  border-radius: var(--tear-radius-sm);
+}
+
+[class^="areas___"] > [class^="header___"],
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]),
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] {
+  border-radius: 0;
+}
+
+[class^="sidebar___"] > [class^="header___"]:has(+ :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"])) {
+  border-radius: var(--tear-radius-sm) var(--tear-radius-sm) 0 0;
+}
+
+[class^="sidebar___"] > :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):not(:has(+ :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]))) {
+  overflow: hidden;
+  border-radius: 0 0 var(--tear-radius-sm) var(--tear-radius-sm);
+}
+
+[class^="header___"][data-tear-collapsible] {
+  cursor: pointer;
+  user-select: none;
+}
+
+[class^="header___"][data-tear-collapsible] [class^="title___"]::after {
+  content: "";
+  display: inline-block;
+  width: 0.4em;
+  height: 0.4em;
+  margin-left: 0.5em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-0.15em) rotate(45deg);
+  transition: transform 0.15s;
+}
+
+[class^="header___"][data-tear-state="collapsed"] [class^="title___"]::after {
+  transform: rotate(-45deg);
+}
+
+[class^="header___"][data-tear-state="collapsed"] ~ :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]),
+[class^="header___"][data-tear-state="top"] ~ [data-tear-extra] {
+  display: none;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"])[data-tear-more] {
+  position: relative;
+  overflow: visible;
+  border-bottom: 3px solid var(--tear-link);
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"])[data-tear-more]::after {
+  content: attr(data-tear-more);
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1;
+  padding: 4px 8px 3px;
+  border-radius: 0 0 calc(var(--tear-radius) / 2) calc(var(--tear-radius) / 4);
+  background: var(--tear-link);
+  color: var(--tear-surface);
+  font-size: var(--tear-fs-caption);
+  font-weight: bold;
+  line-height: 1.2;
+}
+
+[class^="areas___"]:has(> [data-tear-state="top"]) {
+  padding-bottom: calc(var(--tear-fs-caption) * 1.2 + 7px);
+}
+
+[class^="sidebar___"] [class^="header___"]:has(+ :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"])) {
+  height: auto;
+}
+
+[class^="sidebar___"] [class^="header___"]:has(+ :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"])) [class^="title___"] {
+  height: auto;
+  padding: var(--tear-space-2) var(--tear-space-3);
+  font-size: var(--tear-fs-body);
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+}
+
+[class^="sidebar___"] > [class^="header___"]:has(+ :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"])) {
+  border-radius: var(--tear-radius) var(--tear-radius) 0 0;
+}
+
+[class^="sidebar___"] > :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):not(:has(+ :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]))) {
+  border-radius: 0 0 var(--tear-radius) var(--tear-radius);
+}
+
+[class^="sidebar___"] > [class^="header___"][data-tear-state="collapsed"] {
+  border-radius: var(--tear-radius);
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a {
+  padding-right: 1.5rem;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="linkName___"] {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:is([class^="area-mobile___"], [class*=" area-mobile___"]) :is([class^="linkName___"], [class^="listAmount___"]) {
+  height: auto;
+  line-height: 1.25;
+}
+
+:is([class^="area-desktop___"], [class*=" area-desktop___"]) [class^="svgIconWrap___"],
+:is([class^="area-mobile___"], [class*=" area-mobile___"]) [class^="svgIconWrap___"] {
+  margin-right: var(--tear-space-1);
+}
+
+:is([class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a {
+  padding-left: var(--tear-space-3);
+}
+
+:is([class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a {
+  padding-block: var(--tear-space-3);
+}
+}

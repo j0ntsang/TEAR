@@ -1,0 +1,99 @@
+/* Sidebar order: drag grips and drop marker. Applies while the Features tab has it on: torn-css.js sets .tear-f-sidebarOrder on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+html.tear-enabled:where(.tear-f-sidebarOrder) {
+/* 24px hit area around the 12px groove, without moving the sections. */
+[data-tear-grip] {
+  all: unset;
+  position: relative;
+  flex: 0 0 100%;
+  height: calc(var(--tear-space-3) + var(--tear-space-1) * 3);
+  margin-block: calc(var(--tear-space-1) * -1.5);
+  padding-block: calc(var(--tear-space-1) * 1.5);
+  background-clip: content-box;
+  cursor: grab;
+  touch-action: none;
+}
+
+.tear-announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+[data-tear-grip]::before {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 0;
+  border-top: 1px solid color-mix(in srgb, #000 35%, transparent);
+  border-bottom: 1px solid var(--tear-groove-light);
+  transform: translateY(-1px);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+
+[data-tear-grip][data-tear-first]::before {
+  display: none;
+}
+
+/* Takes no room, so the card starts right under the logo. */
+[data-tear-grip][data-tear-first] {
+  height: var(--tear-space-3);
+  padding-block: 0;
+  margin-block: calc(-1 * var(--tear-space-3)) calc(-1 * var(--tear-space-2));
+}
+
+[data-tear-grip]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.75rem;
+  height: 0.5rem;
+  translate: -50% -50%;
+  border: 1px solid var(--tear-line);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, var(--tear-label) 1px, transparent 1.5px) center / 5px 4px,
+    var(--tear-surface);
+  opacity: 0;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+[class^="sidebar___"]:hover [data-tear-grip]::after {
+  opacity: 0.6;
+}
+
+[data-tear-grip]:is(:hover, :focus-visible)::after {
+  opacity: 1;
+  border-color: var(--tear-accent);
+}
+
+[data-tear-grip]:active {
+  cursor: grabbing;
+}
+
+[data-tear-section][data-tear-section-hover] {
+  outline: 1px dashed color-mix(in srgb, var(--tear-accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+[data-tear-section][data-tear-dragging] {
+  opacity: 0.45;
+}
+
+.tear-drop-marker {
+  position: fixed;
+  z-index: var(--tear-z-drag);
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--tear-accent);
+  box-shadow: 0 0 6px var(--tear-accent);
+  pointer-events: none;
+}
+}

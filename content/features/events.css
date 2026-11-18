@@ -1,0 +1,159 @@
+/* Events page. Applies while the Features tab has it on: torn-css.js sets .tear-f-events on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+/* Layout Torn's CSS provided. A layer, so TEAR's own unlayered rules always win; tear-pages sits
+   above tear-structure (assets.css), so this page wins over the shared widgets and panels. */
+
+@layer tear-pages {
+html.tear-enabled:where(.tear-f-events) {
+  /* Events: a list of messages, each with its time and Copy / Send / Save; unseen ones edged in
+     the accent. Torn's shared list item, so other notification lists pick it up too. */
+  & [class^="eventsListWrapper___"] {
+    position: relative;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background: var(--tear-panel-bg);
+  }
+
+  & [class^="eventsListWrapper___"] > header[class^="header___"] {
+    display: flex;
+    align-items: center;
+    height: 2.125rem;
+    padding-left: var(--tear-space-3);
+    border-bottom: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius) var(--tear-radius) 0 0;
+    background: var(--tear-surface-dim);
+  }
+
+  & [class^="eventsListWrapper___"] [class^="heading___"] {
+    color: var(--tear-text-strong);
+    font-size: var(--tear-fs-body);
+    font-weight: 600;
+  }
+
+  & [class^="eventsListWrapper___"] [class^="headerButtons___"] {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    margin-left: auto;
+  }
+
+  & :is([class^="eventsListWrapper___"] [class^="headerButton___"], [class^="buttonsGroup___"] button) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 100%;
+    border-left: 1px solid var(--tear-divider);
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & :is([class^="eventsListWrapper___"] [class^="headerButton___"], [class^="buttonsGroup___"] button):is(:hover, :focus-visible) {
+    background: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  & [class^="eventsListWrapper___"] [class^="headerButton___"][aria-checked="true"],
+  & [class^="buttonsGroup___"] [class*=" active___"] button {
+    color: var(--tear-gold);
+  }
+
+  & [class^="eventsList___"] {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & [class^="listItemWrapper___"] {
+    position: relative;
+  }
+
+  & [class^="listItemWrapper___"] + [class^="listItemWrapper___"] {
+    border-top: 1px solid var(--tear-divider);
+  }
+
+  & [class^="listItemWrapper___"][class*=" unseen___"] {
+    background: var(--tear-nav-hover);
+    box-shadow: inset 3px 0 0 var(--tear-accent);
+  }
+
+  & [class^="listItemWrapper___"] > [class^="listItem___"] {
+    display: flex;
+  }
+
+  & [class^="listItem___"] [class^="contentGroup___"] {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  & [class^="listItem___"] [class^="message___"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    padding: 0.5625rem var(--tear-space-3) var(--tear-space-2);
+    line-height: 1rem;
+    overflow-wrap: anywhere;
+  }
+
+  & [class^="listItem___"] [class^="dateTime___"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 4rem;
+    padding-inline: var(--tear-space-1);
+    border-left: 1px solid var(--tear-divider);
+    color: var(--tear-muted);
+    font-size: var(--tear-fs-caption);
+    line-height: 13px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  & [class^="buttonsGroup___"] {
+    display: flex;
+    flex: none;
+  }
+
+  & [class^="buttonsGroup___"] > div {
+    display: flex;
+  }
+
+  & [class^="buttonsGroup___"] [class^="text___"] {
+    display: none;
+  }
+
+  @media (max-width: 784px) {
+    & [class^="listItemWrapper___"] > [class^="listItem___"] {
+      flex-direction: column;
+    }
+
+    & [class^="buttonsGroup___"] {
+      border-top: 1px solid var(--tear-divider);
+    }
+
+    & [class^="buttonsGroup___"] > div {
+      flex: 1 1 0;
+    }
+
+    & [class^="buttonsGroup___"] button {
+      flex: 1 1 0;
+      gap: var(--tear-space-1);
+      height: 2.125rem;
+    }
+
+    & [class^="buttonsGroup___"] > div:first-child button {
+      border-left: 0;
+    }
+
+    & [class^="buttonsGroup___"] [class^="text___"] {
+      display: block;
+      font-size: var(--tear-fs-label);
+      font-weight: 700;
+    }
+  }
+}
+}

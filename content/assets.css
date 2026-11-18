@@ -1,3 +1,8 @@
+/* TEAR's cascade layers, lowest first. This sheet loads before every feature's, so this order holds
+   whichever features are on: Torn's ported layout and shared widgets (tear-structure), then each
+   page's own feature (tear-pages). TEAR's unlayered rules win over both. */
+@layer tear-structure, tear-pages;
+
 /* Torn's images by name, each falling back to Torn's file: define one to replace it. torn-css.js
    names the rest --tear-asset-<path> and lists them in chrome.storage.local "tornAssets". */
 

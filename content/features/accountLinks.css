@@ -1,0 +1,161 @@
+/* Account links: messages, events, awards and their unread badges. Applies while the Features tab has it on: torn-css.js sets .tear-f-accountLinks on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+html.tear-enabled:where(.tear-f-accountLinks) {
+[class^="accountLinksWrap___"] {
+  margin-block: var(--tear-space-2);
+  border: 0;
+  background: none;
+}
+
+[class^="accountLinksWrap___"] [class^="accountLinks___"] {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+
+[class^="accountLinksWrap___"] {
+  overflow: visible;
+}
+
+[class^="accountLinksWrap___"] [class^="accountLinks___"] > :first-child a {
+  border-radius: var(--tear-radius-sm) 0 0 var(--tear-radius-sm);
+}
+
+[class^="accountLinksWrap___"] [class^="accountLinks___"] > :last-child a {
+  border-radius: 0 var(--tear-radius-sm) var(--tear-radius-sm) 0;
+}
+
+[class^="accountLinksWrap___"] [class^="accountLinks___"] > * {
+  width: auto;
+  margin: 0;
+}
+
+[class^="accountLinksWrap___"],
+[class^="accountLinksWrap___"] [class^="accountLinks___"],
+[class^="accountLinksWrap___"] [class^="accountLinks___"] > * {
+  height: auto;
+}
+
+[class^="accountLinksWrap___"] a {
+  --chip: var(--tear-link);
+  display: grid;
+  place-items: center;
+  height: auto;
+  padding: var(--tear-space-2) 0;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--chip) 20%, transparent);
+  transition: background-color 0.15s;
+}
+
+[class^="accountLinksWrap___"] a[class^="events___"] { --chip: #e8913a; }
+[class^="accountLinksWrap___"] a[class^="awards___"] { --chip: var(--tear-gold); }
+
+[class^="accountLinksWrap___"] a:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--chip) 35%, transparent);
+}
+
+[class^="accountLinksWrap___"] a svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+[class^="accountLinksWrap___"] a svg,
+[class^="accountLinksWrap___"] a svg * {
+  fill: var(--chip);
+}
+
+[class^="accountLinksWrap___"] a {
+  position: relative;
+}
+
+[class^="accountLinksWrap___"] a::before,
+[class^="accountLinksWrap___"] a::after {
+  position: absolute;
+  right: auto;
+  bottom: auto;
+  width: auto;
+  height: auto;
+  margin: 0;
+  background: none;
+  left: 50%;
+  z-index: var(--tear-z-tooltip);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+[class^="accountLinksWrap___"] a::after {
+  content: attr(aria-label);
+  top: calc(100% + 7px);
+  width: max-content;
+  transform: translateX(-50%);
+  padding: 5px 10px;
+  border: 1px solid var(--tooltip-border-color, #333);
+  border-radius: 5px;
+  background: var(--tooltip-bg-color, #444);
+  box-shadow: var(--white-tooltip-box-shadow, var(--tooltip-shadow, 0 0 2px rgba(0, 0, 0, 0.65)));
+  color: var(--tear-text);
+  font-size: var(--tear-fs-label);
+  white-space: nowrap;
+}
+
+[class^="accountLinksWrap___"] a::before {
+  content: "";
+  top: 100%;
+  width: 0;
+  height: 0;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top: 0;
+  border-bottom-color: var(--tooltip-bg-color, #444);
+  filter: drop-shadow(0 -1px 0 var(--tooltip-border-color, #333));
+}
+
+[class^="accountLinksWrap___"] a:is(:hover, :focus-visible)::before,
+[class^="accountLinksWrap___"] a:is(:hover, :focus-visible)::after {
+  opacity: 1;
+}
+
+[class^="accountLinksWrap___"] [class^="accountLinks___"] > * {
+  background: none;
+}
+
+[class^="accountLinksWrap___"] :is([class^="active___"], [class*=" active___"]) a {
+  background: color-mix(in srgb, var(--chip) 40%, transparent);
+}
+
+[class^="accountLinksWrap___"] [class^="accountLinks___"] > :first-child a {
+  border-radius: var(--tear-radius) 0 0 var(--tear-radius);
+}
+
+[class^="accountLinksWrap___"] [class^="accountLinks___"] > :last-child a {
+  border-radius: 0 var(--tear-radius) var(--tear-radius) 0;
+}
+
+[class^="accountLinksWrap___"] a svg {
+  filter: none;
+}
+
+/* Unread counts on the sidebar's messages / events / awards links: a round count badge,
+   pinned to the icon's corner instead of stacked under it (which also made that link taller). */
+[class^="accountLinksWrap___"] a [class^="amount___"] {
+  position: absolute;
+  top: -0.5rem; /* straddles the strip's top edge */
+  left: calc(50% + 6px);
+  z-index: 1;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  padding: 0 0.3125rem;
+  border-radius: 999px;
+  background: var(--tear-badge-bg);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--tear-surface);
+  pointer-events: none;
+}
+}

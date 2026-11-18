@@ -1,14 +1,41 @@
 // The panel lives in a shadow root so neither Torn's CSS nor TEAR's own reaches it.
 
 (() => {
-  const { FONTS, MODES, COLOR_TOKENS, DEFAULT_THEME, normalizeTheme, colorCss, getTheme, saveTheme } = TEAR;
+  const { FONTS, MODES, COLOR_TOKENS, FEATURES, FEATURE_IDS, enabledFeatures, switchFeature, PANEL_SIZE, DEFAULT_PANEL_SIZE, normalizePanelSize, DEFAULT_THEME, normalizeTheme, colorCss, getTheme, saveTheme } = TEAR;
   const root = document.documentElement;
 
   let theme = normalizeTheme(undefined);
   const overrides = document.createElement("style");
   overrides.id = "tear-color-overrides";
 
+  // The Features tab's switches; stored as the ones switched on. Until then, the defaults (Theme).
+  // A feature stays stored on while its requirements are off, so it comes back with them.
+  let storedOn = TEAR.DEFAULT_FEATURES;
+  let enabled = enabledFeatures(undefined);
+  const featureOn = (id) => enabled.has(id);
+  // Applied here at once as well: a second click before storage reports back must see the first.
+  const setFeaturesOn = (featuresOn) => {
+    syncFeatures(featuresOn);
+    chrome.storage.local.set({ featuresOn });
+  };
+  chrome.storage.local.get("featuresOn").then(({ featuresOn: stored }) => syncFeatures(stored));
+  // Before features started off, the list kept was the ones switched off.
+  chrome.storage.local.remove("featuresOff");
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === "local" && "featuresOn" in changes) syncFeatures(changes.featuresOn.newValue);
+  });
+  function syncFeatures(stored) {
+    storedOn = Array.isArray(stored) ? stored : TEAR.DEFAULT_FEATURES;
+    enabled = enabledFeatures(storedOn);
+    applyTheme();
+    render();
+    // A switch can move Torn's chat bar (the page grid, the mobile layout) without resizing it.
+    requestAnimationFrame(() => requestAnimationFrame(placeDock));
+  }
+
+  // The colour overrides belong to the Theme feature: off, they leave the page.
   function applyTheme() {
+    if (!featureOn("theme")) return overrides.remove();
     overrides.textContent = colorCss(theme.colors) + (tornCssOff ? tornFallbackCss() : "");
     if (!overrides.isConnected) document.head.append(overrides);
   }
@@ -68,7 +95,8 @@
   // Torn-based tokens only resolve in the current mode, so each mode's values are remembered.
   const learned = { light: {}, dark: {} };
   chrome.storage.local.get("tornDefaults").then(({ tornDefaults }) => {
-    for (const mode of MODES) Object.assign(learned[mode], tornDefaults?.[mode]);
+    // Every token the same colour is a probe that read nothing (Torn's CSS was off): not kept.
+    for (const mode of MODES) if (tornDefaults?.[mode]?.surface !== tornDefaults?.[mode]?.text) Object.assign(learned[mode], tornDefaults[mode]);
     learnDefaults();
   });
 
@@ -86,6 +114,9 @@
 
   function learnDefaults() {
     if (tornCssOff || root.classList.contains("tear-enabled")) return;
+    // Torn's variables, not TEAR's: those exist only while TEAR is on. Undefined until Torn's own
+    // stylesheets have loaded (or while they're blocked), and then there's nothing to learn.
+    if (!getComputedStyle(document.body).getPropertyValue("--default-bg-panel-color").trim()) return;
     const mode = currentMode();
     const probe = document.createElement("i");
     probe.hidden = true;
@@ -94,7 +125,7 @@
     overrides.disabled = true;
     const found = {};
     for (const token of COLOR_TOKENS.filter((t) => t.torn)) {
-      probe.style.color = `var(${token.prop})`;
+      probe.style.color = token.torn;
       found[token.id] = toHex(getComputedStyle(probe).color, token.alpha);
     }
     overrides.disabled = false;
@@ -176,17 +207,32 @@
 
   // Called from a ResizeObserver, after layout: the reads below cost nothing extra, and the
   // dock moves in the same frame as the bar.
+  // The dock must always be on screen, whatever is switched on: it's the only way back to settings.
+  // Beside the chat bar only while the bar is pinned to the bottom of the window (Torn's CSS or the
+  // Chat feature); otherwise, and whenever that would push it off screen, bottom right.
   function placeDock() {
     const first = watchedButtons.find((c) => c.offsetWidth > 2);
-    if (first) {
-      // clientWidth, not innerWidth: fixed positions don't count the scrollbar.
+    const box = first?.getBoundingClientRect();
+    // clientWidth/clientHeight, not innerWidth: fixed positions don't count the scrollbar.
+    const pinned =
+      box &&
+      [...ancestors(watchedBar)].some((el) => getComputedStyle(el).position === "fixed") &&
+      Math.abs(box.bottom - root.clientHeight) <= 4 &&
+      box.left >= 0 &&
+      box.left <= root.clientWidth;
+    let right = 8;
+    if (pinned) {
       const gap = parseFloat(getComputedStyle(first.parentElement).columnGap) || 0;
-      setDockVar("--tear-dock-right", `${Math.max(8, root.clientWidth - first.getBoundingClientRect().left + gap)}px`);
-      setDockVar("--tear-dock-left", "auto");
-    } else {
-      setDockVar("--tear-dock-right", "auto");
-      setDockVar("--tear-dock-left", "8px");
+      right = Math.max(8, root.clientWidth - box.left + gap);
     }
+    // Never past the left edge: the dock's own width plus a margin must fit.
+    right = Math.min(right, Math.max(8, root.clientWidth - (dock.offsetWidth || 80) - 8));
+    setDockVar("--tear-dock-right", `${right}px`);
+    setDockVar("--tear-dock-left", "auto");
+  }
+
+  function* ancestors(el) {
+    for (let e = el; e && e !== document.body; e = e.parentElement) yield e;
   }
 
   // The dock sits just left of Torn's chat bar. The bar spans the viewport, so its size changes
@@ -315,29 +361,71 @@
         <button type="button" class="close" aria-label="Close">×</button>
       </header>
       <div class="tabs" role="tablist" aria-label="Settings">
-        <button type="button" role="tab" id="tab-colors" aria-controls="pane-colors">Colors</button>
-        <button type="button" role="tab" id="tab-type" aria-controls="pane-type">Typography</button>
+        <button type="button" role="tab" id="tab-features" aria-controls="pane-features">Features</button>
+        <button type="button" role="tab" id="tab-settings" aria-controls="pane-settings">Settings</button>
+        <button type="button" role="tab" id="tab-custom" aria-controls="pane-custom">Customization</button>
       </div>
-      <div class="pane" role="tabpanel" id="pane-colors" aria-labelledby="tab-colors">
-        <label class="field mode">
-          <span>Configure</span>
-          <select id="mode">
-            <option value="light">Light mode</option>
-            <option value="dark">Dark mode</option>
-          </select>
-        </label>
-        <div id="colors"></div>
+      <div class="pane" role="tabpanel" id="pane-features" aria-labelledby="tab-features">
+        <p class="notice" id="features-idle">Features apply while TEAR is enabled.</p>
+        <div class="bulk">
+          <button type="button" id="all-on">All on</button>
+          <button type="button" id="all-off">All off</button>
+        </div>
+        <div id="features"></div>
       </div>
-      <div class="pane" role="tabpanel" id="pane-type" aria-labelledby="tab-type">
-        <label class="field">
-          <span>Font family</span>
-          <select id="font"></select>
-        </label>
-        <p class="sample" id="sample">The quick brown fox — 1,234,567</p>
+      <div class="pane" role="tabpanel" id="pane-settings" aria-labelledby="tab-settings">
+        <section class="group" aria-labelledby="group-panel">
+          <div class="group-head">
+            <h3 id="group-panel">Panel size</h3>
+            <button type="button" class="group-reset" id="size-reset">Reset size</button>
+          </div>
+          <label class="slider">
+            <span>Width</span>
+            <input type="range" id="panel-width" min="${PANEL_SIZE.width.min}" max="${PANEL_SIZE.width.max}" step="10">
+            <output id="panel-width-out" for="panel-width"></output>
+          </label>
+          <label class="slider">
+            <span>Height</span>
+            <input type="range" id="panel-height" min="${PANEL_SIZE.height.min}" max="${PANEL_SIZE.height.max}" step="10">
+            <output id="panel-height-out" for="panel-height"></output>
+          </label>
+          <p class="hint">Never larger than the window.</p>
+        </section>
+        <section class="group danger" aria-labelledby="group-reset">
+          <div class="group-head">
+            <h3 id="group-reset">Reset</h3>
+          </div>
+          <p class="hint">Puts every TEAR setting back to its default: features, colours, font, sidebar order, collapsed lists, loadout view and panel size. Enable TEAR stays as it is.</p>
+          <button type="button" class="reset-all" id="reset-all">Reset all TEAR settings</button>
+        </section>
       </div>
-      <footer>
-        <button type="button" class="reset" id="reset">Reset to default</button>
-      </footer>
+      <div class="pane" role="tabpanel" id="pane-custom" aria-labelledby="tab-custom">
+        <section class="group" aria-labelledby="group-colors">
+          <div class="group-head">
+            <h3 id="group-colors">Colors</h3>
+            <button type="button" class="group-reset" id="colors-reset"></button>
+          </div>
+          <label class="field mode">
+            <span>Configure</span>
+            <select id="mode">
+              <option value="light">Light mode</option>
+              <option value="dark">Dark mode</option>
+            </select>
+          </label>
+          <div id="colors"></div>
+        </section>
+        <section class="group" aria-labelledby="group-type">
+          <div class="group-head">
+            <h3 id="group-type">Typography</h3>
+            <button type="button" class="group-reset" id="font-reset">Reset font</button>
+          </div>
+          <label class="field">
+            <span>Font family</span>
+            <select id="font"></select>
+          </label>
+          <p class="sample" id="sample">The quick brown fox — 1,234,567</p>
+        </section>
+      </div>
     </section>`;
 
   const $ = (sel) => shadow.querySelector(sel);
@@ -347,7 +435,7 @@
   const fontSelect = $("#font");
   fontSelect.append(...FONTS.map(({ label, value }) => new Option(label, value)));
 
-  let activeTab = "tab-colors";
+  let activeTab = "tab-features";
   // TEAR is on while Torn's stylesheets are off; switching reloads every Torn tab.
   const power = $("#power");
   power.addEventListener("click", () => {
@@ -356,12 +444,124 @@
   });
   let editMode = currentMode();
 
+  // A titled, boxed section: each context in the panel reads as its own block.
+  function groupSection(title) {
+    const section = document.createElement("section");
+    section.className = "group";
+    const id = `group-${title.toLowerCase().replace(/\W+/g, "-")}`;
+    section.setAttribute("aria-labelledby", id);
+    section.innerHTML = `<div class="group-head"><h3 id="${id}"></h3></div>`;
+    section.querySelector("h3").textContent = title;
+    return section;
+  }
+
+  // Panel size: the sliders resize it live; saved per browser.
+  let panelSize = { ...DEFAULT_PANEL_SIZE };
+  function applyPanelSize() {
+    host.style.setProperty("--panel-w", `${panelSize.width}px`);
+    host.style.setProperty("--panel-h", `${panelSize.height}px`);
+    for (const dim of ["width", "height"]) {
+      const input = $(`#panel-${dim}`);
+      if (shadow.activeElement !== input) input.value = String(panelSize[dim]);
+      $(`#panel-${dim}-out`).textContent = `${panelSize[dim]}px`;
+    }
+    $("#size-reset").hidden = panelSize.width === DEFAULT_PANEL_SIZE.width && panelSize.height === DEFAULT_PANEL_SIZE.height;
+  }
+  let sizeTimer = 0;
+  for (const dim of ["width", "height"]) {
+    $(`#panel-${dim}`).addEventListener("input", (event) => {
+      panelSize = normalizePanelSize({ ...panelSize, [dim]: Number(event.target.value) });
+      applyPanelSize();
+      clearTimeout(sizeTimer);
+      sizeTimer = setTimeout(() => chrome.storage.local.set({ panelSize }), 300);
+    });
+  }
+  $("#size-reset").addEventListener("click", () => {
+    panelSize = { ...DEFAULT_PANEL_SIZE };
+    applyPanelSize();
+    chrome.storage.local.remove("panelSize");
+  });
+  chrome.storage.local.get("panelSize").then(({ panelSize: stored }) => {
+    panelSize = normalizePanelSize(stored);
+    applyPanelSize();
+  });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== "local" || !("panelSize" in changes)) return;
+    panelSize = normalizePanelSize(changes.panelSize.newValue);
+    applyPanelSize();
+  });
+
+  // Everything TEAR stores as a setting. Enable TEAR stays: switching it reloads every Torn tab, and
+  // what Torn's own colours resolve to and its image list are learned data, not settings.
+  const RESET_LOCAL = ["featuresOn", "featuresOff", "panelSize", "sidebarOrder", "sectionStates", "collapsedSections", "loadoutView"];
+  let resetArmed = 0;
+  const resetAll = $("#reset-all");
+  resetAll.addEventListener("click", async () => {
+    // Two clicks, not a confirm() dialog: those block the page.
+    if (!resetArmed) {
+      resetAll.textContent = "Click again to reset everything";
+      resetAll.classList.add("armed");
+      resetArmed = setTimeout(disarmReset, 4000);
+      return;
+    }
+    disarmReset();
+    clearTimeout(saveTimer);
+    saveTimer = 0;
+    await chrome.storage.sync.remove("theme");
+    await chrome.storage.local.remove(RESET_LOCAL);
+    resetAll.textContent = "Everything is back to default";
+    setTimeout(() => (resetAll.textContent = "Reset all TEAR settings"), 2500);
+  });
+  function disarmReset() {
+    clearTimeout(resetArmed);
+    resetArmed = 0;
+    resetAll.classList.remove("armed");
+    resetAll.textContent = "Reset all TEAR settings";
+  }
+
+  // Switches apply live in every Torn tab: storage.onChanged reaches torn-css.js and main.js.
+  const switches = new Map();
+  let featureGroup = "";
+  let featureSection = null;
+  for (const feature of FEATURES) {
+    if (feature.group !== featureGroup) {
+      featureGroup = feature.group;
+      featureSection = groupSection(featureGroup);
+      $("#features").append(featureSection);
+    }
+    const row = document.createElement("div");
+    row.className = "feature";
+    const labelId = `feature-${feature.id}`;
+    const needs = feature.requires.map((id) => FEATURES.find((f) => f.id === id).label);
+    const note = [needs.length ? `Needs ${needs.join(", ")}` : "", feature.note ?? ""].filter(Boolean).join(". ");
+    row.innerHTML = `
+      <span class="feature-text">
+        <span class="feature-label" id="${labelId}"></span>
+        <span class="feature-desc"></span>
+        ${note ? '<span class="feature-note"></span>' : ""}
+      </span>
+      <button type="button" class="switch" role="switch" aria-labelledby="${labelId}"></button>`;
+    row.querySelector(".feature-label").textContent = feature.label;
+    row.querySelector(".feature-desc").textContent = feature.description;
+    if (note) row.querySelector(".feature-note").textContent = note;
+    const toggle = row.querySelector(".switch");
+    toggle.setAttribute("aria-describedby", `${labelId}-desc`);
+    row.querySelector(".feature-desc").id = `${labelId}-desc`;
+    toggle.addEventListener("click", () =>
+      setFeaturesOn(switchFeature(storedOn, feature.id, !featureOn(feature.id))),
+    );
+    switches.set(feature.id, toggle);
+    featureSection.append(row);
+  }
+  $("#all-on").addEventListener("click", () => setFeaturesOn(FEATURE_IDS));
+  $("#all-off").addEventListener("click", () => setFeaturesOn([]));
+
   const rows = new Map();
   let group = "";
   for (const token of COLOR_TOKENS) {
     if (token.group !== group) {
       group = token.group;
-      $("#colors").append(Object.assign(document.createElement("h3"), { textContent: group }));
+      $("#colors").append(Object.assign(document.createElement("h4"), { textContent: group }));
     }
     const row = document.createElement("div");
     row.className = "row";
@@ -406,18 +606,18 @@
       if (range && shadow.activeElement !== range) range.value = String(parseInt(value.slice(7) || "ff", 16));
       row.classList.toggle("is-changed", isChanged(token, editMode));
     }
+    for (const [id, toggle] of switches) toggle.setAttribute("aria-checked", String(featureOn(id)));
+    $("#features-idle").hidden = tornCssOff;
+    $("#all-on").disabled = enabled.size === FEATURE_IDS.length;
+    $("#all-off").disabled = enabled.size === 0;
     power.textContent = tornCssOff ? "Disable TEAR" : "Enable TEAR";
     power.setAttribute("aria-pressed", String(tornCssOff));
     fontSelect.value = theme.fontFamily;
     $("#sample").style.fontFamily = theme.fontFamily || "inherit";
 
-    const resetButton = $("#reset");
-    const view = {
-      "tab-colors": [COLOR_TOKENS.some((t) => isChanged(t, editMode)), `Reset ${editMode} colors to default`],
-      "tab-type": [theme.fontFamily !== DEFAULT_THEME.fontFamily, "Reset font to default"],
-    }[activeTab];
-    resetButton.hidden = !view[0];
-    resetButton.textContent = view[1];
+    $("#colors-reset").hidden = !COLOR_TOKENS.some((t) => isChanged(t, editMode));
+    $("#colors-reset").textContent = `Reset ${editMode} colors`;
+    $("#font-reset").hidden = theme.fontFamily === DEFAULT_THEME.fontFamily;
     host.dataset.mode = currentMode();
   }
 
@@ -440,10 +640,8 @@
     render();
   });
   fontSelect.addEventListener("change", () => update({ ...theme, fontFamily: fontSelect.value }));
-  $("#reset").addEventListener("click", () => {
-    if (activeTab === "tab-colors") update({ ...theme, colors: { ...theme.colors, [editMode]: {} } });
-    else if (activeTab === "tab-type") update({ ...theme, fontFamily: DEFAULT_THEME.fontFamily });
-  });
+  $("#colors-reset").addEventListener("click", () => update({ ...theme, colors: { ...theme.colors, [editMode]: {} } }));
+  $("#font-reset").addEventListener("click", () => update({ ...theme, fontFamily: DEFAULT_THEME.fontFamily }));
 
   function open() {
     if (!host.isConnected) document.body.append(host);

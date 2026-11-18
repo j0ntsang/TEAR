@@ -1,0 +1,76 @@
+/* Status icons: one sprite cell per icon. Applies while the Features tab has it on: torn-css.js sets .tear-f-statusIcons on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+html.tear-enabled:where(.tear-f-statusIcons) {
+/* Sprite icons are positioned in px: zoom, not width/height. */
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [class^="statusIcons___"] {
+  --icon-zoom: 1.5;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(calc(17px * var(--icon-zoom)), 1fr));
+  gap: var(--tear-space-2) var(--tear-space-1);
+  justify-items: center;
+  height: auto;
+  margin: 0 0 var(--tear-space-2);
+  padding: 0;
+}
+
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [class^="statusIcons___"] > li {
+  zoom: var(--icon-zoom);
+  margin: 0;
+}
+
+[class^="userInformationMobile___"] [class^="statusIcons___"] {
+  --icon-zoom: 2;
+  position: static;
+  width: auto;
+  height: auto;
+  max-height: none;
+  transform: none;
+  opacity: 1;
+  visibility: visible;
+}
+
+:is([class^="userInformation___"], [class^="userInformationMobile___"]) [class^="statusIcons___"] {
+  gap: var(--tear-space-3) var(--tear-space-2);
+}
+
+[class^="userInformationMobile___"] [class^="statusIcons___"] {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin: 0 calc(-1 * var(--tear-space-3));
+  padding: var(--tear-space-3) var(--tear-space-3) 0;
+  border-top: 1px solid var(--tear-line);
+}
+
+/* One sprite, an 18px cell per icon (--tear-icon from main.js); a row per size. */
+& :is([class^="statusIcons___"] > li, li:is([class^="user-status-16-"], [class*=" user-status-16-"]), [id="iconTray"] > li[id^="icon"]) {
+  --tear-icon-row: 0px;
+  --tear-icon-nudge: 0px;
+  display: inline-block;
+  width: 17px;
+  height: 17px;
+  background: var(--tear-asset-status-icons)
+    calc(var(--tear-icon, 0) * -18px - var(--tear-icon-nudge)) var(--tear-icon-row) no-repeat;
+}
+
+& [class^="statusIcons___"]:is([class^="medium___"], [class*=" medium___"]) > li {
+  --tear-icon-row: -19px;
+  --tear-icon-nudge: 1px;
+  width: 14px;
+  height: 14px;
+}
+
+& [class^="statusIcons___"]:is([class^="small___"], [class*=" small___"]) > li {
+  --tear-icon-row: -38px;
+  --tear-icon-nudge: 2px;
+  width: 12px;
+  height: 12px;
+}
+
+& :is([class^="statusIcons___"] > li, li:is([class^="user-status-16-"], [class*=" user-status-16-"]), [id="iconTray"] > li[id^="icon"]) > a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+}

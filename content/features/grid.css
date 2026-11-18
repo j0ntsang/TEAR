@@ -1,0 +1,388 @@
+/* Page grid: one named-area grid for the whole page, no floats. Applies while the Features tab has it
+   on: torn-css.js sets .tear-f-grid on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone.
+
+   Columns (named lines):
+     [full-start] gutter [main-start side-start] sidebar [side-end] gap [content-start] content [content-end main-end] gutter [full-end]
+   Areas: top (header + ticker), hud (Torn's mobile sidebar), sidebar (its desktop sidebar), content, footer.
+   Torn's markup picks the template (html[data-tear-mobile] = its mobile sidebar); width tiers set the
+   tokens. With the mobile markup the sidebar track and its gap are 0, so the lines stay the same.
+
+   Tiers: xs ≤359 · phone 360 · fold 480 · tablet 768 · laptop 1024 · desktop 1440 · wide 1920 (fills the width). */
+
+html.tear-enabled:where(.tear-f-grid) {
+body.body {
+  --page-gutter: 0.5rem;
+  --page-gap: 0.625rem;
+  --sidebar-w: 0px;
+  --side-gap: 0px;
+
+  display: grid;
+  grid-template-columns:
+    [full-start] var(--page-gutter)
+    [main-start side-start] var(--sidebar-w)
+    [side-end] var(--side-gap)
+    [content-start] minmax(0, 1fr)
+    [content-end main-end] var(--page-gutter)
+    [full-end];
+  grid-template-rows: auto auto 1fr auto;
+  grid-template-areas:
+    "top    top     top     top     top"
+    ".      hud     hud     hud     ."
+    ".      content content content ."
+    "footer footer  footer  footer  footer";
+  align-content: start;
+  min-height: 100dvh;
+  margin: 0;
+}
+
+&:not([data-tear-mobile]) body.body {
+  --sidebar-w: clamp(10.75rem, 14vw, 15rem); /* never under the 172px logo */
+  --side-gap: var(--page-gap);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "top    top     top    top     top"
+    ".      sidebar .      content ."
+    "footer footer  footer footer  footer";
+}
+
+body.body:not(:has(#sidebarroot)),
+body.body.without-sidebar {
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    "top    top     top     top     top"
+    ".      content content content ."
+    "footer footer  footer  footer  footer";
+}
+
+/* phone: 360 / 375 / 390 / 393 / 412 / 414 / 430 */
+@media (min-width: 360px) {
+  body.body {
+    --page-gutter: clamp(0.5rem, 2.5vw, 0.75rem);
+    --page-gap: 0.75rem;
+  }
+}
+
+/* fold: Surface Duo (one screen) 540, foldables unfolded, small tablets 600 */
+@media (min-width: 480px) {
+  body.body {
+    --page-gutter: 1rem;
+    --page-gap: 1rem;
+  }
+}
+
+/* tablet: iPad mini 744/768, Air 820, Pro 834. Torn's desktop markup starts at 785. */
+@media (min-width: 768px) {
+  body.body {
+    --page-gutter: 1.25rem;
+  }
+
+  &:not([data-tear-mobile]) body.body {
+    --sidebar-w: 10.75rem;
+  }
+}
+
+/* laptop: iPad landscape 1024/1180, 1280, 1366 */
+@media (min-width: 1024px) {
+  body.body {
+    --page-gutter: clamp(1rem, 2vw, 2rem);
+    --page-gap: clamp(0.75rem, 1.25vw, 1.25rem);
+  }
+
+  &:not([data-tear-mobile]) body.body {
+    --sidebar-w: clamp(10.75rem, 14vw, 13rem);
+  }
+}
+
+/* desktop: 1440 / 1536 / 1680 */
+@media (min-width: 1440px) {
+  body.body {
+    --page-gutter: clamp(1.5rem, 2.5vw, 3rem);
+    --page-gap: clamp(1rem, 1.25vw, 1.5rem);
+  }
+
+  &:not([data-tear-mobile]) body.body {
+    --sidebar-w: clamp(12rem, 14vw, 15rem);
+  }
+}
+
+/* wide: 1920 / 2560 / ultrawide. Content keeps filling the width. */
+@media (min-width: 1920px) {
+  body.body {
+    --page-gutter: 3rem;
+    --page-gap: 1.5rem;
+  }
+
+  &:not([data-tear-mobile]) body.body {
+    --sidebar-w: 15rem;
+  }
+}
+
+/* Dual-screen, side by side (Surface Duo spanned, foldables unfolded sideways): the header and the
+   sidebar or HUD on the left screen, the content on the right, nothing across the hinge. */
+@media (horizontal-viewport-segments: 2) {
+  body.body,
+  &:not([data-tear-mobile]) body.body {
+    --sidebar-w: 0px;
+    --side-gap: 0px;
+    --hinge: calc(env(viewport-segment-left 1 0) - env(viewport-segment-right 0 0));
+    grid-template-columns:
+      [full-start] var(--page-gutter)
+      [main-start side-start] calc(env(viewport-segment-width 0 0) - 2 * var(--page-gutter))
+      [side-end] var(--page-gutter)
+      [hinge-start] var(--hinge)
+      [hinge-end] var(--page-gutter)
+      [content-start] minmax(0, 1fr)
+      [content-end main-end] var(--page-gutter)
+      [full-end];
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "top    top    top    .      .      content ."
+      ".      hud    .      .      .      content ."
+      "footer footer footer footer footer footer  footer";
+  }
+
+  &:not([data-tear-mobile]) body.body {
+    grid-template-areas:
+      "top    top     top    .      .      content ."
+      ".      sidebar .      .      .      content ."
+      "footer footer  footer footer footer footer  footer";
+  }
+
+  /* The header covers the left screen only, so it can't follow the page's columns there; the rows
+     inside it follow its own. */
+  body.body > #header-root {
+    grid-template-columns:
+      [full-start] var(--page-gutter)
+      [main-start side-start content-start] minmax(0, 1fr)
+      [side-end content-end main-end] var(--page-gutter)
+      [full-end];
+  }
+}
+
+/* Dual-screen, one above the other (folded like a laptop): the header and HUD fill the top screen,
+   the content starts on the bottom one. The ::before spans both top rows to stretch them to the fold.
+   Mobile markup only: with the desktop sidebar beside the content there's nothing to split. */
+@media (vertical-viewport-segments: 2) {
+  body.body {
+    grid-template-rows:
+      [top-screen-start] auto
+      auto
+      [top-screen-end] calc(env(viewport-segment-top 0 1) - env(viewport-segment-bottom 0 0))
+      1fr
+      auto;
+    grid-template-areas:
+      "top    top     top     top     top"
+      ".      hud     hud     hud     ."
+      ".      .       .       .       ."
+      ".      content content content ."
+      "footer footer  footer  footer  footer";
+  }
+
+  /* Torn's desktop markup keeps its usual template: the sidebar and content sit side by side. */
+  &:not([data-tear-mobile]) body.body {
+    grid-template-rows: auto 1fr auto;
+  }
+
+  &[data-tear-mobile] body.body::before {
+    content: "";
+    grid-column: full-start / full-end;
+    grid-row: top-screen-start / top-screen-end;
+    min-height: env(viewport-segment-height 0 0);
+    pointer-events: none;
+  }
+}
+
+/* Placement. Unplaced children would auto-place into the gutters: they get the full width instead. */
+body.body > *,
+body.body::after {
+  grid-column: full-start / full-end;
+}
+
+body.body > .content.responsive-sidebar-container,
+body.body #mainContainer {
+  display: contents;
+}
+
+body.body > #header-root {
+  grid-area: top;
+  min-width: 0;
+}
+
+/* The header follows the page's columns: a subgrid, which the top bar and ticker row continue (their
+   own features), so the logo sits over the sidebar column and the ticker over the content column.
+   Torn's scripts measure these wrappers, so they keep their boxes (no display: contents). */
+body.body > #header-root,
+body.body #topHeaderBanner {
+  display: grid;
+  grid-template-columns: subgrid;
+}
+
+body.body #topHeaderBanner,
+body.body #header-wrapper-top,
+body.body .header-wrapper-bottom {
+  grid-column: full-start / full-end;
+  min-width: 0;
+}
+
+body.body #sidebarroot {
+  grid-area: sidebar;
+  align-self: start;
+  min-width: 0;
+  width: auto;
+  max-width: none;
+  margin: var(--page-gap) 0 0;
+}
+
+&[data-tear-mobile] body.body #sidebarroot {
+  grid-area: hud;
+}
+
+body.body #sidebar {
+  width: 100%;
+}
+
+body.body .content-wrapper {
+  grid-area: content;
+  min-width: 0;
+  width: auto;
+  max-width: none;
+  margin: var(--page-gap) 0 calc(var(--page-gap) * 2);
+}
+
+body.body > .footer {
+  grid-area: footer;
+}
+
+/* Torn's own scaffolding that only its stylesheets kept out of sight. */
+body.body > :is(.svgs_defs_container, .backdrops-container, input[type="hidden"]),
+body.body #sidebarroot > svg,
+body.body .hide {
+  display: none;
+}
+
+/* Screen-reader text: hidden visually, still read; the skip links show on focus. */
+body.body .wai {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+body.body > a.wai:focus {
+  top: var(--tear-space-2);
+  left: var(--tear-space-2);
+  z-index: var(--tear-z-skip-link);
+  width: auto;
+  height: auto;
+  clip-path: none;
+}
+
+/* Desktop sidebar: a column of sections. */
+body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" desktop___"] {
+  padding-top: 1.875rem;
+}
+
+[class^="sidebar___"][class*=" desktop___"] > * {
+  box-sizing: border-box;
+  width: 100%;
+  margin-inline: 0;
+}
+
+[class^="userInformation___"] [data-tear-rings],
+[class^="areas___"],
+[class^="accountLinksWrap___"] {
+  border-radius: var(--tear-radius);
+}
+
+[class^="sidebar___"][class*=" desktop___"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: flex-start;
+  gap: var(--tear-space-2);
+}
+
+[class^="sidebar___"][class*=" desktop___"] hr[class^="delimiter___"] {
+  display: none;
+}
+
+[class^="sidebar___"][class*=" desktop___"] > :is([class^="accountLinksWrap___"], [class^="areas___"], [class^="header___"]:has(+ :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]))) {
+  margin-top: 0;
+}
+
+/* The ticker row already puts the logo's height between the header and the sidebar. */
+&:not([data-tear-mobile]) body.body:has(.news-ticker-slider-wrapper) #sidebarroot {
+  margin-top: 0;
+}
+
+[class^="sidebar___"] > [class^="footerMenu___"] {
+  display: none;
+}
+
+/* Content: Torn's .left/.right floats as grid. The outermost pairs are main + side columns
+   (main.js tags them); pairs inside a panel sit side by side, the right one at its own width. */
+[data-tear-columns="2"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--page-gap);
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  [data-tear-columns="2"] {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: var(--tear-rows, none);
+  }
+
+  [data-tear-columns="2"] > [data-tear-col] {
+    grid-row: var(--tear-row, auto);
+  }
+
+  [data-tear-columns="2"] > [data-tear-col="main"] { grid-column: 1; }
+  [data-tear-columns="2"] > [data-tear-col="side"] { grid-column: 2; }
+}
+
+[data-tear-columns="2"] > [data-tear-col] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--page-gap);
+  min-width: 0;
+  margin: 0;
+}
+
+[data-tear-columns="2"] > [data-tear-col] > * {
+  margin-block: 0;
+}
+
+[data-tear-columns="2"] > :not([data-tear-col]) {
+  grid-column: 1 / -1;
+}
+
+/* Panels spaces the content column itself; without it, the blocks after the columns get the gap. */
+&:where(:not(.tear-f-panels)) [data-tear-stack] > * + :not(.clear, script, style) {
+  margin-top: var(--page-gap);
+}
+
+:where(.content-wrapper) :is(div, section):has(> .left):has(> .right):not([data-tear-columns], .content-title) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--tear-space-3);
+}
+
+:where(.content-wrapper) :is(div, section):has(> .left):has(> .right):not([data-tear-columns], .content-title) > .right {
+  grid-column: 2;
+}
+
+:where(.content-wrapper) :is(div, section):has(> .left):has(> .right):not([data-tear-columns], .content-title) > :not(.left, .right) {
+  grid-column: 1 / -1;
+}
+
+.content-wrapper .clear,
+#mainContainer > .clear {
+  display: none;
+}
+}

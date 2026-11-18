@@ -5,14 +5,23 @@
   const SHEETS = 'link[rel~="stylesheet"], style';
   const OURS = "#tear-color-overrides, #tear-torn-images";
   let off = false;
+  // The Features tab's switches, as html.tear-f-<id> classes the feature stylesheets are gated on.
+  let features = new Set();
+  const anyFeature = () => off && features.size > 0;
+  const spritesOn = () => off && features.has("sprites");
 
   // Chrome: a link disabled before its file loads still applies the sheet that arrives.
   function setSheetDisabled(el) {
     if (el.sheet) el.sheet.disabled = off;
   }
 
+  // With "Torn's own chat" on, the chat's sheets stay Torn's.
+  const TORN_CHAT = 'link[href*="/builds/tchat/"]';
+  const keepsTornChat = () => features.has("tornChat");
+
   function setSheet(el) {
     if (el.matches(OURS)) return;
+    if (keepsTornChat() && el.matches(TORN_CHAT)) return;
     if (off) {
       // Sheets Torn itself keeps off stay Torn's to switch.
       if (!el.hasAttribute("data-tear-disabled") && !el.disabled) {
@@ -28,14 +37,14 @@
     }
   }
 
-  // Which sidebar Torn renders, as one attribute for content.css's stacked layout. As html:has()
+  // Which sidebar Torn renders, as one attribute for the features' stacked layout (grid, header, mobile, …). As html:has()
   // it re-matched against the whole page on every class change. Set from here, at
   // document_start, it is in place before the first paint.
   const SIDEBAR = '[class^="sidebar___"]';
   let sidebars = [];
   const sidebarClasses = new MutationObserver(markSidebar);
   function markSidebar() {
-    root.toggleAttribute("data-tear-mobile", off && sidebars.some((el) => / mobile___/.test(el.className)));
+    root.toggleAttribute("data-tear-mobile", anyFeature() && sidebars.some((el) => /(^|\s)mobile___/.test(el.className)));
   }
   // Torn may swap the class rather than the element, so each sidebar's class is watched too.
   function findSidebars() {
@@ -52,8 +61,14 @@
     root.classList.toggle("tear-enabled", off);
     document.querySelectorAll(SHEETS).forEach(setSheet);
     for (const sheet of document.adoptedStyleSheets) sheet.disabled = off;
+    applyFeatures();
+  }
+
+  // Live: a switch in the Features tab only flips classes, so no reload.
+  function applyFeatures() {
+    for (const id of TEAR.FEATURE_IDS) root.classList.toggle(`tear-f-${id}`, off && features.has(id));
     findSidebars();
-    if (off) bringImages();
+    if (spritesOn()) bringImages();
     else images.remove();
   }
 
@@ -196,7 +211,8 @@
   async function bringImages() {
     if (!images.isConnected) (document.head ?? root).append(images);
     const links = [...document.querySelectorAll('link[rel~="stylesheet"]')].filter((l) => l.href && !read.has(l.href));
-    if (!links.length) return;
+    // Switched back on: every sheet is already read, so only the render is missing.
+    if (!links.length) return renderSoon();
     for (const link of links) read.set(link.href, null);
     await Promise.all(
       links.map(async (link) => {
@@ -218,6 +234,7 @@
   function renderSoon() {
     renderFrame ||= requestAnimationFrame(() => {
       renderFrame = 0;
+      if (!spritesOn()) return;
       const parts = [...read.values()].filter(Boolean);
       const urlVars = new Set(parts.flatMap((p) => [...p.urlVars]));
       const painted = new Set(parts.flatMap((p) => [...p.painted]));
@@ -241,7 +258,7 @@
   // reloaded in that second (hot reload), this copy of the script is orphaned: its chrome.* calls
   // throw "Extension context invalidated", and the tab is about to reload anyway.
   addEventListener("load", () => {
-    if (!off) return;
+    if (!spritesOn()) return;
     setTimeout(async () => {
       if (!chrome.runtime?.id) return;
       try {
@@ -273,16 +290,25 @@
       }
     }
     if (sidebarAdded || sidebars.some((el) => !el.isConnected)) findSidebars();
-    if (sheets) bringImages();
+    if (sheets && spritesOn()) bringImages();
   }).observe(document, { childList: true, subtree: true, attributes: true, attributeFilter: ["rel"] });
 
-  chrome.storage.local.get("tornCssOff").then(({ tornCssOff = false }) => {
+  chrome.storage.local.get(["tornCssOff", "featuresOn"]).then(({ tornCssOff = false, featuresOn }) => {
     off = tornCssOff;
+    features = TEAR.enabledFeatures(featuresOn);
     apply();
   });
-  // Every Torn tab reloads: main.js only sets up as a page loads, so a live switch
-  // would leave a tab half-enabled.
+  // Every Torn tab reloads: Torn's stylesheets are blocked as the page loads, so a live switch
+  // would leave a tab half-enabled. Features switch live.
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === "local" && "tornCssOff" in changes) location.reload();
+    if (area !== "local") return;
+    if ("tornCssOff" in changes) location.reload();
+    else if ("featuresOn" in changes) {
+      const next = TEAR.enabledFeatures(changes.featuresOn.newValue);
+      // The network rule for Torn's chat sheets only applies to a fresh load.
+      if (off && next.has("tornChat") !== features.has("tornChat")) return location.reload();
+      features = next;
+      applyFeatures();
+    }
   });
 })();

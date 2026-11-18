@@ -1,0 +1,362 @@
+/* Mobile: the stacked header, HUD and fly-out drawer. Applies while the Features tab has it on: torn-css.js sets .tear-f-mobile on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+html.tear-enabled:where(.tear-f-mobile) {
+&[data-tear-mobile] body.body #sidebarroot {
+  align-self: stretch;
+  width: auto;
+  padding: var(--tear-space-2) 0 0;
+  box-sizing: border-box;
+}
+
+&[data-tear-mobile] body.body #sidebarroot > div,
+[class^="sidebar___"][class*=" mobile___"] {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+[class^="userInformationMobile___"] {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--tear-space-3);
+  width: 100%;
+  height: auto;
+  padding: var(--tear-space-3);
+  box-sizing: border-box;
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius-lg);
+  background: radial-gradient(120% 140% at 50% 0%, var(--tear-surface), color-mix(in srgb, var(--tear-surface-sunk), var(--tear-surface) 30%) 70%);
+  box-shadow: 0 6px 18px var(--tear-shadow), inset 0 1px 0 var(--tear-overlay);
+}
+
+[class^="userInformationMobile___"] [class^="swiperWrapper___"] {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--tear-space-3);
+  width: auto;
+  height: auto;
+  overflow: visible;
+  transform: none;
+}
+
+[class^="userInformationMobile___"] [class^="points-mobile___"] {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 2cqi;
+  width: auto;
+  height: auto;
+}
+
+&[data-tear-mobile] .header {
+  --logo-h: 2.25rem;
+  --logo-w: calc(var(--logo-h) * 80 / 32);
+}
+
+&[data-tear-mobile] #header-wrapper-top {
+  position: relative;
+}
+
+/* Torn's sidebar notification count sits in a grid row under the icon, pushing it up; as a dot
+   on the icon's corner the icon centres. The number stays in the DOM for screen readers. */
+#fly-out-menu-button [class^="notificationsAmount___"] {
+  position: absolute;
+  top: calc(50% - 0.8125rem);
+  left: calc(50% + 0.375rem);
+  width: 0.5625rem;
+  height: 0.5625rem;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--tear-badge-bg);
+  box-shadow: 0 0 0 2px var(--tear-popup-bg);
+  color: transparent;
+  font-size: 0;
+  pointer-events: none;
+}
+
+#fly-out-menu-button [class^="notificationsAmount___"]:empty {
+  display: none;
+}
+
+/* Placed in the top bar's drawer cell by the Top bar feature. */
+&[data-tear-mobile] #fly-out-menu-button {
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: var(--tear-bar-h);
+}
+
+/* Torn sets top and max-height inline (header plus ticker); only !important beats them.
+   Fixed, not in flow: in the sidebar it pushes the mobile sidebar down. */
+[class^="flyOutPanel___"] {
+  position: fixed;
+  top: var(--tear-bar-h) !important;
+  left: 0;
+  max-height: calc(100dvh - var(--tear-bar-h)) !important;
+  outline: none; /* Torn focuses the drawer itself on open */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--tear-popup-bg);
+  box-shadow: 4px 8px 20px var(--tear-shadow);
+}
+
+/* Torn hides it with translate(-100%) of its own width, so widening is safe. */
+
+[class^="flyOutPanel___"] {
+  width: max(50vw, 166px);
+  max-width: none;
+}
+
+@media (max-width: 600px) {
+  [class^="flyOutPanel___"] {
+    width: 80vw;
+  }
+}
+
+[class^="flyOutPanel___"] > * {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"],
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > * a,
+[class^="flyOutPanel___"] [class^="areas___"] {
+  border-radius: 0;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > :last-child a {
+  border-top-right-radius: 5px;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] {
+  margin: 0;
+  border-bottom: 1px solid var(--tear-line);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a {
+  padding: var(--tear-space-3) 0;
+  background: color-mix(in srgb, var(--chip) 30%, transparent);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] :is([class^="active___"], [class*=" active___"]) a,
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--chip) 50%, transparent);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a svg {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+[class^="userInformationMobile___"] [class^="swiperWrapper___"] {
+  padding-inline: 0;
+}
+
+[class^="flyOutPanel___"] {
+  box-sizing: border-box;
+  margin-top: 0;
+  border: 0 solid var(--tear-popout-border);
+  border-width: 1px 1px 0 0;
+}
+
+/* Torn closes it with a transform of its own: the motion uses translate/scale beside it. */
+[class^="flyOutPanel___"]:not(:is([class^="visible___"], [class*=" visible___"])) {
+  translate: -12px 0;
+  scale: 0.98;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--tear-motion-out) var(--tear-ease-in), translate var(--tear-motion-out) var(--tear-ease-in),
+    scale var(--tear-motion-out) var(--tear-ease-in), visibility 0s var(--tear-motion-out);
+}
+
+[class^="flyOutPanel___"]:is([class^="visible___"], [class*=" visible___"]) {
+  transform: none;
+  translate: 0 0;
+  scale: 1;
+  opacity: 1;
+  visibility: visible;
+  transform-origin: top left;
+  transition: opacity var(--tear-motion-in) var(--tear-ease-out), translate var(--tear-motion-in) var(--tear-ease-out),
+    scale var(--tear-motion-in) var(--tear-ease-out);
+}
+
+&[data-tear-drawer-open] body #fly-out-menu-button {
+  --tab-bg: var(--tear-popup-bg);
+  --tab-line: var(--tear-popout-border);
+  --tab-r: 10px;
+  --tab-h: 2.125rem; /* must match .top_header_button's min-height */
+}
+
+/* #header-root's stacking would cap the tab under the drawer and lift the ticker over it,
+   so while the drawer is open only the bar rises. */
+&[data-tear-drawer-open] body.body > #header-root {
+  z-index: auto;
+}
+
+&[data-tear-drawer-open] body #header-wrapper-top {
+  z-index: calc(var(--tear-z-drawer) + 1);
+}
+
+#fly-out-menu-button:focus {
+  outline: none;
+}
+
+&[data-tear-drawer-open] body #fly-out-menu-button::before,
+&[data-tear-drawer-open] body #fly-out-menu-button::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* The toolbar tabs' shape, flipped. The -1px bottom covers the drawer's top border. */
+&[data-tear-drawer-open] body #fly-out-menu-button::before {
+  inset: calc(100% - var(--tab-h)) 0 -1px;
+  border: solid transparent;
+  border-width: 0 1px;
+  border-image: linear-gradient(transparent, var(--tab-line) 65%) 1;
+  background: linear-gradient(transparent, var(--tab-bg) 65%) padding-box;
+}
+
+&[data-tear-drawer-open] body #fly-out-menu-button::after {
+  left: calc(100% - 1px);
+  bottom: -1px;
+  width: var(--tab-r);
+  height: var(--tab-r);
+  background: radial-gradient(
+    circle at 100% 0,
+    transparent calc(var(--tab-r) - 1.5px),
+    var(--tab-line) calc(var(--tab-r) - 1px) var(--tab-r),
+    var(--tab-bg) calc(var(--tab-r) + 0.5px)
+  );
+}
+
+body:not(.dark-mode) [class^="flyOutPanel___"],
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) {
+  background: var(--tear-surface);
+  color: var(--tear-text);
+}
+
+body:not(.dark-mode) [class^="flyOutPanel___"] a,
+body:not(.dark-mode) [class^="flyOutPanel___"] [class^="linkName___"],
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) a,
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) li {
+  color: var(--tear-text);
+}
+
+body:not(.dark-mode) [class^="flyOutPanel___"] :is([class^="area-mobile___"], [class*=" area-mobile___"]) {
+  border-color: var(--tear-line);
+  background: transparent;
+}
+
+body:not(.dark-mode) [class^="flyOutPanel___"] {
+  box-shadow: 1px 0 6px var(--tear-shadow);
+}
+
+body:not(.dark-mode) [class^="flyOutPanel___"] :is([class^="area-mobile___"], [class*=" area-mobile___"]) {
+  border-bottom-color: color-mix(in srgb, var(--tear-text) 8%, transparent);
+}
+
+body:not(.dark-mode) [class^="flyOutPanel___"] *,
+body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) * {
+  text-shadow: none;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a {
+  background: transparent;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > :not(:last-child) a {
+  border-right: 1px solid var(--tear-line);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] :is([class^="active___"], [class*=" active___"]) a,
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a:is(:hover, :focus-visible) {
+  background: var(--tear-nav-hover);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] {
+  border-bottom-color: var(--tear-divider);
+}
+
+&[data-tear-drawer-open] body #header-wrapper-top {
+  box-shadow: none;
+}
+
+[class^="flyOutPanel___"] [class^="areas___"] {
+  border-top: 0;
+}
+
+[class^="flyOutPanel___"] {
+  display: flex;
+  flex-direction: column;
+}
+
+[class^="flyOutPanel___"] > [class^="areas___"] {
+  order: 1;
+  flex: none;
+  position: relative;
+  z-index: 0; /* contains the rows' own z-index (e.g. the attention row) under the mail row */
+}
+
+[class^="flyOutPanel___"] > [class^="accountLinksWrap___"] {
+  order: 2;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex: none;
+  margin-top: auto;
+  border-top: 1px solid var(--tear-divider);
+  border-bottom: 0;
+  background: inherit;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > :last-child a {
+  border-top-right-radius: 0;
+}
+
+body:not(.dark-mode) [class^="flyOutPanel___"] [class^="listAmount___"] {
+  color: var(--tear-muted);
+}
+
+[class^="flyOutPanel___"] > [class^="accountLinksWrap___"] {
+  border-top: 0;
+  background: inherit;
+  box-shadow: 0 -2px 6px var(--tear-shadow);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a::after {
+  top: auto;
+  bottom: calc(100% + 7px);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a::before {
+  top: auto;
+  bottom: 100%;
+  border-top: 7px solid var(--tooltip-bg-color, #444);
+  border-bottom: 0;
+  filter: drop-shadow(0 1px 0 var(--tooltip-border-color, #333));
+}
+
+[class^="flyOutPanel___"] {
+  clip-path: inset(0 -12px -12px 0);
+}
+
+[class^="flyOutPanel___"] {
+  z-index: var(--tear-z-drawer);
+  scrollbar-width: thin;
+  scrollbar-color: var(--tear-line) transparent;
+}
+
+[class^="flyOutPanel___"] :is([class^="areaRow___"], [class*=" areaRow___"]) > a {
+  padding-inline: var(--page-gutter, 0.75rem) var(--tear-space-3);
+}
+
+[class^="flyOutPanel___"] [class^="header___"] {
+  padding-inline: var(--page-gutter, 0.75rem);
+}
+}

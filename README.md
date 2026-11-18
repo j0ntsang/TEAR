@@ -2,9 +2,9 @@
 
 A Chrome extension that restyles torn.com:
 
-- **Dock** (bottom right, left of Torn's chat buttons): an **info** button showing Torn City time and the server, and a purple **settings** gear that opens the settings panel. The toolbar icon does nothing. **Colors** edits every TEAR color separately for light and dark mode; **Typography** shows the font (Torn's Arial); **Dev** switches Torn's own stylesheets off, which is what turns TEAR on. Changed values can be reset to default.
-- **TEAR only applies with Torn's CSS off**: `content/torn-css.js` then sets `html.tear-enabled`, which gates `content.css` and `main.js`. With Torn's CSS on, the page is Torn's own; only the dock shows.
-- **`content/content.css`**: the stylesheet. Besides a skeleton of known Torn selectors to fill in, it restyles the header and news ticker, the sidebar (character card, resource rings, Areas/Lists), the narrow-window HUD, the fly-out and profile menus, and the Awards and Settings pages.
+- **Dock** (bottom right, left of Torn's chat buttons): an **info** button showing Torn City time and the server, and a purple **settings** gear that opens the settings panel. The toolbar icon does nothing. **Features** (the first tab) switches each part of TEAR on or off, live; only Theme starts on; **Settings** sizes the panel and resets everything; **Customization** edits every TEAR color separately for light and dark mode, and shows the font (Torn's Arial); **Dev** switches Torn's own stylesheets off, which is what turns TEAR on. Changed values can be reset to default.
+- **TEAR only applies with Torn's CSS off**: `content/torn-css.js` then sets `html.tear-enabled`, which gates the feature stylesheets and `main.js`. With Torn's CSS on, the page is Torn's own; only the dock shows.
+- **Features**: TEAR is cut into areas (theme, sprites, widgets, page grid, page headers, panels, top bar, ticker, logo, character card, rings, account links, Areas/Lists, sidebar order, status icons, mobile, a few pages, and Torn's own chat). Each has its own stylesheet in `content/features/` and, where it needs one, its own part of `main.js`. Switched off, its CSS stops applying and its script stops: observers disconnected, listeners removed, and every attribute, style and node it added taken back. With TEAR enabled and everything off, the page is Torn's bare HTML plus the dock. Every feature but Theme, sprites and Torn's own chat reads Theme's tokens, so it needs Theme (`requires` in `lib/model.js`): switching one on brings Theme with it, and with Theme off they stay off. TEAR doesn't restyle the chat: with Torn's own chat on, Torn's chat stylesheets load untouched; off, the chat is Torn's bare HTML.
 - **Light and dark**: follows Torn's own Dark Mode setting by building on Torn's theme variables.
 
 It's cosmetic only. TEAR never submits or automates anything in the game. Its scripts only add attributes and CSS order, copy the ticker's headlines for the scroll loop, and act on your own clicks: a Points/Merits card opens its "use" link, and a section heading collapses its section.
@@ -13,7 +13,7 @@ It's cosmetic only. TEAR never submits or automates anything in the game. Its sc
 
 1. Open `chrome://extensions` and turn on **Developer mode** (top right).
 2. Click **Load unpacked** and choose this folder.
-3. Open or refresh torn.com. The info and settings buttons sit in the bottom right, left of the chat buttons. Turn TEAR on with the Enable TEAR button at the top of the settings panel.
+3. Open or refresh torn.com. The info and settings buttons sit in the bottom right, left of the chat buttons. Turn TEAR on with the Enable TEAR button at the top of the settings panel, then switch on the features you want (or All on) in the Features tab.
 
 There's no build step: Chrome runs these files as they are.
 
@@ -24,12 +24,44 @@ There's no build step: Chrome runs these files as they are.
 ## Customizing the CSS
 
 1. Try a rule live in torn.com's DevTools (Elements → Styles → **+**).
-2. Add it to `content/content.css`, inside its Gate block. TEAR's styles apply only while Torn's own CSS is off (settings → Dev), so there's nothing of Torn's to override: no `!important`.
+2. Add it to the feature's file in `content/features/`, inside its gate block (`html.tear-enabled:where(.tear-f-<id>)`). The `:where()` keeps specificity what it was before features: the files' order in `manifest.json` doesn't match the old single file's order exactly, and is only safe because rules in different features don't compete at equal specificity. Keep rules that override each other in the same file. TEAR's styles apply only while Torn's own CSS is off (settings → Dev), so there's nothing of Torn's to override: no `!important`.
 3. Save. Hot reload picks it up.
 
-Colors, spacing, radii and type sizes are variables on `body` at the top of the file, with dark-mode overrides on `body.dark-mode`. They have to live on `body`, not `:root`: Torn sets its dark values on `body.dark-mode`, and TEAR's light values point at Torn's (`--default-bg-panel-color`, `--default-full-text-color`, …).
+Colors, spacing, radii and type sizes are variables on `body` at the top of `features/theme.css`, with dark-mode overrides on `body.dark-mode`. They have to live on `body`, not `:root`: Torn sets its dark values on `body.dark-mode`, and TEAR's light values point at Torn's (`--default-bg-panel-color`, `--default-full-text-color`, …).
+
+### Layout
+
+The page is one grid (`features/grid.css`), with no floats. Its columns are named lines:
+
+```
+[full-start] gutter [main-start side-start] sidebar [side-end] gap [content-start] content [content-end main-end] gutter [full-end]
+```
+
+| Area | Element |
+|---|---|
+| `top` | `#header-root`: a subgrid, continued by the top bar (`#header-wrapper-top`) and the ticker row (`.header-wrapper-bottom`) |
+| `sidebar` | `#sidebarroot` with Torn's desktop sidebar |
+| `hud` | `#sidebarroot` with Torn's mobile sidebar (`html[data-tear-mobile]`) |
+| `content` | `.content-wrapper` |
+| `footer` | `.footer` |
+
+Inside the top bar: `logo | menu | tools` with the desktop markup, `logo | drawer | tools` with the mobile one. Torn's markup picks the template; widths set `--page-gutter`, `--page-gap` and `--sidebar-w`. With the mobile markup, the sidebar track and its gap are 0.
+
+| Tier | From | Devices |
+|---|---|---|
+| xs | 0 | iPhone SE (1st gen) 320, Galaxy Fold cover |
+| phone | 360 | 360 / 375 / 390 / 393 / 412 / 414 / 430 |
+| fold | 480 | Surface Duo (one screen) 540, foldables unfolded, small tablets |
+| tablet | 768 | iPad mini, Air, Pro (portrait) |
+| laptop | 1024 | iPad landscape, 1280, 1366 |
+| desktop | 1440 | 1440, 1536, 1680 |
+| wide | 1920 | 1920, 2560: content fills the width |
+
+On dual screens (the `horizontal-viewport-segments` and `vertical-viewport-segments` media queries), the header and sidebar or HUD take one screen and the content takes the other. Nothing straddles the hinge.
 
 CSS can't read the URL, text or numbers, so `content/main.js` stamps hooks the stylesheet selects on:
+
+Each hook belongs to the feature that stamps it, and is removed when that feature is switched off. `data-tear-page`, `data-tear-route` and `data-tear-panel` are stamped while any feature is on; `data-tear-mobile` comes from `torn-css.js` on the same terms.
 
 | Hook | On | Example |
 |---|---|---|
@@ -52,9 +84,8 @@ CSS can't read the URL, text or numbers, so `content/main.js` stamps hooks the s
 | `--tear-icon` | status icons | sprite cell |
 | `data-tear-logo`, `--tear-logo-*` | `html` | the logo for the player's state |
 | `data-tear-drawer-open` | `html` | the mobile navigation drawer is open |
+| `data-tear-search-open` | `html` | the top bar's mobile search is open |
 | `data-tear-mobile` | `html` | Torn renders its mobile sidebar (the stacked layout); set by `torn-css.js` |
-| `data-tear-chat-active`, `data-tear-chat-hidden` | chat items | the tabbed chat window |
-| `data-tear-chat-anchor` | active chat window | the chat tabs' CSS anchor |
 
 ## Making changes
 
@@ -74,9 +105,11 @@ Unit tests for `lib/model.js` use vitest (`lib/__tests__/`).
 | `local` | `tornDefaults` | per mode, the colors Torn's own variables resolved to (shown as defaults) |
 | `local` | `sidebarOrder` | desktop sidebar section order |
 | `local` | `tornCssOff` | Enable/Disable TEAR button: Torn's stylesheets switched off in this browser |
+| `local` | `featuresOn` | Features tab: the feature ids switched on (absent = the defaults, only `theme`; a feature added after the list was saved is off) |
+| `local` | `loadoutView` | Loadouts: `compact` or `expanded` |
+| `local` | `panelSize` | Settings tab: the panel's `{ width, height }` in px (280–640 × 320–1000, default 340 × 560) |
 | `local` | `sectionStates` | Areas/Lists heading → `full`, `top` or `collapsed` |
 | `local` | `tornAssets` | Torn image assets by name → URL (`--tear-asset-*`), saved once per page, capped at 3000 |
-| `session` (`sessionStorage`) | `tearActiveChat` | the active chat tab's title |
 
 ## Layout
 
@@ -84,15 +117,15 @@ Unit tests for `lib/model.js` use vitest (`lib/__tests__/`).
 manifest.json
 background.js        service worker: keeps Torn's stylesheets from downloading while TEAR is on
 dev-reload.js        hot reload for unpacked installs
-lib/model.js         color tokens, theme defaults, validation, storage, slug/page helpers
-content/assets.css   Torn's image assets as --tear-asset-* variables
-content/content.css  the stylesheet (under html.tear-enabled)
+lib/model.js         feature registry, color tokens, theme defaults, validation, storage, slug/page helpers (loaded at document_start)
+content/assets.css   TEAR's cascade layer order; Torn's image assets as --tear-asset-* variables
+content/features/    one stylesheet per feature (html.tear-enabled:where(.tear-f-<id>)); ids and labels in lib/model.js FEATURES
 content/dock.css     always on: the dock buttons, their size tokens, the room under the page
-content/torn-css.js  Enable TEAR: disables Torn's stylesheets (document_start) and brings back its sprite and icon rules, from cached copies
-content/main.js      stamps the hooks above; sidebar dragging; chat tabs (only when TEAR is enabled)
+content/torn-css.js  Enable TEAR: disables Torn's stylesheets (document_start), sets the feature classes, and brings back its sprite and icon rules, from cached copies
+content/main.js      the features' scripts, each with start/stop: stamps the hooks above; sidebar dragging (only when TEAR is enabled)
 content/settings.js  dock, info popup and settings panel; applies the theme
 content/panel-styles.js the settings and info panels' styles, adopted by their shadow roots (no web-accessible files)
-torn-theme/          selector research (ui-map.md, layout-map.md)
+torn-theme/          selector research (ui-map.md, layout-map.md); what a page load fetches (network-map.md)
 ```
 
 If Torn ships a frontend update and something stops applying, re-check the hashed `[class*="prefix___"]` selectors in `torn-theme/ui-map.md` first.

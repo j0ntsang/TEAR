@@ -1,0 +1,127 @@
+/* Page headers: the title row at the top of every page's content, its icon link buttons and the rule
+   under it. Applies while the Features tab has it on: torn-css.js sets .tear-f-pageHeader on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone.
+
+   Torn's markup is the same on every page (profile, items, …):
+     .content-title > h4#skip-to-content | .links-top-wrap(.mobile) > .torn-divider, #top-page-links-button,
+       #top-page-links-list.content-title-links > a|button > .icon-wrap > .link-icon-svg.<name> + span#<name>
+     | .clear | hr.page-head-delimiter
+   Pages differ only in which links they list; view switches (Items: rows / thumbnails) mark the
+   current one .active. */
+
+/* A layer, so a page's own feature can still restyle its header. */
+@layer tear-structure {
+html.tear-enabled:where(.tear-f-pageHeader) {
+  & .content-title {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "title links"
+      "rule  rule";
+    align-items: center;
+    gap: var(--tear-space-2) var(--tear-space-3);
+    margin: 0;
+  }
+
+  /* Narrow: the links wrap under the title. */
+  @media (max-width: 479px) {
+    & .content-title {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-areas:
+        "title"
+        "links"
+        "rule";
+    }
+  }
+
+  & .content-title > #skip-to-content {
+    grid-area: title;
+    min-width: 0;
+    margin: 0;
+    color: var(--tear-text-strong);
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  & .content-title > .links-top-wrap {
+    grid-area: links;
+    display: flex;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  /* Torn's mobile triangle and its dividers fold the links away; here they always show. */
+  & .content-title :is(.torn-divider, #top-page-links-button),
+  & .content-title > .clear {
+    display: none;
+  }
+
+  & .content-title-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--tear-space-1) var(--tear-space-3);
+  }
+
+  /* Each link: an icon button with its label. */
+  & .content-title-links > :is(a, button) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--tear-space-1);
+    height: 1.75rem;
+    padding: 0 var(--tear-space-1);
+    border: 0;
+    border-radius: var(--tear-radius-sm, 4px);
+    background: none;
+    color: var(--tear-link);
+    font: inherit;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  & .content-title-links > :is(a, button):is(:hover, :focus-visible) {
+    background: color-mix(in srgb, var(--tear-link) 10%, transparent);
+    text-decoration: none;
+  }
+
+  & .content-title-links :is(.icon-wrap, .link-icon-svg, .tutorial-icon-svg) {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  & .content-title-links :is(.icon-wrap, .link-icon-svg, .tutorial-icon-svg) svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    fill: currentColor;
+  }
+
+  /* View switches: the current one is marked, not linked. */
+  & .content-title-links > :is(a, button):has(.active, [class*="--active"]) {
+    background: color-mix(in srgb, var(--tear-link) 16%, transparent);
+    color: var(--tear-text-strong);
+  }
+
+  /* Icon-only view switches (rows / thumbnails) keep a square hit area. */
+  & .content-title-links > .explicit-links-button {
+    justify-content: center;
+    min-width: 1.75rem;
+  }
+
+  & .content-title > hr.page-head-delimiter {
+    grid-area: rule;
+    height: 0;
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--tear-line);
+  }
+}
+}

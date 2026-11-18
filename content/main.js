@@ -1,14 +1,68 @@
-// Only with TEAR enabled (Torn's CSS off); the Dev switch reloads the page.
-chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
+// Only with TEAR enabled (Torn's CSS off); the Enable TEAR switch reloads the page. Each part
+// below is a feature from the Features tab: it starts when switched on and, switched off, stops
+// its observers and listeners and takes back every attribute, style and node it added.
+chrome.storage.local.get(["tornCssOff", "featuresOn"]).then(({ tornCssOff, featuresOn }) => {
   if (!tornCssOff) return;
-  const { slugify, pageName, routeName } = TEAR;
+  const { slugify, pageName, routeName, enabledFeatures } = TEAR;
   const root = document.documentElement;
 
+  const setVar = (el, name, value) => {
+    if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
+  };
+  const setOrder = (el, n) => {
+    if (el.style.order !== String(n)) el.style.order = String(n);
+  };
+  // Teardown helpers: everything TEAR writes is a data-tear-* attribute, a --tear-* property or
+  // style.order, so a feature's own names are enough to find it again.
+  const clearAttrs = (...names) => {
+    for (const name of names) for (const el of document.querySelectorAll(`[${name}]`)) el.removeAttribute(name);
+  };
+  const clearVars = (...names) => {
+    for (const name of names) {
+      for (const el of document.querySelectorAll(`[style*="${name}"]`)) {
+        el.style.removeProperty(name);
+        if (!el.getAttribute("style")) el.removeAttribute("style");
+      }
+    }
+  };
+  const clearOrders = (els) => {
+    for (const el of els) {
+      el.style.removeProperty("order");
+      if (!el.getAttribute("style")) el.removeAttribute("style");
+    }
+    els.clear();
+  };
+
+  function setCharCount(el) {
+    if (!el) return;
+    const len = String(el.textContent.trim().length || 1);
+    setVar(el, "--tear-len", len);
+  }
+
+  /** id → { start(signal), stop(), page() }; page() runs in PAGE_ORDER. */
+  const features = new Map();
+  const feature = (id, def) => features.set(id, { ...def, on: false, controller: null });
+
+  // Core hooks: the page and route, and Home panel names. Several features' CSS reads them, so they
+  // run while any feature is on.
+  const core = {
+    on: false,
+    controller: null,
+    start(signal) {
+      addEventListener("hashchange", stampPage, { signal });
+      stampPage();
+    },
+    stop() {
+      delete root.dataset.tearPage;
+      delete root.dataset.tearRoute;
+      clearAttrs("data-tear-panel");
+    },
+    page: tagPanels,
+  };
   function stampPage() {
     root.dataset.tearPage = pageName(location.pathname);
     root.dataset.tearRoute = routeName(location.hash);
   }
-
   function tagPanels() {
     for (const box of document.querySelectorAll("#mainContainer .sortable-box:not([data-tear-panel])")) {
       const slug = slugify(box.querySelector(".box-title")?.textContent ?? "");
@@ -16,6 +70,50 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     }
   }
 
+  // ── grid ─────────────────────────────────────────────────────────────────────────────────────
+  // With Torn's CSS off, floats come only from its .left/.right classes.
+  const sideOf = (el) => (el.classList.contains("left") ? "left" : el.classList.contains("right") ? "right" : "");
+
+  function tagColumns() {
+    const content = document.querySelector(".content-wrapper");
+    if (!content) return;
+    // Only the outermost columns: floats inside a panel are that panel's own layout.
+    for (const box of content.querySelectorAll("div:has(> .left):has(> .right):not([data-tear-columns], [data-tear-col] div)")) {
+      const kids = [...box.children].filter((k) => !k.matches(".clear, hr, script, style") && k.offsetHeight > 0);
+      if (kids.length < 2) continue;
+      const sides = kids.map(sideOf);
+      if (!sides.includes("left") || !sides.includes("right") || sides.includes("")) continue;
+      // Without Torn's CSS the floats shrink to their content, so their widths say nothing.
+      if (box.getBoundingClientRect().width < content.getBoundingClientRect().width * 0.6 || kids.some((k) => k.offsetHeight < 40)) continue;
+
+      const main = kids.filter((k, i) => sides[i] === "left");
+      const side = kids.filter((k, i) => sides[i] === "right");
+      const rows = Math.max(main.length, side.length);
+      for (const [col, blocks] of [["main", main], ["side", side]]) {
+        blocks.forEach((k, i) => {
+          k.dataset.tearCol = col;
+          const last = i === blocks.length - 1;
+          k.style.setProperty("--tear-row", `${i + 1} / ${last ? rows + 1 : i + 2}`);
+        });
+      }
+      // Earlier rows fit their blocks; the last takes whatever height a spanning block adds.
+      box.style.setProperty("--tear-rows", `${"auto ".repeat(rows - 1)}1fr`);
+      box.dataset.tearColumns = "2";
+      box.parentElement.dataset.tearStack = "";
+    }
+    const layout = content.querySelector('[data-tear-columns="2"]') ? "dual" : "single";
+    if (content.dataset.tearLayout !== layout) content.dataset.tearLayout = layout;
+  }
+
+  feature("grid", {
+    page: tagColumns,
+    stop() {
+      clearVars("--tear-row", "--tear-rows");
+      clearAttrs("data-tear-columns", "data-tear-col", "data-tear-stack", "data-tear-layout");
+    },
+  });
+
+  // ── ticker ───────────────────────────────────────────────────────────────────────────────────
   // Torn's React swaps the items, so the copy is rebuilt whenever it goes stale.
   function loopTicker() {
     const wrap = document.querySelector(".news-ticker-slider-wrapper .scroll-wrap");
@@ -39,12 +137,15 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     wrap.setAttribute("data-tear-looped", "");
   }
 
-  function setCharCount(el) {
-    if (!el) return;
-    const len = String(el.textContent.trim().length || 1);
-    if (el.style.getPropertyValue("--tear-len") !== len) el.style.setProperty("--tear-len", len);
-  }
+  feature("ticker", {
+    page: loopTicker,
+    stop() {
+      for (const el of document.querySelectorAll("[data-tear-clone]")) el.remove();
+      clearAttrs("data-tear-looped");
+    },
+  });
 
+  // ── rings ────────────────────────────────────────────────────────────────────────────────────
   const RING_KINDS = /\b(energy|nerve|happy|life|chain)(?:Bar)?___/;
   const BARS = '[class^="userInformation"] [class^="bar___"], [class^="userInformation"] [class^="chainBar___"]';
   const parseAmount = (n) => {
@@ -86,13 +187,13 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
         if (valueEl.dataset.tearCur !== cur) valueEl.dataset.tearCur = cur;
         if (valueEl.dataset.tearMax !== max) valueEl.dataset.tearMax = max;
       }
-      if (bar.style.getPropertyValue("--tear-pct") !== pct) bar.style.setProperty("--tear-pct", pct);
+      setVar(bar, "--tear-pct", pct);
       if (!bar.hasAttribute("data-tear-ring-armed") && !newRings.includes(bar)) {
         newRings.push(bar);
         // Two frames: the first value must be painted before the transition exists.
-        ringFrame ||= requestAnimationFrame(() => requestAnimationFrame(armRings));
+        ringFrame ||= requestAnimationFrame(() => (ringFrame = requestAnimationFrame(armRings)));
       }
-      setCharCount(bar.querySelector('[class^="barValue___"]'));
+      setCharCount(valueEl);
       countdown(kind, bar, bar.querySelector('[class^="barDescr___"], [class^="barTimeLeft___"]'));
     }
   }
@@ -112,44 +213,116 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     const pct = ((left / tick) * 100).toFixed(1);
     el.setAttribute("data-tear-timer", "");
     bar.setAttribute("data-tear-timer", "");
-    if (bar.style.getPropertyValue("--tear-timer") !== pct) bar.style.setProperty("--tear-timer", pct);
+    setVar(bar, "--tear-timer", pct);
   }
 
-  // With Torn's CSS off, floats come only from its .left/.right classes.
-  const sideOf = (el) => (el.classList.contains("left") ? "left" : el.classList.contains("right") ? "right" : "");
+  feature("rings", {
+    page: ringBars,
+    stop() {
+      cancelAnimationFrame(ringFrame);
+      ringFrame = 0;
+      newRings.length = 0;
+      for (const bar of document.querySelectorAll(BARS)) bar.querySelector('[class^="barValue___"]')?.style.removeProperty("--tear-len");
+      clearVars("--tear-pct", "--tear-timer", "--tear-total-len");
+      clearAttrs("data-tear-ring", "data-tear-rings", "data-tear-full", "data-tear-total", "data-tear-cur", "data-tear-max", "data-tear-ring-armed", "data-tear-timer");
+    },
+  });
 
-  function tagColumns() {
-    const content = document.querySelector(".content-wrapper");
-    if (!content) return;
-    // Only the outermost columns: floats inside a panel are that panel's own layout.
-    for (const box of content.querySelectorAll("div:has(> .left):has(> .right):not([data-tear-columns], [data-tear-col] div)")) {
-      const kids = [...box.children].filter((k) => !k.matches(".clear, hr, script, style") && k.offsetHeight > 0);
-      if (kids.length < 2) continue;
-      const sides = kids.map(sideOf);
-      if (!sides.includes("left") || !sides.includes("right") || sides.includes("")) continue;
-      // Without Torn's CSS the floats shrink to their content, so their widths say nothing.
-      if (box.getBoundingClientRect().width < content.getBoundingClientRect().width * 0.6 || kids.some((k) => k.offsetHeight < 40)) continue;
+  // ── card ─────────────────────────────────────────────────────────────────────────────────────
+  const STAT_ROWS = '[class^="userInformation"] [class^="point-block___"]';
+  const statName = (row) => slugify(row.querySelector('[class^="name___"], .wai')?.textContent ?? "");
+  // Points and merits rows TEAR made buttons, so switching off takes back only those.
+  const madeButtons = new Set();
 
-      const main = kids.filter((k, i) => sides[i] === "left");
-      const side = kids.filter((k, i) => sides[i] === "right");
-      const rows = Math.max(main.length, side.length);
-      for (const [col, blocks] of [["main", main], ["side", side]]) {
-        blocks.forEach((k, i) => {
-          k.dataset.tearCol = col;
-          const last = i === blocks.length - 1;
-          k.style.setProperty("--tear-row", `${i + 1} / ${last ? rows + 1 : i + 2}`);
-        });
+  function tagStats() {
+    for (const row of document.querySelectorAll(STAT_ROWS)) {
+      if (!row.dataset.tearStat) {
+        const slug = statName(row);
+        if (slug) row.dataset.tearStat = slug;
       }
-      // Earlier rows fit their blocks; the last takes whatever height a spanning block adds.
-      box.style.setProperty("--tear-rows", `${"auto ".repeat(rows - 1)}1fr`);
-      box.dataset.tearColumns = "2";
-      box.parentElement.dataset.tearStack = "";
+      if (/^(points|merits)$/.test(row.dataset.tearStat) && !row.hasAttribute("role")) {
+        row.setAttribute("role", "button");
+        row.tabIndex = 0;
+        madeButtons.add(row);
+      }
+      setCharCount(row.querySelector('[class^="value___"]'));
     }
-    const layout = content.querySelector('[data-tear-columns="2"]') ? "dual" : "single";
-    if (content.dataset.tearLayout !== layout) content.dataset.tearLayout = layout;
   }
 
+  feature("card", {
+    start(signal) {
+      // A click that ends a text selection is left alone so values stay copyable.
+      addEventListener(
+        "click",
+        (event) => {
+          const card = event.target.closest?.('[data-tear-stat="points"], [data-tear-stat="merits"]');
+          if (!card || event.target.closest("a")) return;
+          if (!getSelection().isCollapsed) return;
+          card.querySelector('[class^="use___"]')?.click();
+        },
+        { signal },
+      );
+      addEventListener(
+        "keydown",
+        (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          const card = event.target.closest?.('[data-tear-stat="points"][role=button], [data-tear-stat="merits"][role=button]');
+          if (!card || event.target !== card) return;
+          event.preventDefault();
+          card.querySelector('[class^="use___"]')?.click();
+        },
+        { signal },
+      );
+    },
+    page: tagStats,
+    stop() {
+      for (const row of madeButtons) {
+        row.removeAttribute("role");
+        row.removeAttribute("tabindex");
+      }
+      madeButtons.clear();
+      for (const row of document.querySelectorAll(STAT_ROWS)) row.querySelector('[class^="value___"]')?.style.removeProperty("--tear-len");
+      clearAttrs("data-tear-stat");
+    },
+  });
+
+  // ── statusIcons ──────────────────────────────────────────────────────────────────────────────
+  const STATUS_ICONS = [
+    "online", "offline", "donator", "subscriber", "level-100", "male", "female", "marriage", "faction", "committee",
+    "staff", "low-life", "bounty", "mission", "hospital", "jail", "racing-active", "racing-inactive", "education-complete", "education",
+    "job-army", "job-casino", "job-doctor", "job-grocer", "job-lawyer", "job-teacher", "job-company", "outstanding-bookie-collection", "bank-investment", "bank-investment-ready",
+    "cayman-islands-bank", "vault", "loan", "auction-house", "bazaar", "item-market", "trade", "stock-market", "booster-cooldown-1", "booster-cooldown-2",
+    "booster-cooldown-3", "booster-cooldown-4", "booster-cooldown-5", "medical-cooldown-1", "medical-cooldown-2", "medical-cooldown-3", "medical-cooldown-4", "medical-cooldown-5", "drug-cooldown-1", "drug-cooldown-2",
+    "drug-cooldown-3", "drug-cooldown-4", "drug-cooldown-5", "points-market", "auction-house-bid", "auction-house-outbid", "minor-drug-1", "minor-drug-2", "moderate-drug", "severe-drug-1",
+    "severe-drug-2", "away", "drug-addiction-50", "drug-addiction-100", "drug-addiction-200", "drug-addiction-300", "drug-addiction-500",
+  ];
+  const kebab = (name) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/([a-z])(\d)/g, "$1-$2").toLowerCase();
+
+  function setIconCell(el, cell) {
+    if (cell >= 0) setVar(el, "--tear-icon", String(cell));
+  }
+
+  function tagStatusIcons() {
+    for (const li of document.querySelectorAll('[class^="statusIcons___"] > li')) {
+      const n = li.className.match(/\bicon(\d+)___/)?.[1];
+      if (n) setIconCell(li, Number(n) - 1);
+    }
+    // User lists (hospital, jail) number the icon in its id: Torn repeats id="iconTray" per row.
+    for (const li of document.querySelectorAll('[id="iconTray"] > li[id^="icon"]')) {
+      const n = li.id.match(/^icon(\d+)___/)?.[1];
+      if (n) setIconCell(li, Number(n) - 1);
+    }
+    for (const li of document.querySelectorAll('li:is([class^="user-status-16-"], [class*=" user-status-16-"])')) {
+      const name = li.className.match(/user-status-16-([\w-]+)/)?.[1];
+      if (name) setIconCell(li, STATUS_ICONS.indexOf(kebab(name)));
+    }
+  }
+
+  feature("statusIcons", { page: tagStatusIcons, stop: () => clearVars("--tear-icon") });
+
+  // ── logo ─────────────────────────────────────────────────────────────────────────────────────
   const TORN_IMAGES = "https://www.torn.com/images/v2";
+  const LOGO_SIZES = ["desktop", "tablet", "mobile"];
 
   // Torn's logo rules win in this order, last first.
   const LOGO_COUNTRIES = ["argentina", "canada", "cayman-islands", "china", "hawaii", "japan", "mexico", "south-africa", "switzerland", "uae", "uk"];
@@ -170,191 +343,31 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     const folder = logoFolder(document.body.dataset);
     if (root.dataset.tearLogo === folder) return;
     root.dataset.tearLogo = folder;
-    for (const size of ["desktop", "tablet", "mobile"]) {
-      root.style.setProperty(`--tear-logo-${size}`, imageSet(`${TORN_IMAGES}/torn_logo/${folder}/${size}/logo`));
-    }
+    for (const size of LOGO_SIZES) root.style.setProperty(`--tear-logo-${size}`, imageSet(`${TORN_IMAGES}/torn_logo/${folder}/${size}/logo`));
   }
 
-  const STATUS_ICONS = [
-    "online", "offline", "donator", "subscriber", "level-100", "male", "female", "marriage", "faction", "committee",
-    "staff", "low-life", "bounty", "mission", "hospital", "jail", "racing-active", "racing-inactive", "education-complete", "education",
-    "job-army", "job-casino", "job-doctor", "job-grocer", "job-lawyer", "job-teacher", "job-company", "outstanding-bookie-collection", "bank-investment", "bank-investment-ready",
-    "cayman-islands-bank", "vault", "loan", "auction-house", "bazaar", "item-market", "trade", "stock-market", "booster-cooldown-1", "booster-cooldown-2",
-    "booster-cooldown-3", "booster-cooldown-4", "booster-cooldown-5", "medical-cooldown-1", "medical-cooldown-2", "medical-cooldown-3", "medical-cooldown-4", "medical-cooldown-5", "drug-cooldown-1", "drug-cooldown-2",
-    "drug-cooldown-3", "drug-cooldown-4", "drug-cooldown-5", "points-market", "auction-house-bid", "auction-house-outbid", "minor-drug-1", "minor-drug-2", "moderate-drug", "severe-drug-1",
-    "severe-drug-2", "away", "drug-addiction-50", "drug-addiction-100", "drug-addiction-200", "drug-addiction-300", "drug-addiction-500",
-  ];
-  const kebab = (name) => name.replace(/([a-z0-9])([A-Z])/g, "$1-$2").replace(/([a-z])(\d)/g, "$1-$2").toLowerCase();
-
-  function setIconCell(el, cell) {
-    if (cell >= 0 && el.style.getPropertyValue("--tear-icon") !== String(cell)) el.style.setProperty("--tear-icon", String(cell));
-  }
-
-  function tagStatusIcons() {
-    for (const li of document.querySelectorAll('[class^="statusIcons___"] > li')) {
-      const n = li.className.match(/\bicon(\d+)___/)?.[1];
-      if (n) setIconCell(li, Number(n) - 1);
-    }
-    // User lists (hospital, jail) number the icon in its id: Torn repeats id="iconTray" per row.
-    for (const li of document.querySelectorAll('[id="iconTray"] > li[id^="icon"]')) {
-      const n = li.id.match(/^icon(\d+)___/)?.[1];
-      if (n) setIconCell(li, Number(n) - 1);
-    }
-    for (const li of document.querySelectorAll('li[class*="user-status-16-"]')) {
-      const name = li.className.match(/user-status-16-([\w-]+)/)?.[1];
-      if (name) setIconCell(li, STATUS_ICONS.indexOf(kebab(name)));
-    }
-  }
-
-  // Rows inside some panels have content blocks of their own; only the visible root is a window.
-  const CHAT_WINDOW = '#chatRoot [class*="item___"] [class*="visible___"]:has(> [class*="content___"])';
-  // Tabs are keyed by each window's item element: titles can repeat.
-  const chatIds = new WeakMap();
-  let lastChatId = 0;
-  const chatId = (item) => chatIds.get(item) ?? (chatIds.set(item, ++lastChatId), lastChatId);
-  let activeChat = 0;
-  let knownChats = [];
-  const chatTabs = Object.assign(document.createElement("div"), { id: "tear-chat-tabs" });
-  chatTabs.setAttribute("role", "tablist");
-  chatTabs.setAttribute("aria-label", "Open chats");
-
-  const chatTitle = (win) => win.querySelector('[class*="headingH1___"]')?.textContent.trim() || "Chat";
-
-  function layoutChat() {
-    const windows = [...document.querySelectorAll(CHAT_WINDOW)];
-    const items = windows.map((win) => win.closest('[class*="item___"]'));
-    const ids = items.map(chatId);
-    const titles = windows.map(chatTitle);
-    const opened = ids.find((id) => !knownChats.includes(id));
-    // The active chat survives a reload by its title.
-    if (!knownChats.length && !activeChat) activeChat = ids[titles.indexOf(sessionStorage.getItem("tearActiveChat"))] ?? 0;
-    else if (opened) activeChat = opened;
-    knownChats = ids;
-    if (!ids.includes(activeChat)) activeChat = ids.at(-1) ?? 0;
-    const activeTitle = titles[ids.indexOf(activeChat)] ?? "";
-    if (sessionStorage.getItem("tearActiveChat") !== activeTitle) sessionStorage.setItem("tearActiveChat", activeTitle);
-
-    items.forEach((item, i) => {
-      const active = ids[i] === activeChat;
-      item.toggleAttribute("data-tear-chat-active", active);
-      item.toggleAttribute("data-tear-chat-hidden", !active);
-      // The tabs are anchored to this in CSS, so they track it every frame without measuring.
-      windows[i].toggleAttribute("data-tear-chat-anchor", active);
-    });
-    for (const item of document.querySelectorAll("#chatRoot :is([data-tear-chat-active], [data-tear-chat-hidden])")) {
-      if (!items.includes(item)) item.removeAttribute("data-tear-chat-active"), item.removeAttribute("data-tear-chat-hidden");
-    }
-    for (const win of document.querySelectorAll("#chatRoot [data-tear-chat-anchor]")) {
-      if (!windows.includes(win)) win.removeAttribute("data-tear-chat-anchor");
-    }
-
-    if (windows.length < 2) {
-      chatTabs.remove();
-      return;
-    }
-    if (!chatTabs.isConnected) document.body.append(chatTabs);
-    const key = ids.map((id, i) => `${id}:${titles[i]}`).join("\n") + "\n" + activeChat;
-    if (chatTabs.dataset.key !== key) {
-      chatTabs.dataset.key = key;
-      chatTabs.replaceChildren(
-        ...windows.map((win, i) => {
-          const tab = document.createElement("button");
-          tab.type = "button";
-          tab.setAttribute("role", "tab");
-          tab.dataset.chat = String(ids[i]);
-          tab.title = titles[i];
-          tab.setAttribute("aria-label", titles[i]);
-          tab.setAttribute("aria-selected", String(ids[i] === activeChat));
-          tab.tabIndex = ids[i] === activeChat ? 0 : -1;
-          const icon = win.querySelector(":scope > :first-child svg");
-          if (icon) tab.append(icon.cloneNode(true));
-          tab.append(Object.assign(document.createElement("span"), { textContent: titles[i] }));
-          return tab;
-        }),
-      );
-    }
-  }
-
-  function selectChat(id, focus) {
-    activeChat = id;
-    layoutChat();
-    if (focus) chatTabs.querySelector(`[data-chat="${id}"]`)?.focus();
-  }
-
-  chatTabs.addEventListener("click", (event) => {
-    const tab = event.target.closest("[role=tab]");
-    if (tab) selectChat(Number(tab.dataset.chat), false);
-  });
-  chatTabs.addEventListener("keydown", (event) => {
-    const tabs = [...chatTabs.querySelectorAll("[role=tab]")];
-    const at = tabs.findIndex((t) => Number(t.dataset.chat) === activeChat);
-    const next = { ArrowRight: at + 1, ArrowLeft: at - 1, Home: 0, End: tabs.length - 1 }[event.key];
-    if (next === undefined) return;
-    event.preventDefault();
-    selectChat(Number(tabs[(next + tabs.length) % tabs.length].dataset.chat), true);
+  const logoChanges = new MutationObserver(setLogo);
+  feature("logo", {
+    start() {
+      logoChanges.observe(document.body, { attributes: true, attributeFilter: ["data-layout", "data-country", "data-celebration", "data-traveling", "data-dark-mode-logo"] });
+      setLogo();
+    },
+    stop() {
+      logoChanges.disconnect();
+      delete root.dataset.tearLogo;
+      for (const size of LOGO_SIZES) root.style.removeProperty(`--tear-logo-${size}`);
+      if (!root.getAttribute("style")) root.removeAttribute("style");
+    },
   });
 
-  // Each bottom bar button holds its unread count in a messageCount wrapper; replay the pop
-  // animation whenever a count goes up.
-  const CHAT_BAR_BUTTON = "#chatRoot > div > div:last-child button";
-  const badgeCounts = new WeakMap();
-
-  function tagChatBadges() {
-    for (const button of document.querySelectorAll(CHAT_BAR_BUTTON)) {
-      const badge = button.querySelector(':scope > [class^="messageCount___"]');
-      const count = parseInt(badge?.textContent ?? "", 10) || 0;
-      badge?.toggleAttribute("data-tear-badge", count > 0);
-      const previous = badgeCounts.get(button);
-      badgeCounts.set(button, count);
-      if (previous !== undefined && count > previous) popBadge(button);
-    }
-  }
-
-  function popBadge(button) {
-    button.removeAttribute("data-tear-badge-pop");
-    void button.offsetWidth; // restart the animation if it's mid-run
-    button.setAttribute("data-tear-badge-pop", "");
-  }
-
-  addEventListener("animationend", (event) => {
-    if (event.animationName === "tear-badge-glow") event.target.removeAttribute("data-tear-badge-pop");
-  });
-
-  function tagStats() {
-    for (const row of document.querySelectorAll('[class^="userInformation"] [class^="point-block___"]')) {
-      if (!row.dataset.tearStat) {
-        const slug = slugify(row.querySelector('[class^="name___"], .wai')?.textContent ?? "");
-        if (slug) row.dataset.tearStat = slug;
-      }
-      if (/^(points|merits)$/.test(row.dataset.tearStat) && !row.hasAttribute("role")) {
-        row.setAttribute("role", "button");
-        row.tabIndex = 0;
-      }
-      setCharCount(row.querySelector('[class^="value___"]'));
-    }
-  }
-
-  // A click that ends a text selection is left alone so values stay copyable.
-  addEventListener("click", (event) => {
-    const card = event.target.closest?.('[data-tear-stat="points"], [data-tear-stat="merits"]');
-    if (!card || event.target.closest("a")) return;
-    if (!getSelection().isCollapsed) return;
-    card.querySelector('[class^="use___"]')?.click();
-  });
-  addEventListener("keydown", (event) => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-    const card = event.target.closest?.('[data-tear-stat="points"][role=button], [data-tear-stat="merits"][role=button]');
-    if (!card || event.target !== card) return;
-    event.preventDefault();
-    card.querySelector('[class^="use___"]')?.click();
-  });
-
-  const setOrder = (el, n) => {
-    if (el.style.order !== String(n)) el.style.order = String(n);
-  };
-
+  // ── awards (merits) ──────────────────────────────────────────────────────────────────────────
   // Keyed by the first merit after each divider, so new sections don't shift names.
   const MERIT_SECTIONS = { "Nerve Bar": "General", Brawn: "Combat" };
+  const meritOrders = new Set();
+  const orderMerit = (el, n) => {
+    setOrder(el, n);
+    meritOrders.add(el);
+  };
 
   function layoutMerits() {
     const tab = document.querySelector('[class^="meritsTab___"]');
@@ -362,9 +375,9 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     let order = 0;
     for (const child of tab.children) {
       if (child.matches('[class^="meritsList___"]')) {
-        for (const card of child.children) setOrder(card, (order += 2));
+        for (const card of child.children) orderMerit(card, (order += 2));
       } else if (!child.matches('[class^="dialogWrap___"]')) {
-        setOrder(child, (order += 2));
+        orderMerit(child, (order += 2));
         if (child.matches('[class^="blackLine___"]')) {
           const first = child.nextElementSibling?.querySelector('[class^="title___"] span')?.textContent.trim();
           const label = MERIT_SECTIONS[first];
@@ -373,16 +386,30 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
       }
     }
     const dialog = tab.querySelector(':scope > [class^="dialogWrap___"]');
-    const selected = tab.querySelector('[class^="merit___"][class*="selected___"]');
+    const selected = tab.querySelector('[class^="merit___"][class*=" selected___"]');
     if (!dialog || !selected) return;
     const rowEnd = [...tab.querySelectorAll('[class^="merit___"]')]
       .filter((card) => card.offsetTop === selected.offsetTop)
       .reduce((max, card) => Math.max(max, Number(card.style.order)), 0);
-    setOrder(dialog, rowEnd + 1);
+    orderMerit(dialog, rowEnd + 1);
   }
-  // The body observer doesn't see a resize, but the column count changes.
-  addEventListener("resize", () => requestAnimationFrame(layoutMerits));
 
+  let meritFrame = 0;
+  feature("awards", {
+    start(signal) {
+      // The body observer doesn't see a resize, but the column count changes.
+      addEventListener("resize", () => (meritFrame ||= requestAnimationFrame(() => ((meritFrame = 0), layoutMerits()))), { signal });
+    },
+    page: layoutMerits,
+    stop() {
+      cancelAnimationFrame(meritFrame);
+      meritFrame = 0;
+      clearOrders(meritOrders);
+      clearAttrs("data-tear-label");
+    },
+  });
+
+  // ── loadouts ─────────────────────────────────────────────────────────────────────────────────
   // Items › loadouts: compact (Torn's crop; click it for the whole character) or expanded (the
   // whole character always shown). The choice sits on #loadoutsRoot, which React doesn't manage.
   let loadoutView = "compact";
@@ -390,10 +417,6 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
   loadoutToggle.dataset.tearLoadoutView = "";
   loadoutToggle.innerHTML =
     '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2.5a2.75 2.75 0 1 1 0 5.5 2.75 2.75 0 0 1 0-5.5zM9.25 9h5.5c.83 0 1.5.67 1.5 1.5V16h-2v5.5h-4.5V16h-2v-5.5c0-.83.67-1.5 1.5-1.5z"/></svg>';
-  chrome.storage.local.get("loadoutView").then(({ loadoutView: stored }) => {
-    if (stored === "expanded") loadoutView = stored;
-    tagLoadout();
-  });
 
   // Expanded view: the equipped items as a cover flow round the selected one, at Torn's large image
   // size. Built from the equipped grid, since the inspector holds only the selected item; a side
@@ -442,10 +465,6 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     }
   }
 
-  const setVar = (el, name, value) => {
-    if (el.style.getPropertyValue(name) !== value) el.style.setProperty(name, value);
-  };
-
   // Selecting an item only swaps classes and image sources, which the page observer doesn't see.
   let watchedLoadouts = null;
   let flowFrame = 0;
@@ -478,28 +497,50 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     }
   }
 
-  loadoutToggle.addEventListener("click", (event) => {
-    event.stopPropagation();
-    loadoutView = loadoutView === "expanded" ? "compact" : "expanded";
-    chrome.storage.local.set({ loadoutView });
-    tagLoadout();
+  feature("loadouts", {
+    start(signal) {
+      loadoutToggle.addEventListener(
+        "click",
+        (event) => {
+          event.stopPropagation();
+          loadoutView = loadoutView === "expanded" ? "compact" : "expanded";
+          chrome.storage.local.set({ loadoutView });
+          tagLoadout();
+        },
+        { signal },
+      );
+      chrome.storage.local.get("loadoutView").then(({ loadoutView: stored }) => {
+        if (signal.aborted) return;
+        loadoutView = stored === "expanded" ? stored : "compact";
+        tagLoadout();
+      });
+    },
+    page: tagLoadout,
+    stop() {
+      loadoutChanges.disconnect();
+      watchedLoadouts = null;
+      cancelAnimationFrame(flowFrame);
+      flowFrame = 0;
+      flow.remove();
+      flow.replaceChildren();
+      flowItems.clear();
+      loadoutToggle.remove();
+      clearAttrs("data-tear-loadout");
+    },
   });
 
+  // ── areas ────────────────────────────────────────────────────────────────────────────────────
   const TOP_ROWS = 10;
   const sectionState = {};
-  chrome.storage.local.get(["sectionStates", "collapsedSections"]).then(({ sectionStates = {}, collapsedSections }) => {
-    collapsedSections?.forEach((name) => (sectionState[name] = "collapsed"));
-    Object.assign(sectionState, sectionStates);
-    if (collapsedSections) chrome.storage.local.remove("collapsedSections");
-    tagSections();
-  });
 
   function sectionRows(header) {
     const rows = [];
-    for (let el = header.nextElementSibling; el?.matches('[class*="area-desktop___"]'); el = el.nextElementSibling) rows.push(el);
+    for (let el = header.nextElementSibling; el?.matches('[class^="area-desktop___"], [class*=" area-desktop___"]'); el = el.nextElementSibling) rows.push(el);
     return rows;
   }
 
+  // Headings TEAR made buttons, so switching off takes back only those.
+  const madeToggles = new Set();
   function tagSections() {
     for (const header of document.querySelectorAll('[class^="sidebar___"] [class^="header___"]')) {
       const rows = sectionRows(header);
@@ -510,6 +551,7 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
         header.dataset.tearCollapsible = name;
         title.setAttribute("role", "button");
         title.tabIndex = 0;
+        madeToggles.add(title);
       }
       const state = sectionState[name] ?? "full";
       if (header.dataset.tearState !== state) header.dataset.tearState = state;
@@ -536,33 +578,59 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     chrome.storage.local.set({ sectionStates: sectionState });
     tagSections();
   }
-  addEventListener("click", toggleSection);
-  addEventListener("keydown", (event) => {
-    if ((event.key === "Enter" || event.key === " ") && event.target.closest?.("[data-tear-collapsible] [role=button]")) {
-      event.preventDefault();
-      toggleSection(event);
-    }
+
+  feature("areas", {
+    start(signal) {
+      chrome.storage.local.get(["sectionStates", "collapsedSections"]).then(({ sectionStates = {}, collapsedSections }) => {
+        if (signal.aborted) return;
+        collapsedSections?.forEach((name) => (sectionState[name] = "collapsed"));
+        Object.assign(sectionState, sectionStates);
+        if (collapsedSections) chrome.storage.local.remove("collapsedSections");
+        tagSections();
+      });
+      addEventListener("click", toggleSection, { signal });
+      addEventListener(
+        "keydown",
+        (event) => {
+          if ((event.key === "Enter" || event.key === " ") && event.target.closest?.("[data-tear-collapsible] [role=button]")) {
+            event.preventDefault();
+            toggleSection(event);
+          }
+        },
+        { signal },
+      );
+    },
+    page: tagSections,
+    stop() {
+      for (const title of madeToggles) {
+        title.removeAttribute("role");
+        title.removeAttribute("tabindex");
+        title.removeAttribute("aria-expanded");
+      }
+      madeToggles.clear();
+      clearAttrs("data-tear-collapsible", "data-tear-state", "data-tear-extra", "data-tear-more");
+    },
   });
 
+  // ── sidebarOrder ─────────────────────────────────────────────────────────────────────────────
   const SIDEBAR = '[class^="sidebar___"][class*=" desktop___"]';
   const SECTION_NAMES = { status: "Status", profile: "Profile", bars: "Bars", account: "Account links", areas: "Areas", lists: "Lists" };
   const DEFAULT_ORDER = Object.keys(SECTION_NAMES);
   let savedOrder = [];
-  chrome.storage.local.get("sidebarOrder").then(({ sidebarOrder = [] }) => {
-    savedOrder = sidebarOrder;
-    arrangeSidebar();
-  });
+  const sectionOrders = new Set();
 
   const sectionKeys = () => [...savedOrder.filter((k) => k in SECTION_NAMES), ...DEFAULT_ORDER.filter((k) => !savedOrder.includes(k))];
 
   function sidebarSections(sb) {
     const ui = sb.querySelector(':scope > [class^="userInformation___"]');
-    const stat = (name) => ui?.querySelector(`[data-tear-stat="${name}"]`);
-    const listsHeader = sb.querySelector(':scope > [class^="header___"]:has(+ [class*="area-desktop___"])');
+    // By name, not data-tear-stat: the Character card feature may be off.
+    const stats = [...(ui?.querySelectorAll('[class^="point-block___"]') ?? [])];
+    const stat = (name) => stats.find((row) => statName(row) === name);
+    const listsHeader = sb.querySelector(':scope > [class^="header___"]:has(+ :is([class^="area-desktop___"], [class*=" area-desktop___"]))');
     const sections = {
       status: [ui?.querySelector(':scope > div:has(> [class^="statusIcons___"])')],
       profile: [stat("level"), ui?.querySelector(':scope > [class^="menuInfoRow___"]'), stat("money"), stat("points"), stat("merits")],
-      bars: [ui?.querySelector(':scope > div:has(> [class*="barDesktop___"])')],
+      bars: [ui?.querySelector(':scope > div:has(> :is([class^="barDesktop___"], [class*=" barDesktop___"]))')],
       account: [sb.querySelector(':scope > [class^="accountLinksWrap___"]')],
       areas: [sb.querySelector(':scope > [class^="areas___"]')],
       lists: listsHeader ? [listsHeader, ...sectionRows(listsHeader)] : [],
@@ -594,6 +662,7 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
       setOrder(grip, pos * 1000);
       members.forEach((el, i) => {
         setOrder(el, pos * 1000 + 1 + i);
+        sectionOrders.add(el);
         if (el.dataset.tearSection !== key) el.dataset.tearSection = key;
       });
     });
@@ -626,16 +695,9 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
     for (const el of document.querySelectorAll(`${SIDEBAR} [data-tear-section="${key}"]`)) el.toggleAttribute(attr, on);
   };
 
-  addEventListener("pointerover", (event) => {
-    const grip = event.target.closest?.("[data-tear-grip]");
-    if (grip) markSection(grip.dataset.tearGrip, "data-tear-section-hover", true);
-  });
-  addEventListener("pointerout", (event) => {
-    const grip = event.target.closest?.("[data-tear-grip]");
-    if (grip) markSection(grip.dataset.tearGrip, "data-tear-section-hover", false);
-  });
-
-  addEventListener("pointerdown", (event) => {
+  // A drag in progress is cancelled by a switch-off; its own listeners sit on the grip.
+  let endDrag = null;
+  function startDrag(event) {
     const grip = event.target.closest?.("[data-tear-grip]");
     if (!grip || event.button !== 0) return;
     event.preventDefault();
@@ -666,108 +728,164 @@ chrome.storage.local.get("tornCssOff").then(({ tornCssOff }) => {
       target = slot === sectionKeys().indexOf(key) ? null : slot;
       marker.hidden = target === null;
     };
-    const onUp = () => {
+    const finish = (commit) => {
       grip.removeEventListener("pointermove", onMove);
       grip.removeEventListener("pointerup", onUp);
       grip.removeEventListener("pointercancel", onUp);
       marker.remove();
       markSection(key, "data-tear-dragging", false);
-      if (target !== null) moveSection(key, target);
+      endDrag = null;
+      if (commit && target !== null) moveSection(key, target);
     };
+    const onUp = () => finish(true);
+    endDrag = () => finish(false);
     grip.addEventListener("pointermove", onMove);
     grip.addEventListener("pointerup", onUp);
     grip.addEventListener("pointercancel", onUp);
-  });
-
-  addEventListener("keydown", (event) => {
-    const grip = event.target.closest?.("[data-tear-grip]");
-    if (!grip || (event.key !== "ArrowUp" && event.key !== "ArrowDown")) return;
-    event.preventDefault();
-    const key = grip.dataset.tearGrip;
-    const at = sectionKeys().indexOf(key);
-    moveSection(key, Math.max(0, at + (event.key === "ArrowUp" ? -1 : 1)));
-  });
-
-  // The drawer's state as one attribute on <html>, so CSS needn't body:has() for it.
-  let watchedDrawer = null;
-  const drawerObserver = new MutationObserver(() => {
-    root.toggleAttribute("data-tear-drawer-open", /\bvisible___/.test(watchedDrawer?.className ?? ""));
-  });
-  function watchDrawer() {
-    const drawer = document.querySelector('[class^="flyOutPanel___"]');
-    if (drawer === watchedDrawer) return;
-    drawerObserver.disconnect();
-    watchedDrawer = drawer;
-    if (drawer) drawerObserver.observe(drawer, { attributes: true, attributeFilter: ["class"] });
-    root.toggleAttribute("data-tear-drawer-open", /\bvisible___/.test(drawer?.className ?? ""));
   }
 
-  // The ticker and sidebar sit outside #mainContainer and update text in place. Chat
-  // messages arrive constantly: they only re-lay out the chat tabs.
-  const chatRoot = () => document.getElementById("chatRoot");
-  let bodyFrame = 0;
-  let pageDirty = true;
-  let chatDirty = true;
-  let badgesDirty = true;
-  new MutationObserver((records) => {
-    const chat = chatRoot();
-    for (const { type, target } of records) {
-      if (chat?.contains(target)) {
-        chatDirty ||= type === "childList";
-        badgesDirty = true;
-      } else pageDirty = true;
-    }
-    if (!pageDirty && !chatDirty && !badgesDirty) return;
-    bodyFrame ||= requestAnimationFrame(() => {
-      bodyFrame = 0;
-      // Reads before writes: tagColumns measures first, while layout may still be clean;
-      // layoutMerits measures its own reordering, so it goes last.
-      if (pageDirty) {
-        pageDirty = false;
-        tagColumns();
-        loopTicker();
-        ringBars();
-        tagStats();
-        tagSections();
+  feature("sidebarOrder", {
+    start(signal) {
+      chrome.storage.local.get("sidebarOrder").then(({ sidebarOrder = [] }) => {
+        if (signal.aborted) return;
+        savedOrder = sidebarOrder;
         arrangeSidebar();
-        tagStatusIcons();
-        watchDrawer();
-        tagLoadout();
-        layoutMerits();
-      }
-      if (chatDirty) {
-        chatDirty = false;
-        layoutChat();
-      }
-      if (badgesDirty) {
-        badgesDirty = false;
-        tagChatBadges();
-      }
-    });
-  }).observe(document.body, { childList: true, subtree: true, characterData: true });
-
-  let frame = 0;
-  const main = document.getElementById("mainContainer");
-  if (main) {
-    new MutationObserver(() => {
-      frame ||= requestAnimationFrame(() => {
-        frame = 0;
-        tagPanels();
       });
-    }).observe(main, { childList: true, subtree: true });
+      addEventListener(
+        "pointerover",
+        (event) => {
+          const grip = event.target.closest?.("[data-tear-grip]");
+          if (grip) markSection(grip.dataset.tearGrip, "data-tear-section-hover", true);
+        },
+        { signal },
+      );
+      addEventListener(
+        "pointerout",
+        (event) => {
+          const grip = event.target.closest?.("[data-tear-grip]");
+          if (grip) markSection(grip.dataset.tearGrip, "data-tear-section-hover", false);
+        },
+        { signal },
+      );
+      addEventListener("pointerdown", startDrag, { signal });
+      addEventListener(
+        "keydown",
+        (event) => {
+          const grip = event.target.closest?.("[data-tear-grip]");
+          if (!grip || (event.key !== "ArrowUp" && event.key !== "ArrowDown")) return;
+          event.preventDefault();
+          const key = grip.dataset.tearGrip;
+          const at = sectionKeys().indexOf(key);
+          moveSection(key, Math.max(0, at + (event.key === "ArrowUp" ? -1 : 1)));
+        },
+        { signal },
+      );
+    },
+    page: arrangeSidebar,
+    stop() {
+      endDrag?.();
+      for (const grip of document.querySelectorAll("[data-tear-grip]")) grip.remove();
+      announcer.remove();
+      clearOrders(sectionOrders);
+      clearAttrs("data-tear-section", "data-tear-section-hover", "data-tear-dragging");
+    },
+  });
+
+  // ── class watchers ───────────────────────────────────────────────────────────────────────────
+  // A Torn element's state, read from its class, as one attribute on <html>, so CSS needn't :has()
+  // the whole page for it. React may swap the element, so page() looks for it again.
+  function classWatcher(selector, attr, pattern) {
+    let watched = null;
+    const sync = () => root.toggleAttribute(attr, pattern.test(watched?.className ?? ""));
+    const observer = new MutationObserver(sync);
+    return {
+      page() {
+        const el = document.querySelector(selector);
+        if (el === watched) return;
+        observer.disconnect();
+        watched = el;
+        if (el) observer.observe(el, { attributes: true, attributeFilter: ["class"] });
+        sync();
+      },
+      stop() {
+        observer.disconnect();
+        watched = null;
+        root.removeAttribute(attr);
+      },
+    };
   }
 
-  addEventListener("hashchange", stampPage);
+  // ── header ───────────────────────────────────────────────────────────────────────────────────
+  feature("header", classWatcher(".search-mobile-button", "data-tear-search-open", /(^|\s)open___/));
 
-  stampPage();
-  tagPanels();
-  tagColumns();
-  loopTicker();
-  ringBars();
-  tagStats();
-  tagStatusIcons();
-  tagLoadout();
-  layoutMerits();
-  setLogo();
-  new MutationObserver(setLogo).observe(document.body, { attributes: true, attributeFilter: ["data-layout", "data-country", "data-celebration", "data-traveling", "data-dark-mode-logo"] });
+  // ── mobile ───────────────────────────────────────────────────────────────────────────────────
+  feature("mobile", classWatcher('[class^="flyOutPanel___"]', "data-tear-drawer-open", /(^|\s)visible___/));
+
+  // ── Running them ─────────────────────────────────────────────────────────────────────────────
+  // page() order: tagColumns measures first, while layout may still be clean; layoutMerits measures
+  // its own reordering, so it goes last.
+  const PAGE_ORDER = ["grid", "ticker", "rings", "card", "areas", "sidebarOrder", "statusIcons", "header", "mobile", "loadouts", "awards"];
+
+  // The ticker and sidebar sit outside #mainContainer and update text in place. Torn's chat
+  // changes constantly and no feature styles it, so its mutations are ignored. One observer for
+  // every feature, and only while one is on.
+  let bodyFrame = 0;
+  const bodyChanges = new MutationObserver((records) => {
+    const chat = document.getElementById("chatRoot");
+    if (records.some(({ target }) => !chat?.contains(target))) bodyFrame ||= requestAnimationFrame(flush);
+  });
+
+  const running = (id) => features.get(id)?.on;
+  function flush() {
+    bodyFrame = 0;
+    if (core.on) core.page();
+    for (const id of PAGE_ORDER) if (running(id)) features.get(id).page();
+  }
+
+  function toggle(part, on) {
+    if (part.on === on) return;
+    part.on = on;
+    if (on) {
+      part.controller = new AbortController();
+      part.start?.(part.controller.signal);
+    } else {
+      part.controller?.abort();
+      part.controller = null;
+      part.stop?.();
+    }
+  }
+
+  function setFeatures(enabled) {
+    for (const [id, part] of features) toggle(part, enabled.has(id));
+    // Off last: the features' teardown above may still read the core's page hooks.
+    toggle(core, enabled.size > 0);
+    const any = core.on;
+    if (any) bodyChanges.observe(document.body, { childList: true, subtree: true, characterData: true });
+    else {
+      bodyChanges.disconnect();
+      cancelAnimationFrame(bodyFrame);
+      bodyFrame = 0;
+    }
+    if (any) flush();
+  }
+
+  setFeatures(enabledFeatures(featuresOn));
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== "local") return;
+    if ("featuresOn" in changes) setFeatures(enabledFeatures(changes.featuresOn.newValue));
+    // Changed elsewhere (another tab, or the Settings tab's reset): applied here too, live.
+    if ("sidebarOrder" in changes) {
+      savedOrder = changes.sidebarOrder.newValue ?? [];
+      if (running("sidebarOrder")) arrangeSidebar();
+    }
+    if ("sectionStates" in changes) {
+      for (const name in sectionState) delete sectionState[name];
+      Object.assign(sectionState, changes.sectionStates.newValue);
+      if (running("areas")) tagSections();
+    }
+    if ("loadoutView" in changes) {
+      loadoutView = changes.loadoutView.newValue === "expanded" ? "expanded" : "compact";
+      if (running("loadouts")) tagLoadout();
+    }
+  });
 });

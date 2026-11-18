@@ -1,0 +1,93 @@
+/* Panels: the content column as a stack of panels that fit the page grid, and Torn's panel parts
+   (title bars, bodies, rounded corners). Applies while the Features tab has it on: torn-css.js sets
+   .tear-f-panels on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+/* A layer, so each page's own feature (profiles, items, loadouts, …) still wins over these defaults. */
+@layer tear-structure {
+html.tear-enabled:where(.tear-f-panels) {
+  /* The content column: one panel per row, spaced by the page grid's gap instead of Torn's margins. */
+  & .content-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: var(--page-gap, 0.75rem);
+    min-width: 0;
+  }
+
+  & .content-wrapper > :is(.clear, link, script, style, :empty:not(img, iframe, canvas, video)) {
+    display: none;
+  }
+
+  /* Every panel fits the column: no fixed widths, floats or outer margins from Torn's markup. */
+  & .content-wrapper > *,
+  & :where(.content-wrapper) :is(.sortable-box, .cont-gray, .cont-black, .cont-white, .tutorial-cont, .profile-wrapper, .main-items-cont-wrap) {
+    box-sizing: border-box;
+    width: auto;
+    max-width: 100%;
+    min-width: 0;
+    margin-inline: 0;
+  }
+
+  & .content-wrapper > * {
+    margin-block: 0;
+  }
+
+  & :where(.content-wrapper) :is(img, video, canvas, iframe) {
+    max-width: 100%;
+  }
+
+  & :where(.content-wrapper) img {
+    height: auto;
+  }
+
+  & :where(.content-wrapper) table {
+    max-width: 100%;
+    border-collapse: collapse;
+  }
+
+  /* Torn's spacing helpers inside panels. */
+  & :where(.content-wrapper) .m-top10 { margin-top: var(--tear-space-3); }
+  & :where(.content-wrapper) .m-bottom10 { margin-bottom: var(--tear-space-3); }
+  & :where(.content-wrapper) .p10 { padding: var(--tear-space-3); }
+
+  /* Title bars. */
+  & :is(.title-black, .title-gray, .title-green, .title-red, .title-blue) {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-2);
+    min-height: 2.25rem;
+    padding: 0 var(--tear-space-3);
+    border-bottom: 1px solid var(--tear-line);
+    background: var(--tear-surface-dim);
+    color: var(--tear-text-strong);
+    font-size: var(--tear-fs-body, 0.8125rem);
+    font-weight: 600;
+  }
+
+  /* Bodies. */
+  & :is(.cont-gray, .cont-black, .cont-white, .cont, .tutorial-desc) {
+    background: var(--tear-panel-bg);
+    color: var(--tear-text);
+  }
+
+  & :is(.cont-gray, .cont-black, .cont-white, .tutorial-desc):not(.profile-container *) {
+    padding: var(--tear-space-3);
+  }
+
+  & .top-round { border-radius: var(--tear-radius) var(--tear-radius) 0 0; }
+  & .bottom-round { border-radius: 0 0 var(--tear-radius) var(--tear-radius); }
+  & .border-round { border-radius: var(--tear-radius); }
+
+  & :is(.cont-gray, .cont, .profile-container).bottom-round,
+  & .border-round {
+    overflow: hidden;
+  }
+
+  & :where(.content-wrapper) hr:not(.page-head-delimiter) {
+    height: 0;
+    margin-block: var(--tear-space-3);
+    border: 0;
+    border-top: 1px solid var(--tear-line);
+  }
+}
+}

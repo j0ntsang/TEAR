@@ -1,0 +1,268 @@
+/* Attack log page. Applies while the Features tab has it on: torn-css.js sets .tear-f-attackLog on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+/* Layout Torn's CSS provided. A layer, so TEAR's own unlayered rules always win; tear-pages sits
+   above tear-structure (assets.css), so this page wins over the shared widgets and panels. */
+
+@layer tear-pages {
+html.tear-enabled:where(.tear-f-attackLog) {
+  & #attack-log-root button[class^="button___"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tear-muted);
+    cursor: pointer;
+  }
+
+  & #attack-log-root button[class^="button___"][class*=" iconOnly___"] {
+    width: 2.125rem;
+    height: 2.125rem;
+  }
+
+  & #attack-log-root button[class^="button___"]:is(:hover, :focus-visible) {
+    background: var(--tear-overlay);
+    color: var(--tear-text-strong);
+  }
+
+  /* Attack log: the log beside its people column, stacked on narrow screens. */
+  & #attack-log-root [class^="columns___"] {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--tear-space-3);
+  }
+
+  & #attack-log-root :is([class^="logColumn___"], [class^="peopleColumn___"]) {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius);
+    background: var(--tear-panel-bg);
+  }
+
+  & #attack-log-root [class^="logColumn___"] {
+    flex: 1 1 auto;
+  }
+
+  & #attack-log-root [class^="peopleColumn___"] {
+    flex: none;
+    width: 13.75rem;
+  }
+
+  @media (max-width: 784px) {
+    & #attack-log-root [class^="columns___"] {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    & #attack-log-root [class^="peopleColumn___"] {
+      width: auto;
+    }
+  }
+
+  & #attack-log-root [class^="containerHeader___"] {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-2);
+    min-height: 2.125rem;
+    padding: 0 var(--tear-space-3);
+    background: var(--tear-surface-dim);
+    color: var(--tear-text-strong);
+  }
+
+  & #attack-log-root [class^="headerTitle___"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  & #attack-log-root [class^="logToggles___"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    margin: 0 calc(-1 * var(--tear-space-3)) 0 auto;
+  }
+
+  & #attack-log-root [class^="containerBody___"] {
+    display: flex;
+  }
+
+  & #attack-log-root [class^="containerBody___"][hidden] {
+    display: none;
+  }
+
+  & #attack-log-root :is([class^="logContent___"], [class^="logWrap___"]) {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  & #attack-log-root [class^="logWrap___"] > ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & #attack-log-root li[class^="row___"] {
+    display: flex;
+    font-size: var(--tear-fs-label);
+    line-height: 1rem;
+  }
+
+  & #attack-log-root li[class^="row___"] + li[class^="row___"] {
+    border-top: 1px solid var(--tear-divider);
+  }
+
+  & #attack-log-root [class^="col1___"],
+  & #attack-log-root [class^="col2___"] {
+    display: flex;
+    align-items: center;
+    padding-block: 0.5625rem;
+  }
+
+  & #attack-log-root [class^="col1___"] {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-inline: var(--tear-space-3) var(--tear-space-2);
+  }
+
+  /* The timestamp, with the row's result colour as a bar on its right edge. */
+  & #attack-log-root [class^="col2___"] {
+    position: relative;
+    flex: none;
+    padding-inline: var(--tear-space-2) 1.125rem;
+    border-left: 1px solid var(--tear-divider);
+    color: var(--tear-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  & #attack-log-root [class^="col2___"]::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: var(--attack-log-bar-width, 8px);
+    background: var(--tear-log-bar, transparent);
+  }
+
+  & #attack-log-root :is([class^="tightWithPrev___"], [class*=" tightWithPrev___"]) :is([class^="col1___"], [class^="col2___"]) {
+    padding-top: 0.3125rem;
+  }
+
+  & #attack-log-root :is([class^="tightWithNext___"], [class*=" tightWithNext___"]) :is([class^="col1___"], [class^="col2___"]) {
+    padding-bottom: 0.3125rem;
+  }
+
+  /* Torn's result colours, keyed by the row's color-N class. */
+  & #attack-log-root li[class*=" color-1___"] { --tear-log-bar: rgb(130 201 30 / 0.2); }
+  & #attack-log-root li[class*=" color-2___"] { --tear-log-bar: rgb(250 82 82 / 0.2); }
+  & #attack-log-root li[class*=" color-3___"] { --tear-log-bar: rgb(178 133 0 / 0.2); }
+  & #attack-log-root li[class*=" color-4___"] { --tear-log-bar: rgb(0 91 91 / 0.2); }
+  & #attack-log-root li[class*=" color-5___"] { --tear-log-bar: rgb(0 51 102 / 0.2); }
+  & #attack-log-root li[class*=" color-6___"] { --tear-log-bar: rgb(70 0 140 / 0.2); }
+  & #attack-log-root li[class*=" color-7___"] { --tear-log-bar: rgb(102 0 102 / 0.2); }
+  & #attack-log-root li[class*=" color-8___"] { --tear-log-bar: rgb(0 0 0 / 0.2); }
+  & #attack-log-root li[class*=" color-9___"] { --tear-log-bar: rgb(242 140 140 / 0.2); }
+  & #attack-log-root li[class*=" color-10___"] { --tear-log-bar: rgb(225 201 25 / 0.2); }
+  & #attack-log-root li[class*=" color-11___"] { --tear-log-bar: rgb(160 207 23 / 0.2); }
+  & #attack-log-root li[class*=" color-12___"] { --tear-log-bar: rgb(24 217 217 / 0.2); }
+  & #attack-log-root li[class*=" color-13___"] { --tear-log-bar: rgb(111 175 238 / 0.2); }
+  & #attack-log-root li[class*=" color-14___"] { --tear-log-bar: rgb(176 114 239 / 0.2); }
+  & #attack-log-root li[class*=" color-15___"] { --tear-log-bar: rgb(240 128 240 / 0.2); }
+  & #attack-log-root li[class*=" color-16___"] { --tear-log-bar: rgb(97 97 97 / 0.2); }
+  & #attack-log-root li[class*=" color-17___"] { --tear-log-bar: rgb(64 0 0 / 0.2); }
+  & #attack-log-root li[class*=" color-18___"] { --tear-log-bar: rgb(64 48 0 / 0.2); }
+  & #attack-log-root li[class*=" color-19___"] { --tear-log-bar: rgb(32 64 0 / 0.2); }
+  & #attack-log-root li[class*=" color-20___"] { --tear-log-bar: rgb(0 48 64 / 0.2); }
+  & #attack-log-root li[class*=" color-21___"] { --tear-log-bar: rgb(0 0 64 / 0.2); }
+  & #attack-log-root li[class*=" color-22___"] { --tear-log-bar: rgb(64 0 64 / 0.2); }
+
+  & #attack-log-root [class^="iconWrap___"] {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 2.125rem;
+    height: 1rem;
+    margin-left: calc(-1 * var(--tear-space-2));
+  }
+
+  & #attack-log-root [class^="message___"] {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  & #attack-log-root :is([class^="message___"] a, [class^="logWrap___"] :is(.red, .green)) {
+    font-weight: 700;
+  }
+
+  & #attack-log-root [class^="cards___"] {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  & #attack-log-root [class^="cardList___"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--tear-space-2);
+    margin: 0;
+    padding: var(--tear-space-2);
+    list-style: none;
+  }
+
+  & #attack-log-root [class^="card___"] {
+    padding: var(--tear-space-2) var(--tear-space-3);
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius-sm);
+    background: var(--tear-surface);
+  }
+
+  & #attack-log-root [class^="cardTop___"] {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-2);
+    min-width: 0;
+  }
+
+  & #attack-log-root [class^="factionSpacer___"] {
+    flex: none;
+    width: 1.5625rem;
+  }
+
+  & #attack-log-root [class^="plainName___"] {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--tear-text-strong);
+    font-weight: 600;
+  }
+
+  & #attack-log-root [class^="cardStats___"] {
+    display: flex;
+    align-items: center;
+    gap: var(--tear-space-3);
+    margin-top: var(--tear-space-2);
+    color: var(--tear-muted);
+    font-size: var(--tear-fs-label);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Stat icons: stable image paths, painted by Torn's bundle with no position to recognise them by. */
+  & #attack-log-root :is([class^="statHits___"], [class^="statDamage___"]) {
+    padding-left: 1.25rem;
+    background: 0 center / auto 0.9375rem no-repeat;
+    white-space: nowrap;
+  }
+
+  & #attack-log-root [class^="statHits___"] {
+    background-image: url("https://www.torn.com/images/v2/attack/attack_number_of_hits.svg");
+  }
+
+  & #attack-log-root [class^="statDamage___"] {
+    background-image: url("https://www.torn.com/images/v2/attack/attack_damage.svg");
+  }
+}
+}

@@ -20,6 +20,7 @@
         "https://www.torn.com/*"
       ],
       "js": [
+        "lib/model.js",
         "content/torn-css.js"
       ],
       "run_at": "document_start"
@@ -30,11 +31,30 @@
       ],
       "css": [
         "content/assets.css",
-        "content/content.css",
+        "content/features/theme.css",
+        "content/features/ticker.css",
+        "content/features/card.css",
+        "content/features/awards.css",
+        "content/features/areas.css",
+        "content/features/statusIcons.css",
+        "content/features/accountLinks.css",
+        "content/features/rings.css",
+        "content/features/mobile.css",
+        "content/features/grid.css",
+        "content/features/pageHeader.css",
+        "content/features/panels.css",
+        "content/features/sidebarOrder.css",
+        "content/features/profiles.css",
+        "content/features/logo.css",
+        "content/features/header.css",
+        "content/features/attackLog.css",
+        "content/features/events.css",
+        "content/features/loadouts.css",
+        "content/features/items.css",
+        "content/features/widgets.css",
         "content/dock.css"
       ],
       "js": [
-        "lib/model.js",
         "content/main.js",
         "content/panel-styles.js",
         "content/settings.js"

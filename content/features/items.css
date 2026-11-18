@@ -1,0 +1,319 @@
+/* Items page: item list and thumbnails. Applies while the Features tab has it on: torn-css.js sets .tear-f-items on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+/* Layout Torn's CSS provided. A layer, so TEAR's own unlayered rules always win; tear-pages sits
+   above tear-structure (assets.css), so this page wins over the shared widgets and panels. */
+
+@layer tear-pages {
+html.tear-enabled:where(.tear-f-items) {
+  /* Items › your items: category tabs over a list (or a grid of thumbnails). */
+  & .items-wrap > .title-black > form {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    float: none;
+  }
+
+  & .items-wrap .ac-items .ui-autocomplete-input {
+    width: 8rem;
+    height: 1.5rem;
+    padding: 0 var(--tear-space-2);
+    border: 1px solid var(--tear-line);
+    border-radius: var(--tear-radius-sm);
+    background: var(--tear-surface);
+    color: var(--tear-text);
+    font: inherit;
+  }
+
+  & .items-wrap #categoriesList {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--tear-line);
+    background: var(--tear-surface-dim);
+    list-style: none;
+  }
+
+  & .items-wrap #categoriesList::before,
+  & .items-wrap #categoriesList::after {
+    content: none;
+  }
+
+  & .items-wrap #categoriesList > li {
+    position: relative;
+    float: none;
+  }
+
+  & .items-wrap #categoriesList > li + li {
+    border-left: 1px solid var(--tear-divider);
+  }
+
+  & .items-wrap #categoriesList > li:is(.t-show, .m-show, .clear) {
+    display: none;
+  }
+
+  /* The sprite is cut in 28px cells, so the link keeps that width and centres in its column. */
+  & .items-wrap #categoriesList > li > a {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 28px;
+    height: 33px;
+    margin-inline: auto;
+  }
+
+  & .items-wrap #categoriesList > li:hover {
+    background: var(--tear-nav-hover);
+  }
+
+  & .items-wrap #categoriesList > li.ui-tabs-active {
+    background: var(--tear-panel-bg);
+    box-shadow: inset 0 -2px 0 var(--tear-accent);
+  }
+
+  & .items-wrap #categoriesList > li.ui-state-disabled a {
+    cursor: default;
+  }
+
+  & .items-wrap ul.items-cont {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & .items-wrap ul.items-cont > li.clear,
+  & .items-wrap ul.items-cont > li > .clear,
+  & .items-wrap .view-item-info {
+    display: none;
+  }
+
+  & .items-wrap:not(.thumbnails) ul.items-cont > li {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    min-height: 31px;
+    line-height: 30px;
+  }
+
+  & .items-wrap:not(.thumbnails) ul.items-cont > li + li {
+    border-top: 1px solid var(--tear-divider);
+  }
+
+  & .items-wrap:not(.thumbnails) ul.items-cont > li:hover {
+    background: var(--tear-overlay);
+  }
+
+  & .items-wrap ul.items-cont > li.bg-green {
+    background: color-mix(in srgb, var(--tear-money) 12%, transparent);
+  }
+
+  & .items-wrap:not(.thumbnails) .thumbnail-wrap {
+    display: none;
+  }
+
+  /* A zero basis: at its content width the name pushed the actions onto a second line. */
+  & .items-wrap:not(.thumbnails) .title-wrap {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  & .items-wrap:not(.thumbnails) .title-wrap .title {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+    height: 30px;
+    float: none;
+    cursor: pointer;
+  }
+
+  & .items-wrap .image-wrap {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 30px;
+    border-right: 1px solid var(--tear-divider);
+  }
+
+  & .items-wrap .image-wrap img {
+    display: block;
+    width: 60px;
+    height: 30px;
+  }
+
+  & .items-wrap .name-wrap {
+    display: flex;
+    align-items: baseline;
+    gap: var(--tear-space-1);
+    min-width: 0;
+    padding-left: var(--tear-space-3);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  & .items-wrap .name-wrap .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--tear-text-strong);
+  }
+
+  & .items-wrap .name-wrap .qty {
+    color: var(--tear-muted);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Its bonuses and actions sit in the row; an action form Torn opens wraps to a line of its own. */
+  & .items-wrap:not(.thumbnails) .cont-wrap {
+    display: contents;
+  }
+
+  & .items-wrap .cont-wrap :is(.actions, .bonuses) {
+    display: flex;
+    flex: none;
+    float: none;
+  }
+
+  /* Each row carries an empty form with a spinner in it; Torn shows it inline when an action runs. */
+  & .items-wrap .cont-wrap > .action-wrap {
+    display: none;
+    flex-basis: 100%;
+    padding: var(--tear-space-3);
+    border-top: 1px solid var(--tear-divider);
+    background: var(--tear-surface-dim);
+    line-height: 1.45;
+    cursor: default;
+  }
+
+  & .items-wrap .cont-wrap .type {
+    width: 93px;
+    padding-left: var(--tear-space-3);
+  }
+
+  & .items-wrap :is(.actions-wrap, .bonuses-wrap) {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  & .items-wrap :is(.actions-wrap, .bonuses-wrap) > li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 31px;
+    float: none;
+    border-left: 1px solid var(--tear-divider);
+  }
+
+  & .items-wrap .bonuses-wrap > li {
+    gap: 2px;
+    padding-inline: var(--tear-space-1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  & .items-wrap :is(.actions-wrap, .bonuses-wrap) > li.clear {
+    display: none;
+  }
+
+  & .items-wrap .actions-wrap .icon-h {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+
+  & .items-wrap .actions-wrap .disabled > a {
+    display: none;
+  }
+
+  /* The label is for screen readers: the icon is the button. */
+  & .items-wrap .actions-wrap .opt-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* An item's info and its action forms open as a full-width row under it. */
+  & .items-wrap ul.items-cont > li:is(.show-item-info, .action-wrap, .thumbnail-actions) {
+    display: block;
+    flex-basis: 100%;
+    width: 100%;
+    padding: var(--tear-space-3);
+    background: var(--tear-surface-dim);
+    line-height: 1.45;
+    cursor: default;
+  }
+
+  & .items-wrap.thumbnails ul.items-cont {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  & .items-wrap.thumbnails :is(.title-wrap, .cont-wrap .bonuses, .cont-wrap .actions, .cont-wrap .type) {
+    display: none;
+  }
+
+  & .items-wrap.thumbnails ul.items-cont > li {
+    display: block;
+  }
+
+  & .items-wrap.thumbnails .thumbnail-wrap {
+    display: block;
+    padding: 9px 10px;
+  }
+
+  & .items-wrap.thumbnails .thumbnail {
+    position: relative;
+    width: 60px;
+    height: 30px;
+    cursor: pointer;
+  }
+
+  & .items-wrap.thumbnails .thumbnail :is(.item-plate, img) {
+    display: block;
+    width: 60px;
+    height: 30px;
+  }
+
+  & .items-wrap.thumbnails .thumbnail .item-amount {
+    position: absolute;
+    right: 0;
+    bottom: -4px;
+    color: var(--tear-text-strong);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 11px;
+  }
+
+  & .items-wrap.thumbnails .thumbnail .hover {
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    display: none;
+    width: 64px;
+    height: 34px;
+    background: var(--tear-popup-bg);
+  }
+
+  & .items-wrap.thumbnails .thumbnail-wrap:is(:hover, .wai-hover) .hover {
+    display: flex;
+  }
+
+  & .items-wrap.thumbnails .thumbnail .hover :is(.item-info, .item-options) {
+    width: 32px;
+    height: 34px;
+  }
+}
+}

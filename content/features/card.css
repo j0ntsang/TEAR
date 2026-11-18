@@ -1,0 +1,272 @@
+/* Character card: level, money, points and merits tiles. Applies while the Features tab has it on: torn-css.js sets .tear-f-card on <html>.
+   :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
+
+html.tear-enabled:where(.tear-f-card) {
+/* The "Information" heading only: a later header___ titles "Areas". */
+[class^="header___"]:has(+ [class^="userInformation___"]) {
+  display: none;
+}
+
+[class^="userInformation___"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--tear-space-2);
+}
+
+[class^="userInformation___"] > *,
+[class^="userInformation___"] > [class^="points___"] > * { flex-basis: 100%; }
+[class^="userInformation___"] > [class^="points___"] { display: contents; }
+
+[data-tear-stat="level"]                                    { order: 2; }
+[class^="userInformation___"] > [class^="menuInfoRow___"]   { order: 3; }
+[data-tear-stat="money"]                                    { order: 4; }
+[data-tear-stat="points"]                                   { order: 5; }
+[data-tear-stat="merits"]                                   { order: 6; }
+[class^="userInformation___"] > hr                          { order: 7; }
+
+[class^="userInformation___"] [data-tear-stat],
+[class^="userInformation___"] > [class^="menuInfoRow___"] {
+  margin: 0;
+  padding: 0;
+  height: auto;
+  line-height: 1.2;
+}
+
+[class^="userInformation___"] [data-tear-stat="level"] {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  aspect-ratio: 1;
+  border: 2px solid #000;
+  border-radius: 50%;
+  box-sizing: border-box;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--tear-gold), #fff 45%), var(--tear-gold) 50%, color-mix(in srgb, var(--tear-gold), #000 35%));
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, #fff 55%, transparent), 0 2px 4px rgba(0, 0, 0, 0.45);
+}
+
+[class^="userInformation___"] [data-tear-stat="level"] [class^="name___"] { display: none; }
+
+[class^="userInformation___"] [data-tear-stat="level"] [class^="value___"] {
+  margin: 0;
+  color: var(--tear-hud-ink);
+  font-family: var(--tear-hud-font);
+  font-size: 1.375rem;
+  font-weight: normal;
+  text-shadow: var(--tear-hud-stroke);
+}
+
+[class^="userInformation___"] > [class^="menuInfoRow___"] {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+[class^="userInformation___"] > [class^="menuInfoRow___"] [class^="menuName___"] { display: none; }
+
+[class^="userInformation___"] > [class^="menuInfoRow___"] [class^="menuValue___"] {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--tear-hud-ink);
+  font-size: var(--tear-fs-title);
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-shadow: var(--tear-hud-stroke);
+}
+
+[class^="userInformation___"] > [class^="menuInfoRow___"] a[class^="menuValue___"]:is(:hover, :focus-visible) {
+  color: var(--tear-gold);
+}
+
+[class^="userInformation___"] :is([data-tear-stat="money"], [data-tear-stat="points"], [data-tear-stat="merits"]) {
+  container-type: inline-size;
+  flex: 1 1 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--tear-space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+[class^="userInformation___"] [data-tear-stat] [class^="name___"] {
+  flex: none;
+  width: auto;
+  margin: 0;
+  font-size: 0;
+}
+
+[class^="userInformation___"] [data-tear-stat] [class^="name___"]::after {
+  color: var(--tear-hud-ink);
+  font-weight: bold;
+  font-size: var(--tear-fs-caption);
+  line-height: 1;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  text-shadow: var(--tear-hud-stroke);
+  opacity: 0.85;
+}
+
+[data-tear-stat="money"]  [class^="name___"]::after { content: "Wallet"; }
+[data-tear-stat="points"] [class^="name___"]::after { content: "Points"; }
+[data-tear-stat="merits"] [class^="name___"]::after { content: "Merits"; }
+
+[class^="userInformation___"] [data-tear-stat="money"] [class^="name___"] { display: none; }
+
+[class^="userInformation___"] :is([data-tear-stat="money"], [data-tear-stat="points"], [data-tear-stat="merits"]) [class^="value___"] {
+  --fit-max: var(--tear-fs-title);
+  --tear-char-em: 0.5; /* the HUD face's digits */
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: clip;
+  white-space: nowrap;
+  color: var(--tear-hud-ink);
+  font-family: var(--tear-hud-font);
+  font-weight: normal;
+  font-size: clamp(7px, calc(100cqi / (var(--tear-len, 4) * var(--tear-char-em))), var(--fit-max));
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  text-shadow: var(--tear-hud-stroke);
+}
+
+[class^="userInformation___"] [data-tear-stat="money"] [class^="value___"] {
+  --fit-max: 1.375rem;
+  color: var(--tear-hud-money);
+}
+
+[class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]) {
+  margin-top: calc(-1 * var(--tear-space-1));
+  cursor: pointer;
+}
+
+[class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]) [class^="name___"] {
+  order: 1;
+}
+
+[class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]) [class^="value___"] {
+  flex: 0 1 auto;
+  font-size: clamp(7px, calc(70cqi / (var(--tear-len, 4) * var(--tear-char-em))), var(--fit-max));
+}
+
+/* main.js forwards clicks on the card to this link. */
+[class^="userInformation___"] [data-tear-stat] [class^="use___"] {
+  display: none;
+}
+
+[class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]):is(:hover, :focus-visible) [class^="value___"] {
+  color: var(--tear-gold);
+}
+
+[class^="userInformation___"] :is([data-tear-stat="points"], [data-tear-stat="merits"]):focus-visible {
+  outline: 2px solid var(--tear-accent);
+  outline-offset: 2px;
+  border-radius: var(--tear-radius-sm);
+}
+
+[class^="userInformationMobile___"] [data-tear-stat] {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tear-space-1);
+  min-width: 0;
+  height: auto;
+  margin: 0;
+  padding: var(--tear-space-2) var(--tear-space-2);
+  box-sizing: border-box;
+  border: 1px solid var(--tear-line);
+  border-radius: var(--tear-radius);
+  background: var(--tear-overlay);
+  text-decoration: none;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat]::before {
+  color: var(--tear-label);
+  font-weight: bold;
+  font-size: var(--tear-fs-caption);
+  line-height: 1;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat="money"]::before  { content: "Wallet"; }
+[class^="userInformationMobile___"] [data-tear-stat="points"]::before { content: "Points"; }
+[class^="userInformationMobile___"] [data-tear-stat="merits"]::before { content: "Merits"; }
+
+[class^="userInformationMobile___"] [data-tear-stat] [class^="point-icon___"] {
+  display: none;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat] [class^="value___"] {
+  max-width: 100%;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--tear-text-strong);
+  font-weight: bold;
+  font-size: clamp(8px, calc(100cqi / (var(--tear-len, 4) * var(--tear-char-em))), 1.25rem);
+}
+
+[class^="userInformationMobile___"] [data-tear-stat="money"] {
+  border: 1px solid color-mix(in srgb, var(--tear-money) 35%, transparent);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--tear-money) 18%, transparent), color-mix(in srgb, var(--tear-money) 4%, transparent));
+}
+
+[class^="userInformationMobile___"] [data-tear-stat="money"]::before { color: var(--tear-money); }
+
+[class^="userInformationMobile___"] [data-tear-stat="money"] [class^="value___"] {
+  color: var(--tear-money);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--tear-money) 35%, transparent);
+}
+
+[class^="userInformation___"] hr {
+  height: 0;
+  margin: var(--tear-space-3) 0;
+  border: 0;
+  border-top: 1px solid color-mix(in srgb, #000 35%, transparent);
+  border-bottom: 1px solid var(--tear-groove-light);
+  background: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 15%, #000 85%, transparent);
+}
+
+[class^="userInformation___"] {
+  padding-inline: 0;
+}
+
+[class^="userInformation___"] [data-tear-stat="level"] [class^="value___"] {
+  display: block;
+  line-height: 1;
+  text-align: center;
+}
+
+[class^="userInformationMobile___"] [data-tear-stat="points"] {
+  border-right: 0;
+  border-radius: var(--tear-radius) 0 0 var(--tear-radius);
+}
+
+[class^="userInformationMobile___"] [data-tear-stat="merits"] {
+  margin-left: -2cqi; /* cancels the row gap */
+  border-radius: 0 var(--tear-radius) var(--tear-radius) 0;
+}
+
+[class^="sidebar___"][class*=" desktop___"] > [class^="userInformation___"] {
+  display: contents;
+}
+
+[class^="sidebar___"][class*=" desktop___"] [data-tear-stat="money"] {
+  margin: var(--tear-space-2) 0;
+}
+}
