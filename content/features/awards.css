@@ -1,7 +1,32 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │    ███  █   █  ███  ████  ████   ████                                                      │
+   │   █   █ █   █ █   █ █   █ █   █ █                                                          │
+   │   █████ █ █ █ █████ ████  █   █  ███                                                       │
+   │   █   █ ██ ██ █   █ █  █  █   █     █                                                      │
+   │   █   █ █   █ █   █ █   █ ████  ████                                                       │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Awards and Settings (awards)                                                    │
+   │  file    : content/features/awards.css                                                     │
+   │  gate    : html.tear-enabled:where(.tear-f-awards)                                         │
+   │  styles  : Merits grid with an info panel; page tabs                                       │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  PAGE TABS                                                                             │
+   │  §2  MERITS GRID                                                                           │
+   │  §3  MERIT TOTALS                                                                          │
+   │  §4  SETTINGS TABS                                                                         │
+   │  §5  ACTIVE TAB MARKER                                                                     │
+   │  §6  AWARDS ACCENTS                                                                        │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Awards and Settings pages: merits grid, page tabs. Applies while the Features tab has it on: torn-css.js sets .tear-f-awards on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
 html.tear-enabled:where(.tear-f-awards) {
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ PAGE TABS
+   The tab row on the awards page: equal-width cells, hover and selected tints.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="tabList___"] {
   display: flex;
   gap: 1px;
@@ -39,6 +64,11 @@ html.tear-enabled:where(.tear-f-awards) {
   background: color-mix(in srgb, var(--tear-surface), var(--tear-link) 12%);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ MERITS GRID
+   Merit list becomes an auto-fill grid; each header row spans every column and list wrappers use
+   display: contents.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="meritsTab___"] {
   --merit-min: 18.75rem;
   display: grid;
@@ -111,6 +141,10 @@ html.tear-enabled:where(.tear-f-awards) {
   text-transform: uppercase;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §3 ▸ MERIT TOTALS
+   The Available / Used tiles: the sprite icon left, a generated label over the figure.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="meritsTab___"] > [class^="meritsValue___"] {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr));
@@ -171,6 +205,10 @@ html.tear-enabled:where(.tear-f-awards) {
   line-height: 1;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §4 ▸ SETTINGS TABS
+   The preferences page's vertical jQuery-UI tab menu, styled to match the page tabs.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 #prefs-tab-menu .ui-tabs-nav {
   border-right: 1px solid var(--tear-surface-sunk);
   background: var(--tear-surface-sunk);
@@ -205,6 +243,10 @@ html.tear-enabled:where(.tear-f-awards) {
   color: var(--tear-link);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §5 ▸ ACTIVE TAB MARKER
+   A small dot on the selected tab, shared by the preferences menu and the awards tab row.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 #prefs-tab-menu .ui-tabs-nav > li.ui-tabs-active::after,
 [class^="tabList___"] > :is([class^="selectedTab___"], [class*=" selectedTab___"])::after {
   content: "";
@@ -218,6 +260,10 @@ html.tear-enabled:where(.tear-f-awards) {
   background: linear-gradient(0deg, color-mix(in srgb, var(--tear-link), #fff 45%), var(--tear-link));
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §6 ▸ AWARDS ACCENTS
+   Link-coloured highlight text and the hue-shifted merit icons.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="awardsPage___"] [class^="violet___"] {
   color: var(--tear-link);
 }

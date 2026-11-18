@@ -1,7 +1,31 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │    ███  ████  █████  ███   ████                                                            │
+   │   █   █ █   █ █     █   █ █                                                                │
+   │   █████ ████  ████  █████  ███                                                             │
+   │   █   █ █  █  █     █   █     █                                                            │
+   │   █   █ █   █ █████ █   █ ████                                                             │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Areas and Lists (areas)                                                         │
+   │  file    : content/features/areas.css                                                      │
+   │  gate    : html.tear-enabled:where(.tear-f-areas)                                          │
+   │  styles  : Navigation rows; headings collapse to top 10 or closed                          │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  ROW LAYOUT                                                                            │
+   │  §2  SIDEBAR CORNERS                                                                       │
+   │  §3  COLLAPSE AND MORE BADGE                                                               │
+   │  §4  HEADER REFINEMENTS                                                                    │
+   │  §5  ROW SPACING                                                                           │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Areas and Lists: sidebar navigation rows, collapse states. Applies while the Features tab has it on: torn-css.js sets .tear-f-areas on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
 html.tear-enabled:where(.tear-f-areas) {
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ ROW LAYOUT
+   Area rows in the desktop and mobile sidebars: flex links, icon slot sizing and icon fill.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]),
 :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"],
 :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a {
@@ -41,41 +65,10 @@ html.tear-enabled:where(.tear-f-areas) {
   fill: currentColor;
 }
 
-:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a:is(:hover, :focus-visible) {
-  background: var(--tear-nav-hover);
-}
-
-:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a:is(:hover, :focus-visible),
-:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a:is(:hover, :focus-visible) * {
-  color: var(--tear-link);
-}
-
-:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) {
-  position: relative;
-}
-
-:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) [class^="areaRow___"] {
-  background: var(--tear-nav-active);
-}
-
-:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) a,
-:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) [class^="linkName___"],
-:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) [class^="svgIconWrap___"] {
-  color: var(--tear-link);
-}
-
-:is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"])::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 10px;
-  width: 6px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  transform: translateY(-50%);
-  background: linear-gradient(0deg, color-mix(in srgb, var(--tear-link), #fff 45%), var(--tear-link));
-}
-
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ SIDEBAR CORNERS
+   Rounded outer edges on the stacked header/rows; inner joins stay square.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="sidebar___"][class*=" desktop___"] > :is([class^="userInformation___"], [class^="accountLinksWrap___"], [class^="header___"]) {
   border-radius: var(--tear-radius-sm);
 }
@@ -100,6 +93,11 @@ html.tear-enabled:where(.tear-f-areas) {
   border-radius: 0 0 var(--tear-radius-sm) var(--tear-radius-sm);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §3 ▸ COLLAPSE AND MORE BADGE
+   Collapsible headers with a rotating chevron, hidden rows when collapsed, and the +N tab under a
+   truncated list.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="header___"][data-tear-collapsible] {
   cursor: pointer;
   user-select: none;
@@ -151,6 +149,10 @@ html.tear-enabled:where(.tear-f-areas) {
   padding-bottom: calc(var(--tear-fs-caption) * 1.2 + 7px);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §4 ▸ HEADER REFINEMENTS
+   Header sizing and larger corner radii that override the earlier corner rules.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="sidebar___"] [class^="header___"]:has(+ :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"])) {
   height: auto;
 }
@@ -175,6 +177,10 @@ html.tear-enabled:where(.tear-f-areas) {
   border-radius: var(--tear-radius);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §5 ▸ ROW SPACING
+   Link padding, ellipsised names, icon margin and mobile row padding.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]) [class^="areaRow___"] > a {
   padding-right: 1.5rem;
 }

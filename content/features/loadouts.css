@@ -1,3 +1,49 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   █      ███   ███  ████   ███  █   █ █████  ████                                          │
+   │   █     █   █ █   █ █   █ █   █ █   █   █   █                                              │
+   │   █     █   █ █████ █   █ █   █ █   █   █    ███                                           │
+   │   █     █   █ █   █ █   █ █   █ █   █   █       █                                          │
+   │   █████  ███  █   █ ████   ███   ███    █   ████                                           │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Loadouts (loadouts)                                                             │
+   │  file    : content/features/loadouts.css                                                   │
+   │  gate    : html.tear-enabled:where(.tear-f-loadouts)                                       │
+   │  styles  : Items › loadouts, with the whole-character cover flow                           │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  HEADER BAR                                                                            │
+   │  §2  SAVED SETS                                                                            │
+   │    §2.1  Card shell                                                                        │
+   │    §2.2  Card header                                                                       │
+   │    §2.3  Card body                                                                         │
+   │  §3  MODEL CROP                                                                            │
+   │    §3.1  Cells and crop window                                                             │
+   │    §3.2  Full-size card                                                                    │
+   │    §3.3  Backdrop                                                                          │
+   │  §4  MODEL LAYERS                                                                          │
+   │  §5  ITEM REVIEW                                                                           │
+   │    §5.1  Panel and card                                                                    │
+   │    §5.2  Arrows                                                                            │
+   │    §5.3  Icons and stats                                                                   │
+   │  §6  EQUIPPED ITEMS                                                                        │
+   │  §7  EXPANDED VIEW                                                                         │
+   │    §7.1  Frame and model                                                                   │
+   │    §7.2  Panels                                                                            │
+   │    §7.3  Selected item card                                                                │
+   │    §7.4  Equipped tiles                                                                    │
+   │  §8  NARROW SCREENS                                                                        │
+   │  §9  GAME-UI PASS                                                                          │
+   │    §9.1  Well tokens and labels                                                            │
+   │    §9.2  Item wells                                                                        │
+   │    §9.3  Model bay                                                                         │
+   │    §9.4  Inspector                                                                         │
+   │    §9.5  LCD stats                                                                         │
+   │  §10 COVER FLOW                                                                            │
+   │    §10.1 Strip                                                                             │
+   │    §10.2 Overlay and controls                                                              │
+   │  §11 SAVE SLOTS                                                                            │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Loadouts: Items › loadouts, cover flow. Applies while the Features tab has it on: torn-css.js sets .tear-f-loadouts on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
@@ -6,6 +52,11 @@
 
 @layer tear-pages {
 html.tear-enabled:where(.tear-f-loadouts) {
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §1 ▸ HEADER BAR
+     Items > loadouts as one framed card: the title bar, main.js's view switcher and Torn's icon
+     buttons. The current slot row sits below.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Items › loadouts: the model crop, the selected item, and the equipped grid, in one row. */
   /* Not overflow: hidden, which would clip the full-size model: the header rounds its own corners. */
   & #loadoutsRoot [class^="main___"] {
@@ -94,6 +145,11 @@ html.tear-enabled:where(.tear-f-loadouts) {
     min-height: 8.25rem;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §2 ▸ SAVED SETS
+     The Loadouts list: each saved set as a card in an auto-fill grid.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
+  /* ── §2.1 Card shell ───────────────────────────────────────────────────────────────────────── */
   /* Loadouts list (Torn's Loadouts button): the saved sets as cards, as many to a row as fit. */
   & #loadoutsRoot [class^="main___"]:has([class^="slots___"]) [data-tear-loadout-view] {
     display: none;
@@ -127,6 +183,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     box-shadow: 0 0 0 1px var(--tear-accent);
   }
 
+  /* ── §2.2 Card header ──────────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot li[class^="slot___"] > header[class^="header___"] {
     display: flex;
     align-items: center;
@@ -199,6 +256,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     cursor: default;
   }
 
+  /* ── §2.3 Card body ────────────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot li[class^="slot___"] > section[class^="body___"] {
     flex: 1 1 auto;
     padding: var(--tear-space-3);
@@ -246,6 +304,11 @@ html.tear-enabled:where(.tear-f-loadouts) {
     cursor: default;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §3 ▸ MODEL CROP
+     The cells of the current slot row and the character window in the first one.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
+  /* ── §3.1 Cells and crop window ────────────────────────────────────────────────────────────── */
   & #loadoutsRoot [class^="cell___"] {
     position: relative;
     display: flex;
@@ -281,6 +344,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     cursor: pointer;
   }
 
+  /* ── §3.2 Full-size card ───────────────────────────────────────────────────────────────────── */
   /* Clicking the crop opens the whole character: a 244 × 388 card centred over it (Torn's size). */
   & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] > [class*=" isFullSize___"] {
     inset: -6px auto auto 50%;
@@ -310,6 +374,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     top: -25px;
   }
 
+  /* ── §3.3 Backdrop ─────────────────────────────────────────────────────────────────────────── */
   /* The model stands on Torn's backdrop (torn-css.js skips background images); the surface shows
      until it loads. */
   & #loadoutsRoot [class^="modelWrap___"] {
@@ -329,6 +394,10 @@ html.tear-enabled:where(.tear-f-loadouts) {
     );
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §4 ▸ MODEL LAYERS
+     The stacked model, armour and mask layers inside the crop.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & #loadoutsRoot [class^="modelLayers___"] {
     position: absolute;
     right: 0;
@@ -374,6 +443,12 @@ html.tear-enabled:where(.tear-f-loadouts) {
     height: auto;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §5 ▸ ITEM REVIEW
+     The selected item's card: arrows, bonus and upgrade icons, abilities, defence and ammo,
+     positioned over the image.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
+  /* ── §5.1 Panel and card ───────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot [class^="rightPanel___"] {
     display: flex;
     flex: 1 1 0;
@@ -405,6 +480,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     font-weight: 700;
   }
 
+  /* ── §5.2 Arrows ───────────────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot :is([class^="arrowLeft___"], [class^="arrowRight___"]) {
     position: absolute;
     top: calc(50% - 15px);
@@ -428,6 +504,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     cursor: pointer;
   }
 
+  /* ── §5.3 Icons and stats ──────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot :is([class*=" bonusWeapon0___"], [class*=" bonusWeapon1___"], [class^="upgrade0___"], [class^="upgrade1___"]) {
     position: absolute;
     top: 3px;
@@ -499,6 +576,10 @@ html.tear-enabled:where(.tear-f-loadouts) {
     cursor: pointer;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §6 ▸ EQUIPPED ITEMS
+     The grid of equipped item tiles, fitting as many to a row as the width allows.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & #loadoutsRoot [class*=" itemsContainer___"] {
     flex: 1 1 0;
     min-width: 0;
@@ -562,6 +643,12 @@ html.tear-enabled:where(.tear-f-loadouts) {
     height: 30px;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §7 ▸ EXPANDED VIEW
+     The wide layout main.js turns on: a roomier row, the whole character, the selected item as a
+     centred card.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
+  /* ── §7.1 Frame and model ──────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot[data-tear-loadout="expanded"] [class^="currentSlot___"] {
     gap: var(--tear-space-4);
     padding: var(--tear-space-4);
@@ -597,6 +684,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     top: -19px;
   }
 
+  /* ── §7.2 Panels ───────────────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot[data-tear-loadout="expanded"] [class^="rightPanel___"] {
     flex-direction: column;
     gap: var(--tear-space-3);
@@ -615,6 +703,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     padding: 0;
   }
 
+  /* ── §7.3 Selected item card ───────────────────────────────────────────────────────────────── */
   /* The selected item as a card: its controls gathered round the centred image, not the corners. */
   & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] {
     width: 100%;
@@ -672,6 +761,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     font-size: var(--tear-fs-label);
   }
 
+  /* ── §7.4 Equipped tiles ───────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot[data-tear-loadout="expanded"] [class^="equippedItems___"] {
     grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
   }
@@ -680,6 +770,11 @@ html.tear-enabled:where(.tear-f-loadouts) {
     height: 3.25rem;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §8 ▸ NARROW SCREENS
+     Mobile layout under 784px: the row stacks, the crop grows to a portrait window and the tiles
+     shrink.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   @media (max-width: 784px) {
     & #loadoutsRoot [class^="currentSlot___"] {
       height: auto;
@@ -765,6 +860,12 @@ html.tear-enabled:where(.tear-f-loadouts) {
     }
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §9 ▸ GAME-UI PASS
+     Recessed wells, lit selection and LCD stat values. Same selectors as above, so these win by
+     position.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
+  /* ── §9.1 Well tokens and labels ───────────────────────────────────────────────────────────── */
   /* Loadouts, game-UI pass: slots are recessed wells (the sidebar readouts' LCD vocabulary), the
      selection glows, stats read as lit LCD values. Same selectors as above, so these win. */
   & #loadoutsRoot {
@@ -779,6 +880,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     text-transform: uppercase;
   }
 
+  /* ── §9.2 Item wells ───────────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot :is([class^="item___"], li[class^="slotItem___"]) {
     border-color: transparent;
     background-color: var(--tear-lcd-bg);
@@ -796,6 +898,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     box-shadow: var(--slot-well), var(--slot-glow);
   }
 
+  /* ── §9.3 Model bay ────────────────────────────────────────────────────────────────────────── */
   /* The character in a framed bay, darkened towards its edges. */
   & #loadoutsRoot [class*=" modelContainer___"] > [class^="model___"] > [class^="model___"] {
     border-color: var(--tear-surface-sunk);
@@ -807,6 +910,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     box-shadow: inset 0 0 40px rgb(0 0 0 / 0.22), 0 1px 0 var(--tear-groove-light);
   }
 
+  /* ── §9.4 Inspector ────────────────────────────────────────────────────────────────────────── */
   /* The selected item under a spotlight in a recessed inspector. */
   & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"] {
     border-color: transparent;
@@ -822,6 +926,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     letter-spacing: 0.18em;
   }
 
+  /* ── §9.5 LCD stats ────────────────────────────────────────────────────────────────────────── */
   & #loadoutsRoot :is([class^="itemAbility___"], [class^="defencePanel___"] [class^="armor___"]) {
     font-weight: 700;
     font-variant-numeric: tabular-nums slashed-zero;
@@ -838,6 +943,12 @@ html.tear-enabled:where(.tear-f-loadouts) {
     font-variant-numeric: tabular-nums;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §10 ▸ COVER FLOW
+     main.js's expanded view: the selected item large at the centre, neighbours turned away in
+     perspective, with a floor reflection. Distance sets each item's place.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
+  /* ── §10.1 Strip ───────────────────────────────────────────────────────────────────────────── */
   /* Cover flow (main.js, expanded view): the selected item flat and large at the centre, its
      neighbours turned away in perspective, shrinking and dimming, with a floor reflection. Each item
      sits by its distance from the selection, so selecting another slides the whole strip. */
@@ -899,6 +1010,7 @@ html.tear-enabled:where(.tear-f-loadouts) {
     filter: brightness(0.95);
   }
 
+  /* ── §10.2 Overlay and controls ────────────────────────────────────────────────────────────── */
   /* Torn's own image hides behind the flow's centre, which forwards its clicks. */
   & #loadoutsRoot[data-tear-loadout="expanded"] [class^="itemReview___"]:has([data-tear-coverflow] > img) > img {
     visibility: hidden;
@@ -923,6 +1035,10 @@ html.tear-enabled:where(.tear-f-loadouts) {
     background-color: var(--tear-overlay);
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §11 ▸ SAVE SLOTS
+     Saved sets as save slots, the current one lit.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Saved sets as save slots: the current one lit. */
   & #loadoutsRoot li[class^="slot___"] {
     border-color: var(--tear-line);

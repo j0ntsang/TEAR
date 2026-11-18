@@ -1,29 +1,64 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   █████  ███  ████     ████   ███  ████                                                    │
+   │     █   █   █ █   █    █   █ █   █ █   █                                                   │
+   │     █   █   █ ████     ████  █████ ████                                                    │
+   │     █   █   █ █        █   █ █   █ █  █                                                    │
+   │     █    ███  █        ████  █   █ █   █                                                   │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Top bar (header)                                                                │
+   │  file    : content/features/header.css                                                     │
+   │  gate    : html.tear-enabled:where(.tear-f-header)                                         │
+   │  styles  : Logo, menu or fly-out drawer, and tools on the page grid's lines; search,       │
+   │            clock, history and account popouts                                              │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  BAR AND ICONS                                                                         │
+   │  §2  SEARCH FIELDS                                                                         │
+   │  §3  MOBILE SEARCH                                                                         │
+   │  §4  POPOUT MENU ROWS                                                                      │
+   │  §5  BAR LAYOUT                                                                            │
+   │  §6  BUTTONS                                                                               │
+   │  §7  GRID TRACKS                                                                           │
+   │  §8  MENU                                                                                  │
+   │  §9  TOOLS AND POPOUT ROOM                                                                 │
+   │  §10 SEARCH BUTTON AND AVATAR                                                              │
+   │  §11 POPOUTS                                                                               │
+   │  §12 CLOCK AND RECENT HISTORY                                                              │
+   │  §13 BUTTON TABS                                                                           │
+   │  §14 DROPDOWN LIST                                                                         │
+   │  §15 POPOUT MOTION                                                                         │
+   │  §16 FLY-OUT DRAWER                                                                        │
+   │  §17 DRAWER ROWS                                                                           │
+   │  §18 DRAWER ACCOUNT LINKS                                                                  │
+   │    §18.1 Unread counts                                                                     │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Top bar: menus, search, clock, recent history and their popouts. Applies while the Features tab has it on: torn-css.js sets .tear-f-header on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
 html.tear-enabled:where(.tear-f-header) {
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ BAR AND ICONS
+   The top bar's backdrop and the muted fill every bar icon takes.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 #header-wrapper-top {
   background: var(--tear-topbar);
   border-bottom: 1px solid var(--tear-line);
   box-shadow: 0 1px 3px var(--tear-shadow);
 }
 
-body:not(.dark-mode) #header-wrapper-top .menu-item-href:not(.info-menu *) {
-  color: var(--tear-link);
-  text-shadow: none;
-}
-
-body:not(.dark-mode) #header-wrapper-top .menu-item-href:not(.info-menu *):hover {
-  text-decoration: underline;
-}
-
-body:not(.dark-mode) #header-wrapper-top .top_header_button svg,
-body:not(.dark-mode) #header-wrapper-top .top_header_button svg *,
-body:not(.dark-mode) #fly-out-menu-button svg,
-body:not(.dark-mode) #fly-out-menu-button svg * {
+body.body #header-wrapper-top .top_header_button svg,
+body.body #header-wrapper-top .top_header_button svg *,
+body.body #fly-out-menu-button svg,
+body.body #fly-out-menu-button svg * {
   fill: var(--tear-muted);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ SEARCH FIELDS
+   The bar's field and every page's search input share one look; Torn's chat keeps its own. The form
+   laid out in the bar.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Search fields: the top bar's and the page's share one look. Torn's chat keeps its own. */
 :is(&:is(:not([data-tear-mobile]), [data-tear-search-open]) #searchForm, & input:is([type="search"], [placeholder*="search" i]):not(#searchForm input, #chatRoot input)) {
   border: 1px solid var(--search-line);
@@ -177,16 +212,21 @@ body {
   }
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §3 ▸ MOBILE SEARCH
+   The mobile search opens from its button as a popout under the bar; the type picker hides until
+   then.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 &[data-tear-mobile]:not([data-tear-search-open]) #search-type-wrapper {
   display: none;
 }
 
 &[data-tear-mobile][data-tear-search-open] .find-wrapper > .find {
   position: absolute;
-  top: 100%;
+  top: calc(100% + var(--tab-drop, 0px));
   right: 0;
   z-index: var(--tear-z-popout);
-  width: min(22rem, calc(100vw - 2 * var(--page-gutter, 0.75rem)));
+  width: min(22rem, var(--tool-room));
   box-sizing: border-box;
   padding: var(--tear-space-2);
   border: 1px solid var(--tear-popout-border);
@@ -225,55 +265,29 @@ body {
   height: 1.25rem;
 }
 
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) li:is(:hover, :focus-within) {
-  background: var(--tear-nav-hover);
-}
-
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .setting-name {
-  color: var(--tear-text);
-}
-
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §4 ▸ POPOUT MENU ROWS
+   Rows of the account and info menus: padding, icon cells, checkbox markers and the server footer.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 :is(.settings-menu, .info-menu > .menu-items) li > :is(a, label) {
   padding-inline: var(--tear-space-3);
 }
 
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) :is(.setting-name, .link-text) {
-  color: var(--tear-text);
-}
-
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) svg,
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) svg * {
+body.body :is(.settings-menu, .info-menu > .menu-items) svg,
+body.body :is(.settings-menu, .info-menu > .menu-items) svg * {
   fill: currentColor;
   filter: none;
 }
 
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) li > :is(a, label) {
-  color: var(--tear-muted);
-  transition: background-color 0.15s, color 0.15s;
-}
-
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) li > :is(a, label):is(:hover, :focus-visible, :focus-within) {
-  background: var(--tear-nav-hover);
-  color: var(--tear-link);
-}
-
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) li > :is(a, label):is(:hover, :focus-visible, :focus-within) :is(.setting-name, .link-text) {
-  color: var(--tear-link);
-}
-
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) label:has(input:checked) {
-  color: var(--tear-link);
-}
-
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) label:has(input:checked) .setting-name {
+body.body :is(.settings-menu, .info-menu > .menu-items) label:has(input:checked) .setting-name {
   font-weight: bold;
 }
 
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) input {
+body.body :is(.settings-menu, .info-menu > .menu-items) input {
   accent-color: var(--tear-link);
 }
 
-body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link {
+body.body :is(.settings-menu, .info-menu > .menu-items) .server-link {
   color: var(--tear-link);
 }
 
@@ -320,7 +334,7 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
 
 :is(.settings-menu, .info-menu > .menu-items) {
   left: auto;
-  width: 13.75rem;
+  width: min(13.75rem, var(--tool-room, 100vw));
 }
 
 :is(.settings-menu, .info-menu > .menu-items) :is(.setting-name, .link-text) {
@@ -334,11 +348,13 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   border-top: 1px solid var(--tear-divider);
 }
 
-/* ── Layout: no floats ──────────────────────────────────────────────────────────────────────
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §5 ▸ BAR LAYOUT
    Areas: logo | menu | tools with Torn's desktop markup; logo | drawer | tools with its mobile
    markup (no menu there: it lives in the fly-out drawer, whose button sits beside the container).
    The lines are the page grid's: with Page grid on, #header-wrapper-top is its subgrid; off, the
-   same lines come from the same tokens' fallbacks, so the top bar lays out on its own. */
+   same lines come from the same tokens' fallbacks, so the top bar lays out on its own.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 #header-root {
   position: relative;
   z-index: var(--tear-z-header);
@@ -350,8 +366,32 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   list-style: none;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §6 ▸ BUTTONS
+   Torn's reset undone, the shared hover tint and the drawer button's focus.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+/* Torn's CSS reset its buttons; without it they're the browser's grey, outset boxes. */
 .header button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
   cursor: pointer;
+}
+
+.header .top_header_button {
+  border-radius: var(--tear-radius-sm);
+  transition: background-color 0.15s;
+}
+
+/* Torn focuses the drawer button itself (on load, on close): no ring for focus the user didn't move. */
+#fly-out-menu-button:focus {
+  outline: none;
+}
+
+/* Not on an open button: it's a tab drawn from the popout's own colours. */
+.header-navigation .toolbar > :not(.avatar.active, .tc-clock.active, .recently-history.open, .info-menu.active, .find-wrapper:has(> :is([class^="open___"], [class*=" open___"]))) > .top_header_button:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, currentColor 8%, transparent);
 }
 
 #header-wrapper-top {
@@ -367,6 +407,10 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   grid-template-columns: subgrid;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §7 ▸ GRID TRACKS
+   The container's tracks, and the mobile placement of logo, drawer button and tools.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* The container spans the page's sidebar, gap and content tracks with the same widths, so the logo
    lines up with the sidebar and the tools end where the content does. */
 #header-wrapper-top > .container {
@@ -445,6 +489,10 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   grid-row: 1;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §8 ▸ MENU
+   The desktop menu's link list and its dropdown.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Menu: a list of links; Torn opens it as a dropdown (.header-menu.active). */
 .header-menu .menu-items {
   display: none;
@@ -477,6 +525,10 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   display: none;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §9 ▸ TOOLS AND POPOUT ROOM
+   One square cell per tool; each popout's available width, with a tighter fit under 360px.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Tools: search, clock, recent history, account, one square cell each. */
 .header-navigation .toolbar {
   display: grid;
@@ -489,6 +541,27 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   position: relative;
   display: grid;
   place-items: center;
+}
+
+/* Popouts hang from their button's right edge, so each has the page's width less the gutters and
+   the tool cells to its right: on a phone they stay on screen with their tab still joined. */
+.header-navigation .toolbar {
+  --tool-cell: calc(2.125rem + var(--tear-space-1));
+  /* The buttons sit centred in the bar; popouts hang from the bar's bottom edge, not the button's. */
+  --tab-drop: calc((var(--tear-bar-h) - 2.125rem) / 2);
+}
+
+.header-navigation .toolbar > li {
+  --tool-room: calc(100vw - 2 * var(--page-gutter, 0.75rem) - var(--tools-after, 0) * var(--tool-cell));
+}
+
+.header-navigation .toolbar > li:nth-last-child(2) { --tools-after: 1; }
+.header-navigation .toolbar > li:nth-last-child(3) { --tools-after: 2; }
+.header-navigation .toolbar > li:nth-last-child(4) { --tools-after: 3; }
+.header-navigation .toolbar > li:nth-last-child(5) { --tools-after: 4; }
+
+:is(.header .avatar .settings-menu, .header .info-menu > .menu-items) {
+  max-width: var(--tool-room);
 }
 
 .header .top_header_button {
@@ -504,6 +577,18 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   height: 1.25rem;
 }
 
+/* xs (under 360, e.g. 320): logo, drawer and five tools need 336px with the gaps. Tighter cells fit them in 300. */
+@media (max-width: 359px) {
+  .header-navigation .toolbar {
+    --tool-cell: 1.875rem;
+    gap: 0;
+  }
+
+  .header .top_header_button {
+    min-width: 1.875rem;
+  }
+}
+
 .header .find .clearfix,
 #searchForm {
   display: flex;
@@ -511,6 +596,10 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   gap: var(--tear-space-1);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §10 ▸ SEARCH BUTTON AND AVATAR
+   The search field's inner layout in the bar, and the avatar photo cropped into its button.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 .header .find :is(.input-wrapper, .torn-react-autocomplete, .autocomplete-wrapper) {
   position: relative;
 }
@@ -564,6 +653,11 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   display: none;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §11 ▸ POPOUTS
+   Closed until Torn marks them open; shared surface, position and stacking of every popout and
+   dropdown.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Popouts: closed until Torn marks them open; positioned while closed so the close transition
    doesn't shift the bar. */
 .react-dropdown-default {
@@ -598,10 +692,10 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
 
 :is(.header .avatar .settings-menu, .header .info-menu > .menu-items) {
   position: absolute;
-  top: 100%;
+  top: calc(100% + var(--tab-drop, 0px));
   right: 0;
   z-index: var(--tear-z-popout);
-  min-width: 13.75rem;
+  min-width: min(13.75rem, var(--tool-room, 100vw));
 }
 
 :is(.header .avatar.active .settings-menu, .header .info-menu.active > .menu-items) {
@@ -625,14 +719,14 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
 .header .tc-clock.active .tc-clock-tooltip {
   display: block;
   position: absolute;
-  top: 100%;
+  top: calc(100% + var(--tab-drop, 0px));
   right: 0;
   z-index: var(--tear-z-popout);
 }
 
 .header .recent-history-content {
   position: absolute;
-  top: 100%;
+  top: calc(100% + var(--tab-drop, 0px));
   right: 0;
   z-index: var(--tear-z-popout);
 }
@@ -642,6 +736,7 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
 }
 
 :is(.header .avatar .settings-menu, .header .info-menu > .menu-items, .react-dropdown-default .dropdownList, .header .tc-clock-tooltip, .header .recentHistory) {
+  box-sizing: border-box;
   border: 1px solid var(--tear-popout-border);
   border-radius: var(--tear-popout-radius);
   background: var(--tear-popup-bg);
@@ -660,9 +755,15 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   white-space: nowrap;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §12 ▸ CLOCK AND RECENT HISTORY
+   The clock's stacking under the other popouts, and the recent history list with its short time
+   marks.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* The clock sits under everything else in the top bar (other popouts are 100, open buttons 102):
-   its popout, then its tab. li: outranks the shared tab rule. */
-.header .tc-clock-tooltip {
+   its popout, then its tab. .active matches the rule that opens it, which set 100 and put the popout
+   over its own tab, its top border running across the join. li: outranks the shared tab rule. */
+.header .tc-clock.active .tc-clock-tooltip {
   z-index: 97;
 }
 
@@ -674,7 +775,7 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
 .header .recentHistory {
   display: flex;
   flex-direction: column;
-  width: min(420px, calc(100vw - 16px));
+  width: min(420px, var(--tool-room));
   max-height: min(70vh, 560px);
   overflow: hidden;
 }
@@ -738,6 +839,7 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   gap: var(--tear-space-2);
   padding: var(--tear-space-2) var(--tear-space-3);
   color: var(--tear-link);
+  text-decoration: none;
 }
 
 .header .recentHistory .recent-history-footer svg {
@@ -745,11 +847,16 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   height: 1rem;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §13 ▸ BUTTON TABS
+   An open bar button becomes a tab that runs into its popout, drawn in CSS: tab body, curved foot,
+   and the fade.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* An open top bar button becomes a tab that runs into its popout, drawn in CSS from the popout's
    own colours: the popout sits flush under the button, right edges aligned, its top-right corner
    square. ::before is the tab body, ::after the curved foot that flares into the popout's border. */
 :is(.header .avatar .settings-menu, .header .info-menu > .menu-items, .header .tc-clock-tooltip, .header .recent-history-content) {
-  top: 100%;
+  top: calc(100% + var(--tab-drop, 0px));
 }
 
 :is(.header .avatar .settings-menu, .header .info-menu > .menu-items, .header .tc-clock-tooltip, .header .recentHistory) {
@@ -774,7 +881,7 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
    border, and the shadow bleeding above it. Side borders fade the same way; the right one runs on
    into the popout's right border. */
 .header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open, .info-menu.active, .find-wrapper:has(> :is([class^="open___"], [class*=" open___"]))) > button::before {
-  inset: 0 0 -1px;
+  inset: 0 0 calc(-1px - var(--tab-drop, 0px)); /* down to the bar's edge, where the popout starts */
   border: solid transparent;
   border-width: 0 1px;
   border-image: linear-gradient(transparent, var(--tear-popout-border) 65%) 1;
@@ -785,7 +892,7 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
    arc starts on the button's left border and ends on the popout's top border. */
 .header-navigation .toolbar > :is(.avatar.active, .tc-clock.active, .recently-history.open, .info-menu.active, .find-wrapper:has(> :is([class^="open___"], [class*=" open___"]))) > button::after {
   right: calc(100% - 1px);
-  bottom: -1px;
+  bottom: calc(-1px - var(--tab-drop, 0px));
   width: var(--tab-r);
   height: var(--tab-r);
   background: radial-gradient(
@@ -801,13 +908,7 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   align-items: center;
   gap: var(--tear-space-2);
   padding: var(--tear-space-2) var(--tear-space-3);
-  color: var(--tear-text);
   cursor: pointer;
-}
-
-:is(.settings-menu, .info-menu > .menu-items) li > :is(a, label):is(:hover, :focus-visible) {
-  background: var(--tear-nav-hover);
-  text-decoration: none;
 }
 
 :is(.settings-menu, .info-menu > .menu-items) .icon-wrapper svg,
@@ -833,6 +934,11 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
 }
 
 .react-dropdown-default .dropdownList {
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §14 ▸ DROPDOWN LIST
+   The search type dropdown's list and its shortcut hints, plus small popout leftovers.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
   min-width: 11rem;
   top: calc(100% + var(--tear-space-1));
   z-index: var(--tear-z-popout);
@@ -848,8 +954,16 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   white-space: nowrap;
 }
 
-.react-dropdown-default .dropdownList li:is(:hover, [aria-selected="true"]) {
-  background: var(--tear-nav-hover);
+/* Search type shortcuts (⌃⌥S): Torn draws the ⌃ with a white stroke, lost on a light popout. */
+.react-dropdown-default .dropdownList [class^="searchTypeShortcut___"] {
+  display: flex;
+  align-items: center;
+  color: var(--tear-muted);
+  font-size: var(--tear-fs-label);
+}
+
+.react-dropdown-default .dropdownList [class^="searchTypeShortcut___"] svg path {
+  stroke: currentColor;
 }
 
 .header-menu.active .menu-items .menu-item-href {
@@ -861,6 +975,10 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
   stroke: var(--tear-line);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §15 ▸ POPOUT MOTION
+   Closed popouts fade and scale out, open ones in; origins follow the side they hang from.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Torn closes these with display: none; allow-discrete lets them animate out too. */
 :is(.header .avatar .settings-menu, .header .info-menu > .menu-items, .react-dropdown-default .dropdownList, .header-menu .menu-items) {
   opacity: 0;
@@ -890,5 +1008,381 @@ body:not(.dark-mode) :is(.settings-menu, .info-menu > .menu-items) .server-link 
 
 :is(.react-dropdown-default .dropdownList, .header-menu .menu-items) {
   transform-origin: top left;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §16 ▸ FLY-OUT DRAWER
+   Torn's mobile menu, opened by #fly-out-menu-button: sizes and tokens, then the panel itself.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+
+&[data-tear-mobile] .header {
+  --logo-h: 2.25rem;
+  --logo-w: calc(var(--logo-h) * 80 / 32);
+}
+
+&[data-tear-mobile] #header-wrapper-top {
+  position: relative;
+}
+
+/* Torn's sidebar notification count sits in a grid row under the icon, pushing it up; as a dot
+   on the icon's corner the icon centres. The number stays in the DOM for screen readers. */
+#fly-out-menu-button [class^="notificationsAmount___"] {
+  position: absolute;
+  top: calc(50% - 0.8125rem);
+  left: calc(50% + 0.375rem);
+  width: 0.5625rem;
+  height: 0.5625rem;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--tear-badge-bg);
+  box-shadow: 0 0 0 2px var(--tear-popup-bg);
+  color: transparent;
+  font-size: 0;
+  pointer-events: none;
+}
+
+#fly-out-menu-button [class^="notificationsAmount___"]:empty {
+  display: none;
+}
+
+/* Placed in the top bar's drawer cell by the Top bar feature. */
+&[data-tear-mobile] #fly-out-menu-button {
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: var(--tear-bar-h);
+}
+
+/* Torn sets top and max-height inline (header plus ticker); only !important beats them.
+   Fixed, not in flow: in the sidebar it pushes the mobile sidebar down. */
+[class^="flyOutPanel___"] {
+  position: fixed;
+  top: var(--tear-bar-h) !important;
+  left: 0;
+  max-height: calc(100dvh - var(--tear-bar-h)) !important;
+  outline: none; /* Torn focuses the drawer itself on open */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--tear-popup-bg);
+  box-shadow: 4px 8px 20px var(--tear-shadow);
+}
+
+/* Torn hides it with translate(-100%) of its own width, so widening is safe. */
+
+[class^="flyOutPanel___"] {
+  width: max(50vw, 166px);
+  max-width: none;
+}
+
+@media (max-width: 600px) {
+  [class^="flyOutPanel___"] {
+    width: 80vw;
+  }
+}
+
+[class^="flyOutPanel___"] > * {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+[class^="flyOutPanel___"] {
+  box-sizing: border-box;
+  margin-top: 0;
+  border: 0 solid var(--tear-popout-border);
+  border-width: 1px 1px 0 0;
+}
+
+/* Torn closes it with a transform of its own: the motion uses translate/scale beside it. */
+[class^="flyOutPanel___"]:not(:is([class^="visible___"], [class*=" visible___"])) {
+  translate: -12px 0;
+  scale: 0.98;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--tear-motion-out) var(--tear-ease-in), translate var(--tear-motion-out) var(--tear-ease-in),
+    scale var(--tear-motion-out) var(--tear-ease-in), visibility 0s var(--tear-motion-out);
+}
+
+[class^="flyOutPanel___"]:is([class^="visible___"], [class*=" visible___"]) {
+  transform: none;
+  translate: 0 0;
+  scale: 1;
+  opacity: 1;
+  visibility: visible;
+  transform-origin: top left;
+  transition: opacity var(--tear-motion-in) var(--tear-ease-out), translate var(--tear-motion-in) var(--tear-ease-out),
+    scale var(--tear-motion-in) var(--tear-ease-out);
+}
+
+&[data-tear-drawer-open] body #fly-out-menu-button {
+  --tab-bg: var(--tear-popup-bg);
+  --tab-line: var(--tear-popout-border);
+  --tab-r: 10px;
+  --tab-h: 2.125rem; /* must match .top_header_button's min-height */
+}
+
+/* #header-root's stacking would cap the tab under the drawer and lift the ticker over it,
+   so while the drawer is open only the bar rises. */
+&[data-tear-drawer-open] body.body > #header-root {
+  z-index: auto;
+}
+
+&[data-tear-drawer-open] body #header-wrapper-top {
+  z-index: calc(var(--tear-z-drawer) + 1);
+}
+
+&[data-tear-drawer-open] body #fly-out-menu-button::before,
+&[data-tear-drawer-open] body #fly-out-menu-button::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* The toolbar tabs' shape, flipped. The -1px bottom covers the drawer's top border. */
+&[data-tear-drawer-open] body #fly-out-menu-button::before {
+  inset: calc(100% - var(--tab-h)) 0 -1px;
+  border: solid transparent;
+  border-width: 0 1px;
+  border-image: linear-gradient(transparent, var(--tab-line) 65%) 1;
+  background: linear-gradient(transparent, var(--tab-bg) 65%) padding-box;
+}
+
+&[data-tear-drawer-open] body #fly-out-menu-button::after {
+  left: calc(100% - 1px);
+  bottom: -1px;
+  width: var(--tab-r);
+  height: var(--tab-r);
+  background: radial-gradient(
+    circle at 100% 0,
+    transparent calc(var(--tab-r) - 1.5px),
+    var(--tab-line) calc(var(--tab-r) - 1px) var(--tab-r),
+    var(--tab-bg) calc(var(--tab-r) + 0.5px)
+  );
+}
+
+body.body [class^="flyOutPanel___"],
+body.body :is(.settings-menu, .info-menu > .menu-items) {
+  background: var(--tear-surface);
+  color: var(--tear-text);
+}
+
+body.body [class^="flyOutPanel___"] :is([class^="area-mobile___"], [class*=" area-mobile___"]) {
+  border-color: var(--tear-line);
+  background: transparent;
+}
+
+body.body [class^="flyOutPanel___"] {
+  box-shadow: 1px 0 6px var(--tear-shadow);
+}
+
+body.body [class^="flyOutPanel___"] :is([class^="area-mobile___"], [class*=" area-mobile___"]) {
+  border-bottom-color: color-mix(in srgb, var(--tear-text) 8%, transparent);
+}
+
+body.body [class^="flyOutPanel___"] *,
+body.body :is(.settings-menu, .info-menu > .menu-items) * {
+  text-shadow: none;
+}
+
+&[data-tear-drawer-open] body #header-wrapper-top {
+  box-shadow: none;
+}
+
+[class^="flyOutPanel___"] [class^="areas___"] {
+  border-top: 0;
+}
+
+[class^="flyOutPanel___"] {
+  display: flex;
+  flex-direction: column;
+}
+
+[class^="flyOutPanel___"] > [class^="areas___"] {
+  order: 1;
+  flex: none;
+  position: relative;
+  z-index: 0; /* contains the rows' own z-index (e.g. the attention row) under the mail row */
+}
+
+body.body [class^="flyOutPanel___"] [class^="listAmount___"] {
+  color: var(--tear-muted);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a::after {
+  top: auto;
+  bottom: calc(100% + 7px);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a::before {
+  top: auto;
+  bottom: 100%;
+  border-top: 7px solid var(--tear-popup-bg);
+  border-bottom: 0;
+  filter: drop-shadow(0 1px 0 var(--tear-popout-border));
+}
+
+[class^="flyOutPanel___"] {
+  clip-path: inset(0 -12px -12px 0);
+}
+
+[class^="flyOutPanel___"] {
+  z-index: var(--tear-z-drawer);
+  scrollbar-width: thin;
+  scrollbar-color: var(--tear-line) transparent;
+}
+
+[class^="flyOutPanel___"] :is([class^="areaRow___"], [class*=" areaRow___"]) > a {
+  padding-inline: var(--page-gutter, 0.75rem) var(--tear-space-3);
+}
+
+[class^="flyOutPanel___"] [class^="header___"] {
+  padding-inline: var(--page-gutter, 0.75rem);
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §17 ▸ DRAWER ROWS
+   The drawer's area rows, laid out for when Areas and Lists is off.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+/* The drawer's rows, laid out for when Areas and Lists is off (it restyles them; zero specificity past
+   the gate). Their colours and states are Theme's navigation list. */
+:where([class^="flyOutPanel___"] [class^="areaRow___"] > a) {
+  display: flex;
+  align-items: center;
+  padding-block: var(--tear-space-2);
+  font-size: var(--tear-fs-body);
+}
+
+:where([class^="flyOutPanel___"] [class^="area-mobile___"]) {
+  border-bottom: 1px solid var(--tear-divider);
+}
+
+:where([class^="flyOutPanel___"] [class^="svgIconWrap___"]) {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.4em;
+  height: 1.5em;
+}
+
+:where([class^="flyOutPanel___"] [class^="svgIconWrap___"] svg) {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §18 ▸ DRAWER ACCOUNT LINKS
+   Messages, events and awards as a button group pinned to the drawer's foot.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+/* Messages, events and awards: a button group pinned to the drawer's foot. One outlined row of three,
+   inner borders shared, outer corners rounded; the states follow the navigation list's (hover tint,
+   inset focus ring, the current page tinted and outlined in the link colour). Icons keep Account
+   links' colours when that's on (--chip). */
+/* :is(#sidebarroot, body) outranks Theme's transparent sidebar parts; the drawer lives in #sidebarroot. */
+:is(#sidebarroot, body) [class^="flyOutPanel___"] > [class^="accountLinksWrap___"] {
+  order: 2;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex: none;
+  margin: auto 0 0;
+  padding: var(--tear-space-2) var(--page-gutter, 0.75rem);
+  border: 0;
+  border-top: 1px solid var(--tear-divider);
+  border-radius: 0;
+  background: var(--tear-surface);
+  box-shadow: 0 -2px 6px var(--tear-shadow);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > * {
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  background: none;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem;
+  padding: 0;
+  border: 1px solid var(--tear-line);
+  border-radius: 0;
+  background: transparent;
+  color: var(--tear-text);
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+/* Shared inner borders: each button after the first sits over its neighbour's. */
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > :not(:first-child) a {
+  margin-left: -1px;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > :first-child a {
+  border-radius: var(--tear-radius) 0 0 var(--tear-radius);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] [class^="accountLinks___"] > :last-child a {
+  border-radius: 0 var(--tear-radius) var(--tear-radius) 0;
+}
+
+/* Torn's 34px: its viewBox pads the glyph to about half that. */
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a svg {
+  width: 34px;
+  height: 34px;
+  filter: none;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a :is(svg, svg *) {
+  fill: var(--chip, currentColor);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a:is(:hover, :focus-visible) {
+  z-index: 1;
+  background: var(--tear-nav-hover);
+  color: var(--tear-link);
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a:focus-visible {
+  outline: 2px solid var(--tear-link);
+  outline-offset: -2px;
+}
+
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] :is([class^="active___"], [class*=" active___"]) a {
+  z-index: 1;
+  border-color: var(--tear-link);
+  background: var(--tear-nav-active);
+  color: var(--tear-link);
+}
+
+/* ── §18.1 Unread counts ─────────────────────────────────────────────────────────────────────── */
+/* Unread counts: a badge on the icon's corner. */
+[class^="flyOutPanel___"] [class^="accountLinksWrap___"] a [class^="amount___"] {
+  position: absolute;
+  top: 0.25rem;
+  left: calc(50% + 0.375rem);
+  min-width: 1rem;
+  height: 1rem;
+  margin: 0;
+  padding: 0 0.25rem;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--tear-badge-bg);
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 1rem;
+  text-align: center;
+  pointer-events: none;
 }
 }

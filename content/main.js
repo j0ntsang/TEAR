@@ -816,15 +816,20 @@ chrome.storage.local.get(["tornCssOff", "featuresOn"]).then(({ tornCssOff, featu
   }
 
   // ── header ───────────────────────────────────────────────────────────────────────────────────
-  feature("header", classWatcher(".search-mobile-button", "data-tear-search-open", /(^|\s)open___/));
-
-  // ── mobile ───────────────────────────────────────────────────────────────────────────────────
-  feature("mobile", classWatcher('[class^="flyOutPanel___"]', "data-tear-drawer-open", /(^|\s)visible___/));
+  // The mobile search popout and the fly-out drawer, both opened from the top bar.
+  const headerWatchers = [
+    classWatcher(".search-mobile-button", "data-tear-search-open", /(^|\s)open___/),
+    classWatcher('[class^="flyOutPanel___"]', "data-tear-drawer-open", /(^|\s)visible___/),
+  ];
+  feature("header", {
+    page: () => headerWatchers.forEach((w) => w.page()),
+    stop: () => headerWatchers.forEach((w) => w.stop()),
+  });
 
   // ── Running them ─────────────────────────────────────────────────────────────────────────────
   // page() order: tagColumns measures first, while layout may still be clean; layoutMerits measures
   // its own reordering, so it goes last.
-  const PAGE_ORDER = ["grid", "ticker", "rings", "card", "areas", "sidebarOrder", "statusIcons", "header", "mobile", "loadouts", "awards"];
+  const PAGE_ORDER = ["grid", "ticker", "rings", "card", "areas", "sidebarOrder", "statusIcons", "header", "loadouts", "awards"];
 
   // The ticker and sidebar sit outside #mainContainer and update text in place. Torn's chat
   // changes constantly and no feature styles it, so its mutations are ignored. One observer for

@@ -1,8 +1,34 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │    ███   ████  ████ █████ █████  ████                                                      │
+   │   █   █ █     █     █       █   █                                                          │
+   │   █████  ███   ███  ████    █    ███                                                       │
+   │   █   █     █     █ █       █       █                                                      │
+   │   █   █ ████  ████  █████   █   ████                                                       │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  file  : content/assets.css                                                                │
+   │  loads : always, first of TEAR's sheets                                                    │
+   │  holds : TEAR's cascade layer order; Torn's image assets as --tear-asset-* variables       │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  CASCADE LAYERS                                                                        │
+   │  §2  ASSET TOKENS                                                                          │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* TEAR's cascade layers, lowest first. This sheet loads before every feature's, so this order holds
    whichever features are on: Torn's ported layout and shared widgets (tear-structure), then each
    page's own feature (tear-pages). TEAR's unlayered rules win over both. */
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ CASCADE LAYERS
+   Declares TEAR's layer order once, before any feature sheet loads, so it holds whichever features
+   are on.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 @layer tear-structure, tear-pages;
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ ASSET TOKENS
+   Torn's images by name, each falling back to Torn's own file.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Torn's images by name, each falling back to Torn's file: define one to replace it. torn-css.js
    names the rest --tear-asset-<path> and lists them in chrome.storage.local "tornAssets". */
 

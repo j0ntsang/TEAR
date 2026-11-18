@@ -1,7 +1,29 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   █      ███   ████  ███                                                                   │
+   │   █     █   █ █     █   █                                                                  │
+   │   █     █   █ █  ██ █   █                                                                  │
+   │   █     █   █ █   █ █   █                                                                  │
+   │   █████  ███   ████  ███                                                                   │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Logo (logo)                                                                     │
+   │  file    : content/features/logo.css                                                       │
+   │  gate    : html.tear-enabled:where(.tear-f-logo)                                           │
+   │  styles  : Torn's logo for your state, country or the day                                  │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  MOBILE SIZING                                                                         │
+   │  §2  DESKTOP LOGO                                                                          │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Logo: the state and country logo. Applies while the Features tab has it on: torn-css.js sets .tear-f-logo on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
 html.tear-enabled:where(.tear-f-logo) {
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ MOBILE SIZING
+   The logo's box under the mobile header: sizes come from --logo-w/--logo-h; wide screens crop the
+   tablet sprite.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 &[data-tear-mobile] .header .logo {
   z-index: 2;
   width: var(--logo-w, 5.625rem);
@@ -31,6 +53,11 @@ html.tear-enabled:where(.tear-f-logo) {
   margin-top: var(--logo-h);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ DESKTOP LOGO
+   The desktop sprite with its hover cell; the h1 stays for screen readers; then the tablet and
+   phone images.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 & .header .logo {
   width: 172px;
   height: 77px;

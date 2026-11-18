@@ -1,7 +1,33 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   ████  ████   ███  █████ ███ █     █████  ████                                            │
+   │   █   █ █   █ █   █ █      █  █     █     █                                                │
+   │   ████  ████  █   █ ████   █  █     ████   ███                                             │
+   │   █     █  █  █   █ █      █  █     █         █                                            │
+   │   █     █   █  ███  █     ███ █████ █████ ████                                             │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Profiles (profiles)                                                             │
+   │  file    : content/features/profiles.css                                                   │
+   │  gate    : html.tear-enabled:where(.tear-f-profiles)                                       │
+   │  styles  : Profile card, honor bar, stats and interaction log                              │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  PHOTO COLUMN                                                                          │
+   │  §2  HONOR PLATE                                                                           │
+   │  §3  PORTRAIT FRAME                                                                        │
+   │  §4  STAT BOXES                                                                            │
+   │  §5  STATUS AND ICONS                                                                      │
+   │  §6  ACTION BUTTONS                                                                        │
+   │  §7  INTERACTION LOG                                                                       │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Profiles page. Applies while the Features tab has it on: torn-css.js sets .tear-f-profiles on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
 html.tear-enabled:where(.tear-f-profiles) {
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ PHOTO COLUMN
+   The user-information card: portrait, caption bar and name plate stacked in one column.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 &[data-tear-page="profiles"] .user-information .cont {
   align-items: stretch;
   gap: var(--page-gap, 0.75rem);
@@ -33,6 +59,11 @@ html.tear-enabled:where(.tear-f-profiles) {
   color: #fff;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ HONOR PLATE
+   Torn's letter sprite can't be cut per letter, so the name is real text laid over the plate image,
+   sized by container query; the SVG variant is hidden.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Torn's letter sprite can't be cut per letter from its CSS: the name is real text. */
 &[data-tear-page="profiles"] .profile-image .user.name,
 &[data-tear-page="profiles"] .userHonor {
@@ -74,6 +105,10 @@ html.tear-enabled:where(.tear-f-profiles) {
   text-shadow: 0 1px 2px #000, 0 0 2px #000, 0 0 4px #000;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §3 ▸ PORTRAIT FRAME
+   Fixed 4:5 portrait, contained. The top bar's avatar shares the wrapper class and is excluded.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* :not(.header *): the top bar's avatar sits in a .profile-image-wrapper too. */
 &[data-tear-page="profiles"] .profile-image-wrapper:not(.header *) .img-wrap {
   background: var(--tear-surface-sunk);
@@ -86,6 +121,11 @@ html.tear-enabled:where(.tear-f-profiles) {
   object-position: center;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §4 ▸ STAT BOXES
+   Level, rank and similar tiles beside the portrait; Torn's odometer digits and ear sprites are
+   flattened into plain text.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 &[data-tear-page="profiles"] .profile-information-wrapper {
   display: flex;
   flex: 0 0 clamp(9rem, 32%, 13rem);
@@ -167,6 +207,10 @@ html.tear-enabled:where(.tear-f-profiles) {
   background: none;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §5 ▸ STATUS AND ICONS
+   The status strip, its icon row and the profile container padding.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 &[data-tear-page="profiles"] .profile-status .cont {
   padding: var(--tear-space-3);
   border-left: 3px solid var(--tear-live);
@@ -205,6 +249,10 @@ html.tear-enabled:where(.tear-f-profiles) {
   float: none;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §6 ▸ ACTION BUTTONS
+   Square icon buttons (message, trade, and so on) wrapped in a grid row.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 &[data-tear-page="profiles"] .buttons-list {
   display: flex;
   flex-wrap: wrap;
@@ -233,6 +281,10 @@ html.tear-enabled:where(.tear-f-profiles) {
   height: 1.75rem;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §7 ▸ INTERACTION LOG
+   Recent-interaction table, its link row and the badges panel fill.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 &[data-tear-page="profiles"] :is([class^="interactionLog___"], [class*=" interactionLog___"]) {
   padding: var(--tear-space-2) var(--tear-space-3);
   border: 1px solid var(--tear-line);

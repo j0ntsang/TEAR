@@ -1,3 +1,28 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   ████   ███   ████ █████     ████ ████  ███ ████                                          │
+   │   █   █ █   █ █     █        █     █   █  █  █   █                                         │
+   │   ████  █████ █  ██ ████     █  ██ ████   █  █   █                                         │
+   │   █     █   █ █   █ █        █   █ █  █   █  █   █                                         │
+   │   █     █   █  ████ █████     ████ █   █ ███ ████                                          │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Page grid (grid)                                                                │
+   │  file    : content/features/grid.css                                                       │
+   │  gate    : html.tear-enabled:where(.tear-f-grid)                                           │
+   │  styles  : One grid for the page: top, sidebar or HUD, content, footer; tiers from phones  │
+   │            to wide screens and dual screens                                                │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  TOKENS AND TEMPLATES                                                                  │
+   │  §2  WIDTH TIERS                                                                           │
+   │  §3  DUAL SCREENS                                                                          │
+   │    §3.1  Side by side                                                                      │
+   │    §3.2  One above the other                                                               │
+   │  §4  PLACEMENT                                                                             │
+   │  §5  HIDDEN SCAFFOLDING                                                                    │
+   │  §6  DESKTOP SIDEBAR                                                                       │
+   │  §7  CONTENT COLUMNS                                                                       │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Page grid: one named-area grid for the whole page, no floats. Applies while the Features tab has it
    on: torn-css.js sets .tear-f-grid on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone.
@@ -11,6 +36,11 @@
    Tiers: xs ≤359 · phone 360 · fold 480 · tablet 768 · laptop 1024 · desktop 1440 · wide 1920 (fills the width). */
 
 html.tear-enabled:where(.tear-f-grid) {
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ TOKENS AND TEMPLATES
+   The body is the grid: gutter and sidebar tokens, the three templates (mobile HUD, desktop
+   sidebar, no sidebar). Torn's markup picks the template; the tokens carry the width.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 body.body {
   --page-gutter: 0.5rem;
   --page-gap: 0.625rem;
@@ -55,6 +85,10 @@ body.body.without-sidebar {
     "footer footer  footer  footer  footer";
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ WIDTH TIERS
+   Tokens per width, smallest first; each tier overrides the one before it by position.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* phone: 360 / 375 / 390 / 393 / 412 / 414 / 430 */
 @media (min-width: 360px) {
   body.body {
@@ -118,6 +152,11 @@ body.body.without-sidebar {
   }
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §3 ▸ DUAL SCREENS
+   Foldables and dual-screen devices: the template splits around the hinge.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+/* ── §3.1 Side by side ───────────────────────────────────────────────────────────────────────── */
 /* Dual-screen, side by side (Surface Duo spanned, foldables unfolded sideways): the header and the
    sidebar or HUD on the left screen, the content on the right, nothing across the hinge. */
 @media (horizontal-viewport-segments: 2) {
@@ -160,6 +199,7 @@ body.body.without-sidebar {
   }
 }
 
+/* ── §3.2 One above the other ────────────────────────────────────────────────────────────────── */
 /* Dual-screen, one above the other (folded like a laptop): the header and HUD fill the top screen,
    the content starts on the bottom one. The ::before spans both top rows to stretch them to the fold.
    Mobile markup only: with the desktop sidebar beside the content there's nothing to split. */
@@ -193,6 +233,11 @@ body.body.without-sidebar {
   }
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §4 ▸ PLACEMENT
+   Page children go into the grid's areas; the header is a subgrid so its rows follow the page
+   columns.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Placement. Unplaced children would auto-place into the gutters: they get the full width instead. */
 body.body > *,
 body.body::after {
@@ -254,6 +299,10 @@ body.body > .footer {
   grid-area: footer;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §5 ▸ HIDDEN SCAFFOLDING
+   Torn's own scaffolding that its stylesheets hid, plus screen-reader text and the skip links.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Torn's own scaffolding that only its stylesheets kept out of sight. */
 body.body > :is(.svgs_defs_container, .backdrops-container, input[type="hidden"]),
 body.body #sidebarroot > svg,
@@ -280,6 +329,10 @@ body.body > a.wai:focus {
   clip-path: none;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §6 ▸ DESKTOP SIDEBAR
+   The desktop sidebar as a wrapping flex column of sections.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Desktop sidebar: a column of sections. */
 body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" desktop___"] {
   padding-top: 1.875rem;
@@ -322,6 +375,10 @@ body:not(:has(.news-ticker-slider-wrapper)) [class^="sidebar___"][class*=" deskt
   display: none;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §7 ▸ CONTENT COLUMNS
+   Torn's floated .left/.right pairs as grid, and the stack spacing after them.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Content: Torn's .left/.right floats as grid. The outermost pairs are main + side columns
    (main.js tags them); pairs inside a panel sit side by side, the right one at its own width. */
 [data-tear-columns="2"] {

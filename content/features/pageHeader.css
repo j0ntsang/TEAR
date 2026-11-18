@@ -1,3 +1,23 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   ████   ███   ████ █████    █   █ █████  ███  ████  █████ ████   ████                     │
+   │   █   █ █   █ █     █        █   █ █     █   █ █   █ █     █   █ █                         │
+   │   ████  █████ █  ██ ████     █████ ████  █████ █   █ ████  ████   ███                      │
+   │   █     █   █ █   █ █        █   █ █     █   █ █   █ █     █  █      █                     │
+   │   █     █   █  ████ █████    █   █ █████ █   █ ████  █████ █   █ ████                      │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Page headers (pageHeader)                                                       │
+   │  file    : content/features/pageHeader.css                                                 │
+   │  gate    : html.tear-enabled:where(.tear-f-pageHeader)                                     │
+   │  styles  : Each page's title row, its icon link buttons and the rule under it (the same    │
+   │            markup on every page)                                                           │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  HEADER GRID                                                                           │
+   │  §2  TITLE AND LINK WRAP                                                                   │
+   │  §3  LINK BUTTONS                                                                          │
+   │  §4  VIEW SWITCHES                                                                         │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Page headers: the title row at the top of every page's content, its icon link buttons and the rule
    under it. Applies while the Features tab has it on: torn-css.js sets .tear-f-pageHeader on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone.
@@ -12,6 +32,11 @@
 /* A layer, so a page's own feature can still restyle its header. */
 @layer tear-structure {
 html.tear-enabled:where(.tear-f-pageHeader) {
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §1 ▸ HEADER GRID
+     The title row as a grid of title, links and rule; the links wrap under the title on narrow
+     screens.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .content-title {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
@@ -34,6 +59,10 @@ html.tear-enabled:where(.tear-f-pageHeader) {
     }
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §2 ▸ TITLE AND LINK WRAP
+     The title, the links container and the hidden mobile fold-away controls.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .content-title > #skip-to-content {
     grid-area: title;
     min-width: 0;
@@ -57,6 +86,10 @@ html.tear-enabled:where(.tear-f-pageHeader) {
     display: none;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §3 ▸ LINK BUTTONS
+     Each page link as an icon button with its label, and its icon box.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .content-title-links {
     display: flex;
     flex-wrap: wrap;
@@ -104,6 +137,10 @@ html.tear-enabled:where(.tear-f-pageHeader) {
     fill: currentColor;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §4 ▸ VIEW SWITCHES
+     The current view's active mark, square icon-only switches and the rule under the header.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* View switches: the current one is marked, not linked. */
   & .content-title-links > :is(a, button):has(.active, [class*="--active"]) {
     background: color-mix(in srgb, var(--tear-link) 16%, transparent);

@@ -1,3 +1,26 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │    ███  █████ █████  ███   ████ █   █    █      ███   ████                                 │
+   │   █   █   █     █   █   █ █     █  █     █     █   █ █                                     │
+   │   █████   █     █   █████ █     ███      █     █   █ █  ██                                 │
+   │   █   █   █     █   █   █ █     █  █     █     █   █ █   █                                 │
+   │   █   █   █     █   █   █  ████ █   █    █████  ███   ████                                 │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Attack log (attackLog)                                                          │
+   │  file    : content/features/attackLog.css                                                  │
+   │  gate    : html.tear-enabled:where(.tear-f-attackLog)                                      │
+   │  styles  : Log, fighters and stats                                                         │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  BUTTONS                                                                               │
+   │  §2  COLUMNS                                                                               │
+   │  §3  CONTAINER HEADER AND BODY                                                             │
+   │  §4  LOG ROWS                                                                              │
+   │  §5  RESULT COLOURS                                                                        │
+   │  §6  ROW CONTENT                                                                           │
+   │  §7  PEOPLE CARDS                                                                          │
+   │  §8  STAT ICONS                                                                            │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Attack log page. Applies while the Features tab has it on: torn-css.js sets .tear-f-attackLog on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
@@ -6,6 +29,10 @@
 
 @layer tear-pages {
 html.tear-enabled:where(.tear-f-attackLog) {
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §1 ▸ BUTTONS
+     Icon and text buttons inside the log.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & #attack-log-root button[class^="button___"] {
     display: inline-flex;
     align-items: center;
@@ -24,6 +51,10 @@ html.tear-enabled:where(.tear-f-attackLog) {
     color: var(--tear-text-strong);
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §2 ▸ COLUMNS
+     The log beside its people column, stacked on narrow screens.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Attack log: the log beside its people column, stacked on narrow screens. */
   & #attack-log-root [class^="columns___"] {
     display: flex;
@@ -59,6 +90,10 @@ html.tear-enabled:where(.tear-f-attackLog) {
     }
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §3 ▸ CONTAINER HEADER AND BODY
+     Panel headers, title, toggles and the flex body.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & #attack-log-root [class^="containerHeader___"] {
     display: flex;
     align-items: center;
@@ -105,6 +140,10 @@ html.tear-enabled:where(.tear-f-attackLog) {
     list-style: none;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §4 ▸ LOG ROWS
+     Rows, their two columns, and the timestamp with its result bar.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & #attack-log-root li[class^="row___"] {
     display: flex;
     font-size: var(--tear-fs-label);
@@ -154,6 +193,10 @@ html.tear-enabled:where(.tear-f-attackLog) {
     padding-bottom: 0.3125rem;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §5 ▸ RESULT COLOURS
+     One bar colour per Torn result class.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Torn's result colours, keyed by the row's color-N class. */
   & #attack-log-root li[class*=" color-1___"] { --tear-log-bar: rgb(130 201 30 / 0.2); }
   & #attack-log-root li[class*=" color-2___"] { --tear-log-bar: rgb(250 82 82 / 0.2); }
@@ -178,6 +221,10 @@ html.tear-enabled:where(.tear-f-attackLog) {
   & #attack-log-root li[class*=" color-21___"] { --tear-log-bar: rgb(0 0 64 / 0.2); }
   & #attack-log-root li[class*=" color-22___"] { --tear-log-bar: rgb(64 0 64 / 0.2); }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §6 ▸ ROW CONTENT
+     Icon and message inside a row.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & #attack-log-root [class^="iconWrap___"] {
     display: flex;
     flex: none;
@@ -198,6 +245,10 @@ html.tear-enabled:where(.tear-f-attackLog) {
     font-weight: 700;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §7 ▸ PEOPLE CARDS
+     The people column's cards and their stats.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & #attack-log-root [class^="cards___"] {
     flex: 1 1 0;
     min-width: 0;
@@ -250,6 +301,10 @@ html.tear-enabled:where(.tear-f-attackLog) {
     font-variant-numeric: tabular-nums;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §8 ▸ STAT ICONS
+     Hit and damage icons painted as backgrounds.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Stat icons: stable image paths, painted by Torn's bundle with no position to recognise them by. */
   & #attack-log-root :is([class^="statHits___"], [class^="statDamage___"]) {
     padding-left: 1.25rem;

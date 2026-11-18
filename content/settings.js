@@ -36,7 +36,7 @@
   // The colour overrides belong to the Theme feature: off, they leave the page.
   function applyTheme() {
     if (!featureOn("theme")) return overrides.remove();
-    overrides.textContent = colorCss(theme.colors) + (tornCssOff ? tornFallbackCss() : "");
+    overrides.textContent = colorCss(theme.colors) + (tornCssOff ? tornFallbackCss() : "") + fontCss(theme.fontFamily);
     if (!overrides.isConnected) document.head.append(overrides);
   }
 
@@ -80,6 +80,9 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === "local" && "tornCssOff" in changes) syncTornCssOff(Boolean(changes.tornCssOff.newValue));
   });
+
+  // The Customization tab's font; empty keeps Theme's own (Torn's Arial).
+  const fontCss = (fontFamily) => (fontFamily ? `\nbody.body { --tear-font: ${fontFamily}; }` : "");
 
   // Not !important: the user's own colors still win.
   function tornFallbackCss() {

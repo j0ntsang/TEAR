@@ -1,7 +1,30 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │    ████ ███ ████  █████ ████   ███  ████      ███  ████  ████  █████ ████                  │
+   │   █      █  █   █ █     █   █ █   █ █   █    █   █ █   █ █   █ █     █   █                 │
+   │    ███   █  █   █ ████  ████  █████ ████     █   █ ████  █   █ ████  ████                  │
+   │       █  █  █   █ █     █   █ █   █ █  █     █   █ █  █  █   █ █     █  █                  │
+   │   ████  ███ ████  █████ ████  █   █ █   █     ███  █   █ ████  █████ █   █                 │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Sidebar order (sidebarOrder)                                                    │
+   │  file    : content/features/sidebarOrder.css                                               │
+   │  gate    : html.tear-enabled:where(.tear-f-sidebarOrder)                                   │
+   │  styles  : Drag grips to reorder the sidebar's sections                                    │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  GRIP HIT AREA                                                                         │
+   │  §2  GROOVE AND HANDLE                                                                     │
+   │  §3  DRAG STATES                                                                           │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Sidebar order: drag grips and drop marker. Applies while the Features tab has it on: torn-css.js sets .tear-f-sidebarOrder on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
 html.tear-enabled:where(.tear-f-sidebarOrder) {
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ GRIP HIT AREA
+   The sidebar section grip: a tall transparent hit area around the thin groove, plus a
+   screen-reader announcer.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* 24px hit area around the 12px groove, without moving the sections. */
 [data-tear-grip] {
   all: unset;
@@ -24,6 +47,10 @@ html.tear-enabled:where(.tear-f-sidebarOrder) {
   white-space: nowrap;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ GROOVE AND HANDLE
+   The groove line, the handle pill that fades in on hover, and the grab cursors.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [data-tear-grip]::before {
   content: "";
   position: absolute;
@@ -77,6 +104,10 @@ html.tear-enabled:where(.tear-f-sidebarOrder) {
   cursor: grabbing;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §3 ▸ DRAG STATES
+   The hovered drop target, the dragged section and the drop marker line.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [data-tear-section][data-tear-section-hover] {
   outline: 1px dashed color-mix(in srgb, var(--tear-accent) 60%, transparent);
   outline-offset: 2px;

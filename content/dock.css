@@ -1,7 +1,35 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   ████   ███   ████ █   █                                                                  │
+   │   █   █ █   █ █     █  █                                                                   │
+   │   █   █ █   █ █     ███                                                                    │
+   │   █   █ █   █ █     █  █                                                                   │
+   │   ████   ███   ████ █   █                                                                  │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  file  : content/dock.css                                                                  │
+   │  loads : always, with or without TEAR enabled                                              │
+   │  holds : The dock's info and settings buttons, their size tokens, the room under the page  │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  STRAY CHROME                                                                          │
+   │  §2  DOCK BAR                                                                              │
+   │  §3  DOCK BUTTONS                                                                          │
+   │  §4  PANEL ANCHORING                                                                       │
+   │  §5  FOCUS RING                                                                            │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ STRAY CHROME
+   TEAR's drag grips and clones are hidden whenever TEAR is off.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 html:not(.tear-enabled) :is([data-tear-grip], [data-tear-clone]) {
   display: none !important;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ DOCK BAR
+   The fixed button row bottom-right, level with Torn's chat bar, and the spacer that keeps page
+   content clear of it.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 :root {
   --tear-dock-button: 38px;
 }
@@ -25,6 +53,11 @@ body.body::after {
   height: calc(var(--tear-dock-button) + 8px);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §3 ▸ DOCK BUTTONS
+   Chat-bar-style tabs: gradient, shadow and icon colour follow TEAR's tokens, with fallbacks for
+   when it is off.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 #tear-dock > button {
   --button: var(--tear-settings-button, #6e3a9c);
   all: unset;
@@ -63,6 +96,10 @@ html.tear-enabled body.dark-mode #tear-dock > button {
   filter: brightness(1.2);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §4 ▸ PANEL ANCHORING
+   Settings and info panels open above their buttons through CSS anchor positioning.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* The panels open above their buttons. Anchored, they follow the dock through resizes with no
    script, and position-area keeps them on screen. Here, not in the shadow styles: the host is
    in the page, and outer rules beat its :host { all: initial }. */
@@ -88,6 +125,10 @@ html.tear-enabled body.dark-mode #tear-dock > button {
   margin: 0 0 6px 8px;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §5 ▸ FOCUS RING
+   Keyboard focus outline on dock buttons.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 #tear-dock > button:focus-visible {
   outline: 2px solid var(--tear-link, #93c5fd);
   outline-offset: 2px;

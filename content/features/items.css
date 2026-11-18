@@ -1,3 +1,25 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   ███ █████ █████ █   █  ████                                                              │
+   │    █    █   █     ██ ██ █                                                                  │
+   │    █    █   ████  █ █ █  ███                                                               │
+   │    █    █   █     █   █     █                                                              │
+   │   ███   █   █████ █   █ ████                                                               │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Items (items)                                                                   │
+   │  file    : content/features/items.css                                                      │
+   │  gate    : html.tear-enabled:where(.tear-f-items)                                          │
+   │  styles  : Item list and thumbnails                                                        │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  ITEMS TOOLBAR                                                                         │
+   │  §2  CATEGORY TABS                                                                         │
+   │  §3  ITEM LIST ROWS                                                                        │
+   │  §4  ROW CELLS                                                                             │
+   │  §5  ACTIONS AND BONUSES                                                                   │
+   │  §6  INFO AND ACTION ROWS                                                                  │
+   │  §7  THUMBNAIL VIEW                                                                        │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Items page: item list and thumbnails. Applies while the Features tab has it on: torn-css.js sets .tear-f-items on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
@@ -6,6 +28,10 @@
 
 @layer tear-pages {
 html.tear-enabled:where(.tear-f-items) {
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §1 ▸ ITEMS TOOLBAR
+     The Items page's search field beside the title bar.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Items › your items: category tabs over a list (or a grid of thumbnails). */
   & .items-wrap > .title-black > form {
     display: flex;
@@ -25,6 +51,10 @@ html.tear-enabled:where(.tear-f-items) {
     font: inherit;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §2 ▸ CATEGORY TABS
+     The category tabs as a grid of sprite cells, with hover, active and disabled states.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .items-wrap #categoriesList {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
@@ -76,6 +106,11 @@ html.tear-enabled:where(.tear-f-items) {
     cursor: default;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §3 ▸ ITEM LIST ROWS
+     The item list as flex rows with dividers; thumbnail view hides the title and uses its own rules
+     below.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .items-wrap ul.items-cont {
     margin: 0;
     padding: 0;
@@ -130,6 +165,10 @@ html.tear-enabled:where(.tear-f-items) {
     cursor: pointer;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §4 ▸ ROW CELLS
+     Image, name and quantity cells inside a row.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .items-wrap .image-wrap {
     display: flex;
     flex: none;
@@ -168,6 +207,10 @@ html.tear-enabled:where(.tear-f-items) {
     font-variant-numeric: tabular-nums;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §5 ▸ ACTIONS AND BONUSES
+     Per-row bonus and action icons, and the inline action form Torn opens.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Its bonuses and actions sit in the row; an action form Torn opens wraps to a line of its own. */
   & .items-wrap:not(.thumbnails) .cont-wrap {
     display: contents;
@@ -245,6 +288,10 @@ html.tear-enabled:where(.tear-f-items) {
     white-space: nowrap;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §6 ▸ INFO AND ACTION ROWS
+     An item's info and action forms as a full-width row under it.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* An item's info and its action forms open as a full-width row under it. */
   & .items-wrap ul.items-cont > li:is(.show-item-info, .action-wrap, .thumbnail-actions) {
     display: block;
@@ -256,6 +303,10 @@ html.tear-enabled:where(.tear-f-items) {
     cursor: default;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §7 ▸ THUMBNAIL VIEW
+     The grid of thumbnails, their counts and the hover controls.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .items-wrap.thumbnails ul.items-cont {
     display: flex;
     flex-wrap: wrap;

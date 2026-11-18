@@ -1,3 +1,22 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   █████ █   █ █████ █   █ █████  ████                                                      │
+   │   █     █   █ █     ██  █   █   █                                                          │
+   │   ████  █   █ ████  █ █ █   █    ███                                                       │
+   │   █      █ █  █     █  ██   █       █                                                      │
+   │   █████   █   █████ █   █   █   ████                                                       │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Events (events)                                                                 │
+   │  file    : content/features/events.css                                                     │
+   │  gate    : html.tear-enabled:where(.tear-f-events)                                         │
+   │  styles  : The events list                                                                 │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  EVENTS LIST HEADER                                                                    │
+   │  §2  EVENT ITEMS                                                                           │
+   │  §3  ITEM ACTIONS                                                                          │
+   │  §4  EVENTS, NARROW                                                                        │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Events page. Applies while the Features tab has it on: torn-css.js sets .tear-f-events on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
@@ -6,6 +25,11 @@
 
 @layer tear-pages {
 html.tear-enabled:where(.tear-f-events) {
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §1 ▸ EVENTS LIST HEADER
+     The panel and its title bar with header buttons; unseen items are edged in the accent.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Events: a list of messages, each with its time and Copy / Send / Save; unseen ones edged in
      the accent. Torn's shared list item, so other notification lists pick it up too. */
   & [class^="eventsListWrapper___"] {
@@ -59,6 +83,11 @@ html.tear-enabled:where(.tear-f-events) {
     color: var(--tear-gold);
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §2 ▸ EVENT ITEMS
+     Each item: message, time column, and the list's dividers and unseen edge.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & [class^="eventsList___"] {
     margin: 0;
     padding: 0;
@@ -113,6 +142,11 @@ html.tear-enabled:where(.tear-f-events) {
     font-variant-numeric: tabular-nums;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §3 ▸ ITEM ACTIONS
+     Copy, Send and Save buttons, icon-only on wide screens.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & [class^="buttonsGroup___"] {
     display: flex;
     flex: none;
@@ -126,6 +160,11 @@ html.tear-enabled:where(.tear-f-events) {
     display: none;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §4 ▸ EVENTS, NARROW
+     At tablet widths items stack and the actions become a labelled row.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   @media (max-width: 784px) {
     & [class^="listItemWrapper___"] > [class^="listItem___"] {
       flex-direction: column;

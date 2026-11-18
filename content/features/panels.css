@@ -1,3 +1,22 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   ████   ███  █   █ █████ █      ████                                                      │
+   │   █   █ █   █ ██  █ █     █     █                                                          │
+   │   ████  █████ █ █ █ ████  █      ███                                                       │
+   │   █     █   █ █  ██ █     █         █                                                      │
+   │   █     █   █ █   █ █████ █████ ████                                                       │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Panels (panels)                                                                 │
+   │  file    : content/features/panels.css                                                     │
+   │  gate    : html.tear-enabled:where(.tear-f-panels)                                         │
+   │  styles  : Content blocks stack in the content column on the grid's gap and fit its width; │
+   │            title bars and bodies                                                           │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  CONTENT COLUMN                                                                        │
+   │  §2  PANEL FIT                                                                             │
+   │  §3  TITLE BARS AND BODIES                                                                 │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Panels: the content column as a stack of panels that fit the page grid, and Torn's panel parts
    (title bars, bodies, rounded corners). Applies while the Features tab has it on: torn-css.js sets
    .tear-f-panels on <html>.
@@ -6,6 +25,11 @@
 /* A layer, so each page's own feature (profiles, items, loadouts, …) still wins over these defaults. */
 @layer tear-structure {
 html.tear-enabled:where(.tear-f-panels) {
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §1 ▸ CONTENT COLUMN
+     One panel per row, spaced by the page grid's gap instead of Torn's margins; empty helpers drop
+     out.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* The content column: one panel per row, spaced by the page grid's gap instead of Torn's margins. */
   & .content-wrapper {
     display: flex;
@@ -18,6 +42,11 @@ html.tear-enabled:where(.tear-f-panels) {
     display: none;
   }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §2 ▸ PANEL FIT
+     Every panel and media element fits the column; Torn's spacing helpers map onto the TEAR space
+     scale.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Every panel fits the column: no fixed widths, floats or outer margins from Torn's markup. */
   & .content-wrapper > *,
   & :where(.content-wrapper) :is(.sortable-box, .cont-gray, .cont-black, .cont-white, .tutorial-cont, .profile-wrapper, .main-items-cont-wrap) {
@@ -50,6 +79,10 @@ html.tear-enabled:where(.tear-f-panels) {
   & :where(.content-wrapper) .m-bottom10 { margin-bottom: var(--tear-space-3); }
   & :where(.content-wrapper) .p10 { padding: var(--tear-space-3); }
 
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §3 ▸ TITLE BARS AND BODIES
+     Torn's title bars, panel bodies, rounded-corner helpers and rules, on the panel tokens.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Title bars. */
   & :is(.title-black, .title-gray, .title-green, .title-red, .title-blue) {
     display: flex;

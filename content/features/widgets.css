@@ -1,3 +1,30 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   █   █ ███ ████   ████ █████ █████  ████                                                  │
+   │   █   █  █  █   █ █     █       █   █                                                      │
+   │   █ █ █  █  █   █ █  ██ ████    █    ███                                                   │
+   │   ██ ██  █  █   █ █   █ █       █       █                                                  │
+   │   █   █ ███ ████   ████ █████   █   ████                                                   │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Shared widgets (widgets)                                                        │
+   │  file    : content/features/widgets.css                                                    │
+   │  gate    : html.tear-enabled:where(.tear-f-widgets)                                        │
+   │  styles  : Tooltips, app headers, data grids, info messages, pagination, user lists        │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  RESPONSIVE HELPERS                                                                    │
+   │  §2  JQUERY UI TOOLTIPS                                                                    │
+   │  §3  REACT TOOLTIPS                                                                        │
+   │  §4  APP HEADER                                                                            │
+   │  §5  SHARED REACT PIECES                                                                   │
+   │  §6  USER INFO BOX                                                                         │
+   │  §7  DATA GRIDS                                                                            │
+   │  §8  INFO MESSAGES                                                                         │
+   │  §9  PAGINATION                                                                            │
+   │  §10 USER LISTS                                                                            │
+   │  §11 USER LIST HONOR BARS                                                                  │
+   │  §12 USER LISTS, NARROW                                                                    │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Shared widgets: tooltips, app headers, data grids, info messages, pagination, user lists. Applies while the Features tab has it on: torn-css.js sets .tear-f-widgets on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
@@ -5,6 +32,12 @@
 
 @layer tear-structure {
 html.tear-enabled:where(.tear-f-widgets) {
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §1 ▸ RESPONSIVE HELPERS
+     Torn's d-hide, t-hide and m-hide utilities per breakpoint, and jQuery UI's visually hidden live
+     region.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Torn's responsive helpers: hidden on desktop (785px+), tablet (387–784px) or mobile. */
   @media (min-width: 785px) {
     & .d-hide { display: none; }
@@ -28,6 +61,12 @@ html.tear-enabled:where(.tear-f-widgets) {
     white-space: nowrap;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §2 ▸ JQUERY UI TOOLTIPS
+     Title-attribute tooltips on the legacy pages: card, content, and an arrow drawn as a rotated
+     square.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Tooltips: jQuery UI's, from title attributes across the legacy pages. Torn's CSS made them
      absolute; without it jQuery falls back to relative and they land at the end of the page. */
   & .ui-tooltip {
@@ -97,6 +136,12 @@ html.tear-enabled:where(.tear-f-widgets) {
     border-width: 1px 1px 0 0;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §3 ▸ REACT TOOLTIPS
+     Floating UI tooltips portalled to body. The arrow is a zero-size anchor on the edge with a
+     rotated square drawn on it.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Tooltips on Torn's React pages: Floating UI portals them to <body> and positions them inline;
      the card and its arrow were Torn's CSS. The arrow is a point on the edge (Floating UI sets its
      offset along it), with a square turned 45° drawn on it. */
@@ -154,6 +199,12 @@ html.tear-enabled:where(.tear-f-widgets) {
   & [data-floating-ui-portal] [role="tooltip"] [class*=" left___"] [class^="arrowIcon___"] { top: -4px; left: -4.5px; border-width: 1px 1px 0 0; }
   & [data-floating-ui-portal] [role="tooltip"] [class*=" right___"] [class^="arrowIcon___"] { top: -4px; left: -3.5px; border-width: 0 0 1px 1px; }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §4 ▸ APP HEADER
+     The title bar of Torn's React pages: title, link row, the off-screen measuring copy, and the
+     overflow dropdown.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Torn's app header: the title bar of its React pages (attack log, events, missions…). */
   & [class^="appHeaderWrapper___"] {
     width: 100%;
@@ -317,6 +368,11 @@ html.tear-enabled:where(.tear-f-widgets) {
     background: var(--tear-nav-hover);
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §5 ▸ SHARED REACT PIECES
+     Dividers and screen-reader-only text from Torn's React components.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Torn's shared React pieces, on the pages mapped so far. */
   & :is(#attack-log-root, [class^="appHeaderWrapper___"]) [class^="divider___"] {
     position: relative;
@@ -345,6 +401,11 @@ html.tear-enabled:where(.tear-f-widgets) {
     white-space: nowrap;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §6 ▸ USER INFO BOX
+     One 19px row of faction tag and honor bar, with the name set over the bar as real text.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Torn's user line (faction tag, honor bar) in lists and cards: one row, 19px tall. */
   & :is([class^="userInfoBox___"], [class*=" userInfoBox___"]) {
     display: flex;
@@ -406,6 +467,11 @@ html.tear-enabled:where(.tear-f-widgets) {
     text-shadow: 0 1px 2px #000, 0 0 2px #000;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §7 ▸ DATA GRIDS
+     Sortable headings over a list, with a CSS triangle for the sort direction.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* Data grids (sortable headings over a list). */
   & [class^="dataGrid___"] {
     display: flex;
@@ -478,6 +544,11 @@ html.tear-enabled:where(.tear-f-widgets) {
     border-bottom-color: currentColor;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §8 ▸ INFO MESSAGES
+     Coloured message boxes; the .red, .green and .yellow variants set --msg-color.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .info-msg-cont {
     --msg-color: var(--tear-link);
     overflow: hidden;
@@ -510,6 +581,11 @@ html.tear-enabled:where(.tear-f-widgets) {
     border: 0;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §9 ▸ PAGINATION
+     Page links as small tiles; Torn's end caps are hidden and the arrows are drawn with borders.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .pagination-wrap .pagination {
     display: flex;
     flex-wrap: wrap;
@@ -571,6 +647,11 @@ html.tear-enabled:where(.tear-f-widgets) {
   & .pagination .pagination-left { rotate: 45deg; translate: 1px 0; }
   & .pagination .pagination-right { rotate: -135deg; translate: -1px 0; }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §10 ▸ USER LISTS
+     The legacy user list as a subgrid table: icon, faction, name, time, level, reason.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   & .userlist-wrapper:has(> .users-list) {
     container: userlist / inline-size;
     display: grid;
@@ -699,6 +780,11 @@ html.tear-enabled:where(.tear-f-widgets) {
     white-space: nowrap;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §11 ▸ USER LIST HONOR BARS
+     Row labels drop out under the heading; the honor bar clips its name to the cell.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   /* The heading names the columns, so the rows drop their labels. */
   & .users-list > li > .info-wrap :is(.title, .reason > .bold),
   & .users-list > li > .bottom-white {
@@ -745,6 +831,11 @@ html.tear-enabled:where(.tear-f-widgets) {
     text-shadow: 0 1px 2px #000, 0 0 2px #000;
   }
 
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════════════════
+     §12 ▸ USER LISTS, NARROW
+     Below 36rem of container width the table collapses to wrapped flex rows.
+     ════════════════════════════════════════════════════════════════════════════════════════════ */
   @container userlist (max-width: 36rem) {
     & .userlist-wrapper > .users-list-title > :not(.title) {
       display: none;

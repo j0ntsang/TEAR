@@ -1,7 +1,29 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │    ████ █████  ███  █████ █   █  ████    ███  ████  ███  █   █  ████                       │
+   │   █       █   █   █   █   █   █ █         █  █     █   █ ██  █ █                           │
+   │    ███    █   █████   █   █   █  ███      █  █     █   █ █ █ █  ███                        │
+   │       █   █   █   █   █   █   █     █     █  █     █   █ █  ██     █                       │
+   │   ████    █   █   █   █    ███  ████     ███  ████  ███  █   █ ████                        │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Status icons (statusIcons)                                                      │
+   │  file    : content/features/statusIcons.css                                                │
+   │  gate    : html.tear-enabled:where(.tear-f-statusIcons)                                    │
+   │  styles  : One sprite cell per status icon                                                 │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  ICON TRAY LAYOUT                                                                      │
+   │  §2  SPRITE CELLS                                                                          │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Status icons: one sprite cell per icon. Applies while the Features tab has it on: torn-css.js sets .tear-f-statusIcons on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
 html.tear-enabled:where(.tear-f-statusIcons) {
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ ICON TRAY LAYOUT
+   The sidebar's status icons as a wrapping grid (flex on mobile), sized by zoom because the sprite
+   is positioned in px.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Sprite icons are positioned in px: zoom, not width/height. */
 :is([class^="userInformation___"], [class^="userInformationMobile___"]) [class^="statusIcons___"] {
   --icon-zoom: 1.5;
@@ -43,6 +65,10 @@ html.tear-enabled:where(.tear-f-statusIcons) {
   border-top: 1px solid var(--tear-line);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ SPRITE CELLS
+   One sprite, a cell per icon, with a row per size; links fill their cell.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* One sprite, an 18px cell per icon (--tear-icon from main.js); a row per size. */
 & :is([class^="statusIcons___"] > li, li:is([class^="user-status-16-"], [class*=" user-status-16-"]), [id="iconTray"] > li[id^="icon"]) {
   --tear-icon-row: 0px;

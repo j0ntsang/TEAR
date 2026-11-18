@@ -1,7 +1,39 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   ████  ███ █   █  ████  ████                                                              │
+   │   █   █  █  ██  █ █     █                                                                  │
+   │   ████   █  █ █ █ █  ██  ███                                                               │
+   │   █  █   █  █  ██ █   █     █                                                              │
+   │   █   █ ███ █   █  ████ ████                                                               │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Resource rings (rings)                                                          │
+   │  file    : content/features/rings.css                                                      │
+   │  gate    : html.tear-enabled:where(.tear-f-rings)                                          │
+   │  styles  : Energy, nerve, happy, life and chain as rings with regen timers                 │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  RING TOKENS                                                                           │
+   │  §2  MOBILE ORBS                                                                           │
+   │  §3  ORB CONTENTS                                                                          │
+   │  §4  RING NAMES                                                                            │
+   │  §5  VALUE SIZING                                                                          │
+   │  §6  SIDEBAR RING ROWS                                                                     │
+   │  §7  SIDEBAR LABELS AND VALUES                                                             │
+   │  §8  SIDEBAR TIMERS                                                                        │
+   │  §9  ORB OVERRIDES                                                                         │
+   │  §10 NARROW ORBS                                                                           │
+   │  §11 ORB TIMER AND HOLE                                                                    │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Resource rings: energy, nerve, happy, life and chain, with regen timers. Applies while the Features tab has it on: torn-css.js sets .tear-f-rings on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
 html.tear-enabled:where(.tear-f-rings) {
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ RING TOKENS
+   Torn's own bars are hidden in favour of TEAR's rings; each ring carries its colour and ink as
+   custom properties.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 :is([class^="userInformation___"], [class^="userInformationMobile___"]) [class^="progress___"],
 :is([class^="userInformation___"], [class^="userInformationMobile___"]) [data-tear-ring] [class^="tickList___"] {
   display: none;
@@ -19,6 +51,11 @@ html.tear-enabled:where(.tear-f-rings) {
 [data-tear-ring="chain"]  { --ring-color: #b0b0b0; }
 [class^="userInformation___"] > [data-tear-rings] { order: 8; }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ MOBILE ORBS
+   The HUD's bars become a row of round orbs: a conic-gradient arc masked into a ring.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="userInformationMobile___"] [class^="barsMobile___"] {
   display: grid;
   grid-auto-flow: column;
@@ -67,6 +104,11 @@ html.tear-enabled:where(.tear-f-rings) {
   mask: radial-gradient(farthest-side, transparent calc(100% - var(--ring-width)), #000 calc(100% - var(--ring-width) + 0.5px));
 }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §3 ▸ ORB CONTENTS
+   Icon, value and timer stacked inside the orb, sized in cqi of the orb itself.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barStats___"] {
   position: relative;
   z-index: 1;
@@ -153,12 +195,22 @@ html.tear-enabled:where(.tear-f-rings) {
   font-size: clamp(7px, calc(70cqi / (var(--tear-len, 5) * var(--tear-char-em-mono))), 16cqi);
 }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §4 ▸ RING NAMES
+   Torn's bar names are replaced with fixed labels through ::after.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [data-tear-ring="energy"] [class^="barName___"]::after { content: "Energy"; }
 [data-tear-ring="nerve"]  [class^="barName___"]::after { content: "Nerve"; }
 [data-tear-ring="happy"]  [class^="barName___"]::after { content: "Happy"; }
 [data-tear-ring="life"]   [class^="barName___"]::after { content: "Life"; }
 [data-tear-ring="chain"]  [class^="barName___"]::after { content: "Chain"; }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §5 ▸ VALUE SIZING
+   LCD-style value readouts, shrunk to fit their cell by character count.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 :is([class^="userInformation___"], [class^="userInformationMobile___"]) [data-tear-ring] [class^="barStats___"] [class^="barValue___"] {
   border-radius: var(--tear-radius-sm);
 }
@@ -173,6 +225,12 @@ html.tear-enabled:where(.tear-f-rings) {
   font-size: clamp(6px, calc((100cqi - 16px) / (var(--tear-len, 5) * (var(--tear-char-em-mono) + 0.08))), var(--tear-fs-body));
 }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §6 ▸ SIDEBAR RING ROWS
+   Desktop rings stack as bordered rows, each with a fill bar along its bottom edge and a tinted
+   progress wash.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="userInformation___"] [data-tear-rings] {
   container-type: inline-size;
   display: flex;
@@ -240,6 +298,11 @@ html.tear-enabled:where(.tear-f-rings) {
   line-height: 1;
 }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §7 ▸ SIDEBAR LABELS AND VALUES
+   Label top left, value below, with current and max drawn from data attributes.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barName___"]::after {
   color: var(--tear-label);
   font-size: var(--tear-fs-caption);
@@ -289,6 +352,11 @@ html.tear-enabled:where(.tear-f-rings) {
   display: none;
 }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §8 ▸ SIDEBAR TIMERS
+   Regen timer top right with a clock icon, or Full once the bar is topped up.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="userInformation___"] [data-tear-rings] > [data-tear-ring] [class^="barStats___"] > [data-tear-timer],
 [class^="userInformation___"] [data-tear-rings] > [data-tear-ring][data-tear-full]:not([data-tear-timer])::after {
   grid-area: timer;
@@ -318,6 +386,12 @@ html.tear-enabled:where(.tear-f-rings) {
   text-transform: uppercase;
 }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §9 ▸ ORB OVERRIDES
+   Later rules that win over the earlier orb ones: timer wrapper, stacking, value text and the bars
+   container.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* Torn wraps the timer in "(" ")" text nodes; font-size 0 hides them. */
 [class^="userInformationMobile___"] [data-tear-ring] [class^="barDescWrapper___"] {
   display: flex;
@@ -383,6 +457,11 @@ html.tear-enabled:where(.tear-f-rings) {
   border-bottom: 1px solid var(--tear-line);
 }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §10 ▸ NARROW ORBS
+   Phones: tighter gaps, bigger orbs and icons, values dropped.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 600px) {
   [class^="userInformationMobile___"] [class^="barsMobile___"] {
     gap: 1.5cqi;
@@ -402,6 +481,11 @@ html.tear-enabled:where(.tear-f-rings) {
   }
 }
 
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §11 ▸ ORB TIMER AND HOLE
+   The timer ring's colour and the centre disc behind the orb.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 [class^="userInformationMobile___"] [data-tear-ring] [data-tear-timer]::before {
   background: conic-gradient(
     color-mix(in srgb, var(--tear-timer-color) 70%, transparent) calc(var(--tear-timer) * 1%),

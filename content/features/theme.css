@@ -1,6 +1,38 @@
+/* ┌────────────────────────────────────────────────────────────────────────────────────────────┐
+   │                                                                                            │
+   │   █████ █   █ █████ █   █ █████                                                            │
+   │     █   █   █ █     ██ ██ █                                                                │
+   │     █   █████ ████  █ █ █ ████                                                             │
+   │     █   █   █ █     █   █ █                                                                │
+   │     █   █   █ █████ █   █ █████                                                            │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  feature : Theme (theme)                                                                   │
+   │  file    : content/features/theme.css                                                      │
+   │  gate    : html.tear-enabled:where(.tear-f-theme)                                          │
+   │  styles  : Torn's font (Arial) and TEAR's colour, spacing and motion variables, panel      │
+   │            colours, your font and colour overrides                                         │
+   ├────────────────────────────────────────────────────────────────────────────────────────────┤
+   │  §1  REGISTERED PROPERTIES                                                                 │
+   │  §2  TOKENS                                                                                │
+   │    §2.1  Colour                                                                            │
+   │    §2.2  Spacing, radii and type                                                           │
+   │    §2.3  Popouts                                                                           │
+   │    §2.4  Stacking                                                                          │
+   │  §3  DARK-MODE TOKENS                                                                      │
+   │  §4  PAGE BASE                                                                             │
+   │  §5  LINKS                                                                                 │
+   │  §6  NAVIGATION LISTS                                                                      │
+   │  §7  TORN PANELS                                                                           │
+   │  §8  MOTION                                                                                │
+   └────────────────────────────────────────────────────────────────────────────────────────────┘ */
+
 /* Theme: TEAR's variables, panel colours and motion tokens. Applies while the Features tab has it on: torn-css.js sets .tear-f-theme on <html>.
    :where() keeps every rule's specificity what it was under html.tear-enabled alone. */
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §1 ▸ REGISTERED PROPERTIES
+   Typed custom properties so they can transition.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 @property --tear-pct {
   syntax: "<number>";
   inherits: true;
@@ -14,7 +46,15 @@
 }
 
 html.tear-enabled:where(.tear-f-theme) {
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §2 ▸ TOKENS
+   Colour, spacing, type, popout and stacking tokens, on body because Torn flips its own variables
+   there.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 body {
+  /* ── §2.1 Colour ───────────────────────────────────────────────────────────────────────────── */
+  /* Torn's own font: Arial everywhere but a few newer pages. The Customization tab's choice overrides it. */
+  --tear-font: Arial, Helvetica, sans-serif;
   /* Torn flips its theme variables on body.dark-mode, so these must live on body, not :root. */
   --tear-surface: var(--default-bg-panel-color, #f2f2f2);
   --tear-surface-sunk: var(--default-panel-divider-outer-side-color, #ccc);
@@ -41,7 +81,7 @@ body {
   --tear-muted: color-mix(in srgb, var(--tear-text) 65%, transparent);
 
   --tear-accent: var(--tear-link);
-  --tear-badge-bg: #d92d20; /* white text passes AA */
+  --tear-badge-bg: var(--tear-live); /* unread counts; white text passes AA */
   --tear-nav-hover: color-mix(in srgb, var(--tear-link) 8%, transparent);
   --tear-nav-active: color-mix(in srgb, var(--tear-link) 12%, transparent);
   --tear-gold: #e8b64c;
@@ -56,6 +96,7 @@ body {
   --tear-strip: #f2f2f2;
   --tear-strip-text: #1f1f1f;
 
+  /* ── §2.2 Spacing, radii and type ──────────────────────────────────────────────────────────── */
   --tear-space-1: 4px;
   --tear-space-2: 8px;
   --tear-space-3: 12px;
@@ -80,13 +121,15 @@ body {
   --tear-char-em-mono: 0.62;
   --tear-timer-color: var(--tear-text);
 
-  /* Popouts (top bar menus, dropdowns, widgets), after Torn's clock and log: a solid border one
-     step off the fill, a tight shadow. */
+  /* ── §2.3 Popouts ──────────────────────────────────────────────────────────────────────────── */
+  /* Popouts (top bar menus, dropdowns, tooltips, the drawer), after Torn's clock and log: the panel
+     surface with a solid border one step off it, a tight shadow. Both follow the editable tokens. */
   --tear-popup-bg: var(--tear-surface);
   --tear-popout-border: var(--tear-surface-sunk);
   --tear-popout-radius: 5px;
   --tear-popout-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 
+  /* ── §2.4 Stacking ─────────────────────────────────────────────────────────────────────────── */
   /* Page-level stacking, lowest first. Inside one component (a top bar tab over its own popout)
      small local values stay where they are. Above all of these: the dock (dock.css, 2147483640)
      and the settings panel (panel-styles.js, 2147483645). */
@@ -98,6 +141,10 @@ body {
   --tear-z-drawer: 2147483200;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §3 ▸ DARK-MODE TOKENS
+   Overrides for body.dark-mode.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 body.dark-mode {
   --tear-bg: #1a1a1a;
   --tear-topbar: #333333;
@@ -117,20 +164,99 @@ body.dark-mode {
   --tear-lcd-mix: #fff 35%;
   --tear-lcd-bezel: rgba(0, 0, 0, 0.45);
   --tear-lcd-glow: 0 0 6px;
-  --tear-popup-bg: rgb(51, 51, 51);
-  --tear-popout-border: rgb(68, 68, 68);
+  --tear-popout-border: color-mix(in srgb, var(--tear-surface), var(--tear-text) 10%); /* lighter than the fill: the sunken shade disappears on dark */
   --tear-popout-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §4 ▸ PAGE BASE
+   Page background, text, font and form controls.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 body.body {
   background-color: var(--tear-bg, #1a1a1a);
+  color: var(--tear-text);
+  font-family: var(--tear-font);
 }
 
-a:focus-visible {
+/* Form controls don't inherit the font on their own. */
+:is(button, input, select, textarea) {
+  font-family: inherit;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §5 ▸ LINKS
+   Torn's link colour for unstyled links, and the focus ring.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+/* Torn's link colour, for links no feature styles: the browser's blue and visited purple don't
+   read on dark. Zero specificity past the gate, so every feature's own link rule wins. */
+:where(a:any-link) {
+  color: var(--tear-link);
+}
+
+:where(a):focus-visible {
   outline: 2px solid var(--tear-link);
   outline-offset: 2px;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §6 ▸ NAVIGATION LISTS
+   One look for every list of links TEAR knows.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
+/* Navigation lists: every list of links TEAR knows (the sidebar's and the drawer's area rows, the top
+   bar's menus, dropdown options) shares one look. Rest in the text colour; hover and keyboard focus
+   tint with the link colour, focus adding an inset ring; the current page (Torn's active___, a
+   selected option) a stronger tint, the link colour and a bar on its leading edge. Colours come from
+   the text and link tokens. Zero specificity past the gate, pseudo-classes aside: features only lay
+   the items out (padding, icons) and leave their states to this. */
+:where(
+  :is([class^="areaRow___"], [class*=" areaRow___"]) > a,
+  .settings-menu li > :is(a, label),
+  .info-menu > .menu-items li > a,
+  .header-menu .menu-item-href,
+  .react-dropdown-default .dropdownList li
+) {
+  color: var(--tear-text);
+  text-decoration: none;
+  text-shadow: none;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+:where(
+  :is([class^="areaRow___"], [class*=" areaRow___"]) > a,
+  .settings-menu li > :is(a, label),
+  .info-menu > .menu-items li > a,
+  .header-menu .menu-item-href,
+  .react-dropdown-default .dropdownList li
+):is(:hover, :focus-visible) {
+  background: var(--tear-nav-hover);
+  color: var(--tear-link);
+}
+
+:where(
+  :is([class^="areaRow___"], [class*=" areaRow___"]) > a,
+  .settings-menu li > :is(a, label),
+  .info-menu > .menu-items li > a,
+  .header-menu .menu-item-href,
+  .react-dropdown-default .dropdownList li
+):focus-visible {
+  outline: 2px solid var(--tear-link);
+  outline-offset: -2px;
+}
+
+:where(
+  :is([class^="area-desktop___"], [class*=" area-desktop___"], [class^="area-mobile___"], [class*=" area-mobile___"]):is([class^="active___"], [class*=" active___"]) :is([class^="areaRow___"], [class*=" areaRow___"]) > a,
+  .react-dropdown-default .dropdownList li[aria-selected="true"]
+):nth-child(n) /* matches any item; only here to outrank :hover above, so current stays current */ {
+  background: var(--tear-nav-active);
+  box-shadow: inset 3px 0 0 var(--tear-link);
+  color: var(--tear-link);
+  font-weight: 600;
+}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §7 ▸ TORN PANELS
+   Torn's sidebar, boxes and crime panels in TEAR's colours; icons fill with currentColor.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 /* The sidebar's own parts only: header___ and the rest are generic names elsewhere on the page. */
 body.dark-mode #sidebarroot [class^="header___"] {
   background-color: var(--tear-bg, #1a1a1a);
@@ -174,6 +300,10 @@ body.dark-mode .crime-root {
   fill: currentColor;
 }
 
+/* ═════════════════════════════════════════════════════════════════════════════════════════════════
+   §8 ▸ MOTION
+   Bar height and timing tokens, the rise keyframes and reduced-motion.
+   ══════════════════════════════════════════════════════════════════════════════════════════════ */
 body {
   --tear-bar-h: 2.75rem;
   --tear-motion-in: 160ms;
